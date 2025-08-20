@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>نموذج الزيارة الإشرافية</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      margin: 20px;
+    }
+    h1, h2, h3 {
+      color: #004080;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: right;
+    }
+    th {
+      background-color: #f0f6ff;
+    }
+    .report-section {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+    }
+    label {
+      display: block;
+      margin-top: 8px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 8px 16px;
+      background-color: #004080;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #002a5e;
+    }
+  </style>
+</head>
+<body>
+  <h1>نموذج الزيارة الإشرافية</h1>
+  <form id="visitForm">
+    <label>اسم المعلم:
+      <input type="text" id="teacher" required>
+    </label>
+    <label>التاريخ:
+      <input type="date" id="date" required>
+    </label>
+    <label>عنوان الدرس:
+      <input type="text" id="subject" placeholder="مثال: كرة السلة" required>
+    </label>
+    <label>الصف:
+      <input type="text" id="class" required>
+    </label>
+    <label>الحصة:
+      <input type="text" id="lesson" required>
+    </label>
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>م</th>
+          <th>البند</th>
+          <th>الدرجة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- سيتم ملء الصفوف بواسطة جافاسكريبت -->
+      </tbody>
+    </table>
+    <button type="button" onclick="generateReport()">إنشاء التقرير</button>
+  </form>
+
+  <div id="reportContainer" class="report-section" style="display:none;">
+    <h2>التقرير</h2>
+    <div id="report"></div>
+  </div>
+
+  <script>
+    // قائمة البنود التقييمية
+    const items = [
+      'خطط التدريس',
+      'بيئة التعلم الصفية',
+      'فاعلية التدريس',
+      'المصادر والمواد التعليمية',
+      'التقويم من أجل التعلم',
+      'التقدم الدراسي',
+      'التحصيل الدراسي',
+      'مهارات التعلم من أجل المستقبل',
+      'القيم والاتجاهات الإيجابية في التعلم',
+      'الممارسات المهنية للتعلم المستمر',
+      'المبادرات والأنشطة التربوية في المجتمع المدرسي'
+    ];
+
+    // توصيفات جاهزة لكل بند حسب الدرجة
+    const descriptions = {
+      1: [
+        'خطة الدرس غير واضحة ولا تسهم في تحقيق الأهداف التعليمية.',
+        'البيئة الصفية غير منظمة مما يعيق التعلم.',
+        'نادراً ما يشرح المعلم بفاعلية أو يستخدم أساليب متنوعة.',
+        'نادراً ما يوظف المعلم مصادر أو مواد تعليمية متنوعة.',
+        'نادراً ما يستخدم المعلم أدوات تقويم لمتابعة تعلم الطلبة.',
+        'نادراً ما يحقق الطلبة تقدماً في الأداء الدراسي.',
+        'نادراً ما يظهر الطلبة تحصيلاً دراسياً جيداً.',
+        'نادراً ما يتم التركيز على مهارات التعلم من أجل المستقبل.',
+        'نادراً ما يظهر الطلبة قيماً أو اتجاهات إيجابية نحو التعلم.',
+        'نادراً ما يشارك المعلم في ممارسات مهنية للتعلم المستمر.',
+        'نادراً ما يشارك المعلم في المبادرات والأنشطة التربوية داخل المدرسة.'
+      ],
+      2: [
+        'خطة الدرس تحتاج إلى تحسين وربط أفضل بالأهداف.',
+        'البيئة الصفية تحتاج إلى تنظيم أفضل وتعزيز الأمان.',
+        'قليلاً ما يستخدم المعلم طرقاً فعالة لشرح المحتوى.',
+        'قليلاً ما يتم استخدام مصادر ومواد تعليمية داعمة.',
+        'قليلاً ما يوظف المعلم أدوات التقويم المتنوعة.',
+        'قليلاً ما يظهر تقدم دراسي واضح لدى الطلبة.',
+        'قليلاً ما يظهر الطلبة تحصيلاً دراسياً مقبولاً.',
+        'قليلاً ما تُفعل مهارات التعلم من أجل المستقبل داخل الحصة.',
+        'قليلاً ما يلاحظ قيم واتجاهات إيجابية لدى الطلبة.',
+        'قليلاً ما يسعى المعلم لتطوير نفسه بطرق مستمرة.',
+        'قليلاً ما يشارك المعلم في المبادرات والأنشطة التربوية.'
+      ],
+      3: [
+        '', '', '', '', '', '', '', '', '', '', ''
+      ],
+      4: [
+        'معظم الطلبة يحققون أهداف الدرس ضمن خطة منظمة.',
+        'معظم الوقت يتم توفير بيئة صفية آمنة ومنظمة تدعم التعلم.',
+        'معظم الطلبة يستفيدون من طرق شرح فعالة ومتنوعة.',
+        'يستخدم المعلم غالباً مصادر ومواد تعليمية داعمة.',
+        'يستخدم المعلم غالباً أدوات تقويم لمتابعة تعلم الطلبة.',
+        'معظم الطلبة يظهرون تقدماً ملحوظاً في التعلم.',
+        'معظم الطلبة يحققون تحصيلاً دراسياً جيداً.',
+        'معظم الوقت يتم تعزيز مهارات التعلم من أجل المستقبل.',
+        'معظم الطلبة يظهرون قيماً واتجاهات إيجابية في التعلم.',
+        'المعلم غالباً ما يشارك في ممارسات مهنية للتعلم المستمر.',
+        'يشارك المعلم غالباً في المبادرات والأنشطة التربوية داخل المدرسة.'
+      ],
+      5: [
+        'جميع الطلبة يحققون أهداف الدرس ضمن خطة تدريس متقنة.',
+        'البيئة الصفية آمنة ومنظمة بشكل ممتاز تدعم تعلم الجميع.',
+        'المعلم يشرح بفاعلية عالية ويستخدم أساليب متنوعة تشد انتباه الطلبة.',
+        'يُوظف المعلم مصادر ومواد تعليمية متنوعة تثري التعلم.',
+        'يُوظف المعلم أدوات تقويم متنوعة ويوفر تغذية راجعة فورية.',
+        'جميع الطلبة يظهرون تقدماً واضحاً في الأداء الدراسي.',
+        'جميع الطلبة يحققون تحصيلاً دراسياً متميزاً.',
+        'يتم تنمية مهارات التعلم من أجل المستقبل بشكل كامل.',
+        'جميع الطلبة يظهرون قيماً واتجاهات إيجابية نحو التعلم.',
+        'المعلم ملتزم بممارسات مهنية للتعلم المستمر.',
+        'المعلم نشيط في المبادرات والأنشطة التربوية داخل المدرسة.'
+      ]
+    };
+
+    // توصيات لكل بند عند الحاجة
+    const recommendations = [
+      'تحسين خطة الدرس وربطها بالأهداف التعليمية.',
+      'تنظيم البيئة الصفية لتصبح أكثر أماناً وتحفيزاً.',
+      'استخدام طرق تدريس أكثر فعالية وتنوعاً.',
+      'تنويع المصادر والمواد التعليمية المستخدمة.',
+      'تطبيق أدوات تقويم متنوعة وتقديم تغذية راجعة.',
+      'متابعة تقدم الطلبة ووضع خطط دعم فردية.',
+      'متابعة التحصيل الدراسي وتعزيز نقاط الضعف.',
+      'تفعيل مهارات التعلم من أجل المستقبل داخل الحصة.',
+      'تعزيز القيم والاتجاهات الإيجابية لدى الطلبة.',
+      'المشاركة في برامج تطوير مهني منتظمة.',
+      'المشاركة في المبادرات والأنشطة التربوية بفاعلية.'
+    ];
+
+    // ملء جدول البنود تلقائياً
+    function fillItemsTable() {
+      const tbody = document.querySelector('#itemsTable tbody');
+      items.forEach((item, index) => {
+        const row = document.createElement('tr');
+        const cellIndex = document.createElement('td');
+        cellIndex.textContent = index + 1;
+        const cellItem = document.createElement('td');
+        cellItem.textContent = item;
+        const cellSelect = document.createElement('td');
+        const select = document.createElement('select');
+        select.id = 'grade-' + index;
+        [5,4,3,2,1].forEach(val => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val;
+          select.appendChild(opt);
+        });
+        cellSelect.appendChild(select);
+        row.appendChild(cellIndex);
+        row.appendChild(cellItem);
+        row.appendChild(cellSelect);
+        tbody.appendChild(row);
+      });
+    }
+
+    // إنشاء التقرير
+    function generateReport() {
+      const teacher = document.getElementById('teacher').value.trim();
+      const date = document.getElementById('date').value;
+      const subject = document.getElementById('subject').value.trim();
+      const className = document.getElementById('class').value.trim();
+      const lesson = document.getElementById('lesson').value.trim();
+      const positive = [];
+      const improvement = [];
+      const recs = [];
+      const neutralIndices = [];
+      // جمع الدرجات ووصفها
+      items.forEach((item, index) => {
+        const grade = parseInt(document.getElementById('grade-' + index).value);
+        const desc = descriptions[grade][index];
+        if (grade >= 4) {
+          positive.push({grade: grade, text: desc});
+        } else if (grade <= 2) {
+          improvement.push({grade: grade, text: desc});
+          recs.push(recommendations[index]);
+        } else {
+          // grade == 3
+          neutralIndices.push(index);
+        }
+      });
+      // اختيار أعلى ثلاث إيجابيات وأعلى ثلاث جوانب تطوير
+      positive.sort((a,b) => b.grade - a.grade);
+      improvement.sort((a,b) => a.grade - b.grade);
+      const selectedPos = positive.slice(0,3);
+      const selectedImp = improvement.slice(0,3);
+      // إعداد التوصيات: توصيات للبنود 2 أو 1، وتوصيتان للبنود 3 إذا لزم الأمر
+      const selectedRecs = [];
+      // توصيات للبنود الضعيفة (2 أو 1)
+      selectedImp.forEach(item => {
+        // use the corresponding recommendation by index (we don't have index; just push recs) 
+      });
+      // إذا كانت التوصيات أقل من 5، نضيف توصيات للبنود بدرجة 3
+      const neutralRecs = neutralIndices.map(i => recommendations[i]);
+      // دمج كل التوصيات (إجرائية)
+      const finalRecs = [];
+      // Add improvement recs for weak items
+      improvement.forEach((imp) => {
+        // find index of imp text in descriptions map to get rec
+        const idx = descriptions[2].indexOf(imp.text);
+        if (idx !== -1) {
+          finalRecs.push({grade: imp.grade, text: recommendations[idx]});
+        }
+      });
+      // Add recommendations for grade 3 if less than 5 recs
+      if (finalRecs.length < 5) {
+        neutralRecs.forEach(rec => {
+          finalRecs.push({text: 'مواصلة تحسين: ' + rec.replace('تحسين ', '')});
+        });
+      }
+      // تقييد عدد التوصيات بخمس
+      const selectedFinalRecs = finalRecs.slice(0,5);
+      // إنشاء نص التقرير
+      let reportHTML = '';
+      reportHTML += `<p><strong>المعلم:</strong> ${teacher}</p>`;
+      reportHTML += `<p><strong>التاريخ:</strong> ${date}</p>`;
+      reportHTML += `<p><strong>عنوان الدرس:</strong> ${subject}</p>`;
+      reportHTML += `<p><strong>الصف:</strong> ${className}</p>`;
+      reportHTML += `<p><strong>الحصة:</strong> ${lesson}</p>`;
+      if (selectedPos.length > 0) {
+        reportHTML += '<h3>جوانب الإجادة في الأداء وإنجازاتها</h3><ul>';
+        selectedPos.forEach(item => {
+          reportHTML += `<li>${item.text}</li>`;
+        });
+        reportHTML += '</ul>';
+      }
+      if (selectedImp.length > 0) {
+        reportHTML += '<h3>الجوانب التي تحتاج إلى تطوير وإنجازاتها</h3><ul>';
+        selectedImp.forEach(item => {
+          reportHTML += `<li>${item.text}</li>`;
+        });
+        reportHTML += '</ul>';
+      }
+      if (selectedFinalRecs.length > 0) {
+        reportHTML += '<h3>التوصيات</h3><ul>';
+        selectedFinalRecs.forEach(rec => {
+          reportHTML += `<li>${rec.text}</li>`;
+        });
+        reportHTML += '</ul>';
+      }
+      const reportDiv = document.getElementById('report');
+      reportDiv.innerHTML = reportHTML;
+      document.getElementById('reportContainer').style.display = 'block';
+    }
+
+    // تهيئة الجدول عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+      fillItemsTable();
+    });
+  </script>
+</body>
+</html>
