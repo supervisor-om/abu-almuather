@@ -1,300 +1,534 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>نموذج الزيارة الإشرافية</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      direction: rtl;
-      margin: 20px;
-    }
-    h1, h2, h3 {
-      color: #004080;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: right;
-    }
-    th {
-      background-color: #f0f6ff;
-    }
-    .report-section {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      background-color: #f9f9f9;
-    }
-    label {
-      display: block;
-      margin-top: 8px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 8px 16px;
-      background-color: #004080;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #002a5e;
-    }
-  </style>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام التقييم الإشرافي الرقمي</title>
+    <style>
+        /* --- Google Fonts --- */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+
+        /* --- Global Styles --- */
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        /* --- Interactive View Styles --- */
+        .interactive-view {
+            max-width: 900px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .page-header { text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px; }
+        .page-header h1 { color: #0056b3; margin: 0; }
+        .page-header p { margin: 5px 0 0; color: #666; font-size: 1.1rem; }
+        h2 { color: #0056b3; border-right: 4px solid #007bff; padding-right: 10px; margin-top: 30px; }
+        details { border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 15px; margin-bottom: 20px; background-color: #fafafa; }
+        summary { cursor: pointer; font-weight: 700; font-size: 1.2rem; color: #0056b3; list-style: none; display: flex; align-items: center; }
+        summary::-webkit-details-marker { display: none; }
+        summary::before { content: '◀'; margin-left: 10px; font-size: 0.8em; transition: transform 0.2s; }
+        details[open] > summary::before { transform: rotate(90deg); }
+        .item-card { border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin: 15px 0; background-color: #fdfdfd; transition: box-shadow 0.3s; }
+        .item-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .item-header { display: flex; justify-content: space-between; align-items: center; }
+        .item-header h4 { margin: 0; font-size: 1.1rem; color: #333; }
+        .score-controls { display: flex; align-items: center; gap: 15px; }
+        .score { font-size: 2rem; font-weight: bold; color: #d9534f; background-color: #f0f2f5; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: color 0.3s, background-color 0.3s; }
+        .select-all-btn { padding: 6px 12px; font-size: 0.85rem; font-family: 'Tajawal', sans-serif; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        .select-all-btn:hover { background-color: #5a6268; }
+        .indicator { display: block; margin: 12px 5px; font-size: 1rem; padding: 8px; border-radius: 5px; transition: background-color 0.2s; }
+        .indicator:hover { background-color: #e9ecef; }
+        .indicator input { margin-left: 10px; transform: scale(1.2); }
+        .item-notes { width: 100%; box-sizing: border-box; margin-top: 15px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; font-size: 0.95rem; resize: vertical; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .info-grid input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .summary-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .summary-table th, .summary-table td { padding: 12px; text-align: right; border-bottom: 1px solid #ddd; }
+        .summary-table th { background-color: #0056b3; color: white; font-weight: 700; }
+        .summary-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .summary-table td:last-child { text-align: center; font-weight: bold; font-size: 1.2rem; }
+        .controls { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .controls button { padding: 12px 25px; font-size: 1rem; font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.2s, transform 0.1s; }
+        .controls button:hover { transform: translateY(-2px); }
+        .print-btn { background-color: #28a745; }
+        .reset-btn { background-color: #dc3545; }
+        .generate-btn { background-color: #007bff; }
+        .report-section { margin-top: 40px; border-top: 2px solid #007bff; padding-top: 20px; }
+        .report-box { background-color: #fdfdfd; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .report-box h3 { color: #0056b3; margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .report-content-area { width: 100%; box-sizing: border-box; border: 1px solid transparent; background-color: transparent; font-family: inherit; font-size: 1rem; line-height: 1.7; resize: vertical; min-height: 120px; padding: 5px; margin-top: 10px; transition: background-color 0.2s, border-color 0.2s; }
+        .report-content-area:focus { background-color: #e7f3ff; border-color: #007bff; outline: none; }
+        .visitor-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+
+        /* --- Print-Only Styles --- */
+        .print-view { display: none; }
+
+        @media print {
+            body { background-color: #fff; padding: 0; margin: 0; font-family: 'Times New Roman', Times, serif; }
+            .interactive-view { display: none; }
+            .print-view { display: block; }
+            
+            .print-container { padding: 1cm; }
+            .print-logo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+            .print-logo-header .logo { height: 70px; width: auto; }
+            .print-header-text { text-align: center; font-size: 10px; color: #555; margin-bottom: 10px; }
+            .print-title h2 { font-size: 1.5rem; background-color: #fde693 !important; padding: 10px; border: 1px solid #000; margin: 0; font-family: inherit; text-align: center; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            
+            .print-info-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; border: none; }
+            .print-info-table td { padding: 4px; vertical-align: bottom; }
+            .print-info-table .label { font-weight: bold; width: 15%; }
+            .print-info-table .value { border-bottom: 1px dotted #000; font-weight: normal; }
+            
+            .print-main-table, .print-footer-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; font-family: inherit; }
+            .print-main-table th, .print-main-table td, .print-footer-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
+            .print-main-table th { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .print-main-table .category-cell { font-weight: bold; }
+            .print-main-table .item-cell { text-align: right; }
+            .print-main-table .merged-cell { white-space: pre-wrap; text-align: right; vertical-align: top; min-height: 200px; }
+            .print-main-table .separator-row th { border-top: 2px solid #000; }
+
+            .print-footer-table .label { font-weight: bold; width: 100px; }
+            .print-footer-table .content { min-height: 60px; white-space: pre-wrap; text-align: right; vertical-align: top; }
+
+            .signature-section { margin-top: 20px; font-weight: bold; }
+            .signature-section .line { border-bottom: 1px dotted #000; display: inline-block; min-width: 200px; }
+            .evaluation-standard { text-align: center; font-weight: bold; margin-top: 15px; }
+        }
+    </style>
 </head>
 <body>
-  <h1>نموذج الزيارة الإشرافية</h1>
-  <form id="visitForm">
-    <label>اسم المعلم:
-      <input type="text" id="teacher" required>
-    </label>
-    <label>التاريخ:
-      <input type="date" id="date" required>
-    </label>
-    <label>عنوان الدرس:
-      <input type="text" id="subject" placeholder="مثال: كرة السلة" required>
-    </label>
-    <label>الصف:
-      <input type="text" id="class" required>
-    </label>
-    <label>الحصة:
-      <input type="text" id="lesson" required>
-    </label>
-    <table id="itemsTable">
-      <thead>
-        <tr>
-          <th>م</th>
-          <th>البند</th>
-          <th>الدرجة</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- سيتم ملء الصفوف بواسطة جافاسكريبت -->
-      </tbody>
-    </table>
-    <button type="button" onclick="generateReport()">إنشاء التقرير</button>
-  </form>
 
-  <div id="reportContainer" class="report-section" style="display:none;">
-    <h2>التقرير</h2>
-    <div id="report"></div>
-  </div>
+    <div class="interactive-view">
+        <header class="page-header">
+            <h1>استمارة زيارة إشرافية إلكترونية</h1>
+            <p>نظام التقييم الإشرافي الرقمي</p>
+        </header>
 
-  <script>
-    // قائمة البنود التقييمية
-    const items = [
-      'خطط التدريس',
-      'بيئة التعلم الصفية',
-      'فاعلية التدريس',
-      'المصادر والمواد التعليمية',
-      'التقويم من أجل التعلم',
-      'التقدم الدراسي',
-      'التحصيل الدراسي',
-      'مهارات التعلم من أجل المستقبل',
-      'القيم والاتجاهات الإيجابية في التعلم',
-      'الممارسات المهنية للتعلم المستمر',
-      'المبادرات والأنشطة التربوية في المجتمع المدرسي'
-    ];
+        <main>
+            <section class="visit-info">
+                <h2>معلومات الزيارة</h2>
+                <div class="info-grid">
+                    <input id="school" type="text" placeholder="المدرسة">
+                    <input id="teacherName" type="text" placeholder="اسم المعلم">
+                    <input id="fileNumber" type="text" placeholder="رقم الملف">
+                    <input id="subject" type="text" placeholder="المادة">
+                    <input id="visitNumber" type="text" placeholder="رقم الزيارة">
+                    <input id="visitDate" type="date" placeholder="التاريخ">
+                    <input id="class" type="text" placeholder="الصف">
+                    <input id="lesson" type="text" placeholder="الحصة">
+                    <input id="topic" type="text" placeholder="الموضوع">
+                </div>
+            </section>
+            
+            <details>
+                <summary>اضغط هنا لعرض معيار التقييم</summary>
+                <div style="padding: 10px;">
+                    <ul>
+                        <li><b>5 (متميز):</b> تحقيق 90% فأكثر من المؤشرات</li>
+                        <li><b>4 (جيد جداً):</b> تحقيق من 76% إلى 89%</li>
+                        <li><b>3 (جيد):</b> تحقيق من 50% إلى 75%</li>
+                        <li><b>2 (مقبول):</b> تحقيق من 30% إلى 49%</li>
+                        <li><b>1 (غير مرضٍ):</b> تحقيق أقل من 30%</li>
+                    </ul>
+                </div>
+            </details>
 
-    // توصيفات جاهزة لكل بند حسب الدرجة
-    const descriptions = {
-      1: [
-        'خطة الدرس غير واضحة ولا تسهم في تحقيق الأهداف التعليمية.',
-        'البيئة الصفية غير منظمة مما يعيق التعلم.',
-        'نادراً ما يشرح المعلم بفاعلية أو يستخدم أساليب متنوعة.',
-        'نادراً ما يوظف المعلم مصادر أو مواد تعليمية متنوعة.',
-        'نادراً ما يستخدم المعلم أدوات تقويم لمتابعة تعلم الطلبة.',
-        'نادراً ما يحقق الطلبة تقدماً في الأداء الدراسي.',
-        'نادراً ما يظهر الطلبة تحصيلاً دراسياً جيداً.',
-        'نادراً ما يتم التركيز على مهارات التعلم من أجل المستقبل.',
-        'نادراً ما يظهر الطلبة قيماً أو اتجاهات إيجابية نحو التعلم.',
-        'نادراً ما يشارك المعلم في ممارسات مهنية للتعلم المستمر.',
-        'نادراً ما يشارك المعلم في المبادرات والأنشطة التربوية داخل المدرسة.'
-      ],
-      2: [
-        'خطة الدرس تحتاج إلى تحسين وربط أفضل بالأهداف.',
-        'البيئة الصفية تحتاج إلى تنظيم أفضل وتعزيز الأمان.',
-        'قليلاً ما يستخدم المعلم طرقاً فعالة لشرح المحتوى.',
-        'قليلاً ما يتم استخدام مصادر ومواد تعليمية داعمة.',
-        'قليلاً ما يوظف المعلم أدوات التقويم المتنوعة.',
-        'قليلاً ما يظهر تقدم دراسي واضح لدى الطلبة.',
-        'قليلاً ما يظهر الطلبة تحصيلاً دراسياً مقبولاً.',
-        'قليلاً ما تُفعل مهارات التعلم من أجل المستقبل داخل الحصة.',
-        'قليلاً ما يلاحظ قيم واتجاهات إيجابية لدى الطلبة.',
-        'قليلاً ما يسعى المعلم لتطوير نفسه بطرق مستمرة.',
-        'قليلاً ما يشارك المعلم في المبادرات والأنشطة التربوية.'
-      ],
-      3: [
-        '', '', '', '', '', '', '', '', '', '', ''
-      ],
-      4: [
-        'معظم الطلبة يحققون أهداف الدرس ضمن خطة منظمة.',
-        'معظم الوقت يتم توفير بيئة صفية آمنة ومنظمة تدعم التعلم.',
-        'معظم الطلبة يستفيدون من طرق شرح فعالة ومتنوعة.',
-        'يستخدم المعلم غالباً مصادر ومواد تعليمية داعمة.',
-        'يستخدم المعلم غالباً أدوات تقويم لمتابعة تعلم الطلبة.',
-        'معظم الطلبة يظهرون تقدماً ملحوظاً في التعلم.',
-        'معظم الطلبة يحققون تحصيلاً دراسياً جيداً.',
-        'معظم الوقت يتم تعزيز مهارات التعلم من أجل المستقبل.',
-        'معظم الطلبة يظهرون قيماً واتجاهات إيجابية في التعلم.',
-        'المعلم غالباً ما يشارك في ممارسات مهنية للتعلم المستمر.',
-        'يشارك المعلم غالباً في المبادرات والأنشطة التربوية داخل المدرسة.'
-      ],
-      5: [
-        'جميع الطلبة يحققون أهداف الدرس ضمن خطة تدريس متقنة.',
-        'البيئة الصفية آمنة ومنظمة بشكل ممتاز تدعم تعلم الجميع.',
-        'المعلم يشرح بفاعلية عالية ويستخدم أساليب متنوعة تشد انتباه الطلبة.',
-        'يُوظف المعلم مصادر ومواد تعليمية متنوعة تثري التعلم.',
-        'يُوظف المعلم أدوات تقويم متنوعة ويوفر تغذية راجعة فورية.',
-        'جميع الطلبة يظهرون تقدماً واضحاً في الأداء الدراسي.',
-        'جميع الطلبة يحققون تحصيلاً دراسياً متميزاً.',
-        'يتم تنمية مهارات التعلم من أجل المستقبل بشكل كامل.',
-        'جميع الطلبة يظهرون قيماً واتجاهات إيجابية نحو التعلم.',
-        'المعلم ملتزم بممارسات مهنية للتعلم المستمر.',
-        'المعلم نشيط في المبادرات والأنشطة التربوية داخل المدرسة.'
-      ]
-    };
+            <form id="evaluationForm">
+                <!-- المجال الأول -->
+                <details open>
+                    <summary>المجال الأول: التدريس والتقويم</summary>
+                    <div class="item-card" id="item-1"><div class="item-header"><h4>1. خطط التدريس (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-1')">تحديد الكل</button><div class="score" id="score-1">0</div></div></div><hr><label class="indicator"><input type="checkbox"> توافق خطة الدرس العملية (اليومية) مع الخطة الفصلية للوحدة التعليمية (كرة القدم، الجمباز، إلخ).</label><label class="indicator"><input type="checkbox"> تنوع الأهداف (مهارية، معرفية، وجدانية) وتسلسلها المنطقي وارتباطها بالمهارة أو اللعبة المستهدفة.</label><label class="indicator"><input type="checkbox"> التنوع في استراتيجيات التدريس (اللعب، الاكتشاف الموجه، التدريب) وأساليب التقويم (الملاحظة، قوائم الرصد) وارتباطها بالأهداف الحركية.</label><label class="indicator"><input type="checkbox"> تنوع مصادر التعلم (أدوات، أجهزة رياضية، فيديوهات تعليمية) وارتباطها بالأهداف المهارية للدرس.</label><label class="indicator"><input type="checkbox"> تلبية احتياجات الطلبة المختلفة (الموهوبين، ذوي التحديات الحركية) ومراعاة التمايز في الأنشطة البدنية.</label><textarea id="notes-1" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <div class="item-card" id="item-2"><div class="item-header"><h4>2. بيئة التعلم (في الملعب/ الصالة الرياضية) (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-2')">تحديد الكل</button><div class="score" id="score-2">0</div></div></div><hr><label class="indicator"><input type="checkbox"> الاستثمار الأمثل لزمن النشاط الحركي الفعلي خلال الحصة.</label><label class="indicator"><input type="checkbox"> إثارة دافعية الطلبة للمشاركة في النشاط البدني بما يتناسب مع قدراتهم البدنية.</label><label class="indicator"><input type="checkbox"> إدارة تعلم الطلبة بفاعلية (تنظيم المجموعات، توزيع الأدوات، الانتقال بين المحطات).</label><label class="indicator"><input type="checkbox"> توفير بيئة تعلم آمنة جسديًا ونفسيًا (التأكد من سلامة الأدوات، الإحماء المناسب، منع التنمر).</label><label class="indicator"><input type="checkbox"> التنوع في أساليب التعزيز (لفظي، حركي) لتشجيع الأداء والمحاولة.</label><textarea id="notes-2" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <div class="item-card" id="item-3"><div class="item-header"><h4>3. فاعلية التدريس (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-3')">تحديد الكل</button><div class="score" id="score-3">0</div></div></div><hr><label class="indicator"><input type="checkbox"> التمكن من المادة العلمية (قوانين الألعاب) وتقديم نموذج حركي سليم للمهارات.</label><label class="indicator"><input type="checkbox"> توجيه الطلبة للاعتماد على أنفسهم في تطبيق المهارات وتصحيح أخطائهم.</label><label class="indicator"><input type="checkbox"> ربط النشاط البدني بحياة الطلبة اليومية (الصحة، اللياقة البدنية، قضاء وقت الفراغ).</label><label class="indicator"><input type="checkbox"> تفعيل الأنشطة التطبيقية (مباريات مصغرة) واللاصفية (اليوم الرياضي، المنتخبات المدرسية).</label><label class="indicator"><input type="checkbox"> تفعيل أساليب التعلم القائمة على اللعب والمنافسات البناءة.</label><textarea id="notes-3" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <div class="item-card" id="item-4"><div class="item-header"><h4>4. المصادر والموارد التعليمية (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-4')">تحديد الكل</button><div class="score" id="score-4">0</div></div></div><hr><label class="indicator"><input type="checkbox"> توظيف الأدوات والأجهزة الرياضية بشكل فعال لتحقيق أهداف الدرس.</label><label class="indicator"><input type="checkbox"> توظيف التقنيات الرقمية (تطبيقات اللياقة، تحليل الفيديو) لتحسين الأداء.</label><label class="indicator"><input type="checkbox"> الاستفادة القصوى من مرافق المدرسة (الملعب، الصالة، حوض السباحة).</label><label class="indicator"><input type="checkbox"> إشراك الطلبة في إعداد وتوظيف الأدوات والموارد المتاحة.</label><label class="indicator"><input type="checkbox"> ملاءمة الأدوات والموارد المستخدمة للفئة العمرية والمهارة المستهدفة.</label><textarea id="notes-4" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <div class="item-card" id="item-5"><div class="item-header"><h4>5. التقويم من أجل التعلم (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-5')">تحديد الكل</button><div class="score" id="score-5">0</div></div></div><hr><label class="indicator"><input type="checkbox"> توظيف أساليب تقويم (قوائم رصد المهارات، تقويم الأداء الحركي) تراعي الفروق البدنية بين الطلبة.</label><label class="indicator"><input type="checkbox"> تقديم تغذية راجعة فورية وبناءة لتصحيح الأداء الحركي للطلبة.</label><label class="indicator"><input type="checkbox"> مشاركة الطلبة في أهداف الدرس ومعايير إتقان المهارة (نقاط فنية واضحة).</label><label class="indicator"><input type="checkbox"> تفعيل تقييم الأقران (ملاحظة الزملاء للأداء) والتقييم الذاتي لتعزيز وعيهم الحركي.</label><label class="indicator"><input type="checkbox"> تقديم تغذية راجعة لمساعدة الطلبة على تطوير مهاراتهم وأدائهم في الأنشطة.</label><textarea id="notes-5" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                </details>
+                
+                <details>
+                    <summary>المجال الثاني: إنجاز الطلبة</summary>
+                    <div class="item-card" id="item-6"><div class="item-header"><h4>6. التحصيل (الأداء المهاري والمعرفي) (3 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-6')">تحديد الكل</button><div class="score" id="score-6">0</div></div></div><hr><label class="indicator"><input type="checkbox"> اكتساب الطلبة للمهارات الحركية الأساسية (الجري، القفز، الرمي).</label><label class="indicator"><input type="checkbox"> اكتساب الطلبة للمعارف (القوانين، الخطط) والمهارات الخاصة باللعبة أو الرياضة.</label><label class="indicator"><input type="checkbox"> مستوى أداء الطلبة في التطبيقات العملية (المباريات، الأنشطة التقويمية).</label><textarea id="notes-6" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <div class="item-card" id="item-7"><div class="item-header"><h4>7. التقدم الدراسي (3 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-7')">تحديد الكل</button><div class="score" id="score-7">0</div></div></div><hr><label class="indicator"><input type="checkbox"> التقدم الذي يظهره الطلبة في مستوى أدائهم المهاري بين بداية الحصة ونهايتها.</label><label class="indicator"><input type="checkbox"> التقدم أثناء الحصة في فهم الجوانب الخططية وتطبيقها (الانتقال من التطبيق الفردي للمهارة إلى توظيفها في اللعب).</label><label class="indicator"><input type="checkbox"> قدرة الطلبة على فهم القوانين وتطبيق المهارات في مواقف اللعب المختلفة.</label><textarea id="notes-7" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <div class="item-card" id="item-8"><div class="item-header"><h4>8. مهارات التعلم من أجل المستقبل (4 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-8')">تحديد الكل</button><div class="score" id="score-8">0</div></div></div><hr><label class="indicator"><input type="checkbox"> المشاركة في تنظيم وقيادة بعض أجزاء الدرس (الإحماء، تنظيم المجموعات).</label><label class="indicator"><input type="checkbox"> قدرة الطلبة على التعاون والتواصل الفعال مع زملائهم في الفريق أثناء اللعب.</label><label class="indicator"><input type="checkbox"> توظيف الطلبة لمهارات التفكير الخططي وحل المشكلات في مواقف اللعب.</label><label class="indicator"><input type="checkbox"> توظيف الطلبة للمهارات التقنية (ساعات رياضية، تطبيقات) في ممارسة النشاط البدني.</label><textarea id="notes-8" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                </details>
+                <details>
+                    <summary>المجال الثالث: النمو الشخصي للطلبة ورعايتهم</summary>
+                    <div class="item-card" id="item-9"><div class="item-header"><h4>9. القيم والاتجاهات الإيجابية في التعلم (4 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-9')">تحديد الكل</button><div class="score" id="score-9">0</div></div></div><hr><label class="indicator"><input type="checkbox"> حرص الطلبة على أداء المهارات والأنشطة البدنية بإتقان وجدية.</label><label class="indicator"><input type="checkbox"> إظهار الطلبة توجهات إيجابية نحو ممارسة الرياضة والمحافظة على اللياقة البدنية.</label><label class="indicator"><input type="checkbox"> إظهار الطلبة انضباطًا ذاتيًا والتزامًا بقوانين اللعب وقرارات الحكم.</label><label class="indicator"><input type="checkbox"> إبداء الطلبة لأخلاقيات رياضية عالية (الروح الرياضية، احترام المنافس والزميل).</label><textarea id="notes-9" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                </details>
+                <details>
+                    <summary>المجال الرابع: القيادة والإدارة والحوكمة</summary>
+                    <div class="item-card" id="item-10"><div class="item-header"><h4>10. الممارسات المهنية للتعلم المستمر (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-10')">تحديد الكل</button><div class="score" id="score-10">0</div></div></div><hr><label class="indicator"><input type="checkbox"> المشاركة في دورات وورش عمل تخصصية (تدريب، تحكيم، إصابات رياضية).</label><label class="indicator"><input type="checkbox"> نقل أثر المشاركات المهنية وتطبيقها لتطوير طرق تدريس المهارات المختلفة.</label><label class="indicator"><input type="checkbox"> التعاون مع الزملاء لتبادل الخبرات في تدريس وحدات رياضية معينة.</label><label class="indicator"><input type="checkbox"> التفكر والتأمل في ممارساته التدريسية لتحسين أداء الطلبة المهاري.</label><label class="indicator"><input type="checkbox"> تحليل نتائج تقويم أداء الطلبة (المهاري والبدني) لتطوير خططه التدريسية.</label><textarea id="notes-10" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <div class="item-card" id="item-11"><div class="item-header"><h4>11. المبادرات والأنشطة التربوية في المجتمع المدرسي (3 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-11')">تحديد الكل</button><div class="score" id="score-11">0</div></div></div><hr><label class="indicator"><input type="checkbox"> تقديم مبادرات فاعلة (يوم رياضي، بطولة داخلية) تدعم النشاط البدني في المدرسة.</label><label class="indicator"><input type="checkbox"> التفاعل الإيجابي مع مختلف الأنشطة الرياضية والثقافية في المدرسة.</label><label class="indicator"><input type="checkbox"> التفاعل الإيجابي مع المجتمع المحلي (تنظيم فعاليات رياضية مشتركة، استضافة فرق رياضية).</label><textarea id="notes-11" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                </details>
+            </form>
 
-    // توصيات لكل بند عند الحاجة
-    const recommendations = [
-      'تحسين خطة الدرس وربطها بالأهداف التعليمية.',
-      'تنظيم البيئة الصفية لتصبح أكثر أماناً وتحفيزاً.',
-      'استخدام طرق تدريس أكثر فعالية وتنوعاً.',
-      'تنويع المصادر والمواد التعليمية المستخدمة.',
-      'تطبيق أدوات تقويم متنوعة وتقديم تغذية راجعة.',
-      'متابعة تقدم الطلبة ووضع خطط دعم فردية.',
-      'متابعة التحصيل الدراسي وتعزيز نقاط الضعف.',
-      'تفعيل مهارات التعلم من أجل المستقبل داخل الحصة.',
-      'تعزيز القيم والاتجاهات الإيجابية لدى الطلبة.',
-      'المشاركة في برامج تطوير مهني منتظمة.',
-      'المشاركة في المبادرات والأنشطة التربوية بفاعلية.'
-    ];
+            <section class="summary">
+                <h2>ملخص النتائج</h2>
+                <table class="summary-table">
+                    <thead><tr><th>البند</th><th>التقدير (من 5)</th></tr></thead>
+                    <tbody id="summary-tbody">
+                        <!-- Summary rows populated by JS -->
+                    </tbody>
+                </table>
+            </section>
+            
+            <section id="reportSection" class="report-section" style="display: none;">
+                <h2>التقرير النهائي</h2>
+                <div class="report-box"><h3>جوانب الإجادة</h3><textarea id="strengthsContent" class="report-content-area" placeholder="..."></textarea></div>
+                <div class="report-box"><h3>الجوانب التي تحتاج إلى تطوير</h3><textarea id="developmentContent" class="report-content-area" placeholder="..."></textarea></div>
+                <div class="report-box"><h3>التوصيات</h3><textarea id="recommendationsContent" class="report-content-area" placeholder="..."></textarea></div>
+            </section>
 
-    // ملء جدول البنود تلقائياً
-    function fillItemsTable() {
-      const tbody = document.querySelector('#itemsTable tbody');
-      items.forEach((item, index) => {
-        const row = document.createElement('tr');
-        const cellIndex = document.createElement('td');
-        cellIndex.textContent = index + 1;
-        const cellItem = document.createElement('td');
-        cellItem.textContent = item;
-        const cellSelect = document.createElement('td');
-        const select = document.createElement('select');
-        select.id = 'grade-' + index;
-        [5,4,3,2,1].forEach(val => {
-          const opt = document.createElement('option');
-          opt.value = val;
-          opt.textContent = val;
-          select.appendChild(opt);
-        });
-        cellSelect.appendChild(select);
-        row.appendChild(cellIndex);
-        row.appendChild(cellItem);
-        row.appendChild(cellSelect);
-        tbody.appendChild(row);
-      });
-    }
+            <section class="visitor-info">
+                <h2>معلومات الزائر</h2>
+                <div class="info-grid">
+                    <input id="visitorName" type="text" placeholder="اسم الزائر">
+                    <input id="visitorPosition" type="text" placeholder="الوظيفة (مثال: مشرف رياضة مدرسية)">
+                </div>
+            </section>
+            
+            <section class="controls">
+                <button type="button" class="generate-btn" onclick="generateReport()">توليد التقرير</button>
+                <button class="print-btn" onclick="printOfficialReport()">طباعة التقرير</button>
+                <button type="button" class="reset-btn" onclick="resetForm()">إعادة تعيين</button>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Hidden view for official printing -->
+    <div class="print-view" id="printView">
+        <div class="print-container">
+            <div class="print-logo-header">
+                <img src="https://j.top4top.io/p_35222ql0t1.png" alt="شعار وزارة التربية" class="logo">
+                <img src="https://k.top4top.io/p_3522wfvvr2.png" alt="شعار رؤية عمان 2040" class="logo">
+                <img src="https://l.top4top.io/p_35225xfin3.png" alt="شعار الجودة" class="logo">
+            </div>
+            <div class="print-header-text">نموذج رقم (5) استمارة زيارة إشرافية لمعلم مجال / مادة - عملية إعداد وتنفيذ الخطة الإجرائية للإشراف الفني</div>
+            <div class="print-title"><h2>استمارة زيارة إشرافية لمعلم مجال/مادة</h2></div>
+            
+            <table class="print-info-table">
+                <tbody>
+                    <tr><td class="label">اسم المعلم:</td><td class="value" id="print-teacherName"></td><td class="label">المدرسة:</td><td class="value" id="print-school"></td></tr>
+                    <tr><td class="label">المادة/المجال:</td><td class="value" id="print-subject"></td><td class="label">رقم الملف:</td><td class="value" id="print-fileNumber"></td></tr>
+                    <tr><td class="label">التاريخ:</td><td class="value" id="print-visitDate"></td><td class="label">رقم الزيارة:</td><td class="value" id="print-visitNumber"></td></tr>
+                    <tr><td class="label">الحصة:</td><td class="value" id="print-lesson"></td><td class="label">الصف:</td><td class="value" id="print-class"></td></tr>
+                    <tr><td class="label">الموضوع:</td><td colspan="3" class="value" id="print-topic"></td></tr>
+                </tbody>
+            </table>
+            
+            <table class="print-main-table">
+                <thead>
+                    <tr>
+                        <th style="width: 12%;">المجالات</th>
+                        <th style="width: 3%;">م</th>
+                        <th>البنود</th>
+                        <th style="width: 7%;">التقدير</th>
+                        <th style="width: 30%;">جوانب الإجادة في الأداء وأدلتها</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="5" class="category-cell">التدريس والتقويم</td>
+                        <td>1</td>
+                        <td class="item-cell">خطط التدريس</td>
+                        <td id="print-score-1"></td>
+                        <td id="print-strengthsContent" class="merged-cell" rowspan="5"></td>
+                    </tr>
+                    <tr><td>2</td><td class="item-cell">بيئة التعلم الصفية</td><td id="print-score-2"></td></tr>
+                    <tr><td>3</td><td class="item-cell">فاعلية التدريس</td><td id="print-score-3"></td></tr>
+                    <tr><td>4</td><td class="item-cell">المصادر والموارد التعليمية</td><td id="print-score-4"></td></tr>
+                    <tr><td>5</td><td class="item-cell">التقويم من أجل التعلم</td><td id="print-score-5"></td></tr>
+                    
+                    <tr class="separator-row">
+                        <td colspan="4" style="border-right: 1px solid #000; border-bottom: 2px solid #000;"></td>
+                        <th style="border-top: 2px solid #000;">الجوانب التي تحتاج لتطوير وأدلتها</th>
+                    </tr>
 
-    // إنشاء التقرير
-    function generateReport() {
-      const teacher = document.getElementById('teacher').value.trim();
-      const date = document.getElementById('date').value;
-      const subject = document.getElementById('subject').value.trim();
-      const className = document.getElementById('class').value.trim();
-      const lesson = document.getElementById('lesson').value.trim();
-      const positive = [];
-      const improvement = [];
-      const recs = [];
-      const neutralIndices = [];
-      // جمع الدرجات ووصفها
-      items.forEach((item, index) => {
-        const grade = parseInt(document.getElementById('grade-' + index).value);
-        const desc = descriptions[grade][index];
-        if (grade >= 4) {
-          positive.push({grade: grade, text: desc});
-        } else if (grade <= 2) {
-          improvement.push({grade: grade, text: desc});
-          recs.push(recommendations[index]);
-        } else {
-          // grade == 3
-          neutralIndices.push(index);
+                    <tr>
+                        <td rowspan="3" class="category-cell">إنجاز الطلبة</td>
+                        <td>6</td>
+                        <td class="item-cell">التحصيل الدراسي</td>
+                        <td id="print-score-6"></td>
+                        <td id="print-developmentContent" class="merged-cell" rowspan="6"></td>
+                    </tr>
+                    <tr><td>7</td><td class="item-cell">التقدم الدراسي</td><td id="print-score-7"></td></tr>
+                    <tr><td>8</td><td class="item-cell">مهارات التعلم من أجل المستقبل</td><td id="print-score-8"></td></tr>
+                    <tr>
+                        <td class="category-cell">النمو الشخصي للطلبة ورعايتهم</td>
+                        <td>9</td>
+                        <td class="item-cell">القيم والاتجاهات الإيجابية في التعلم</td>
+                        <td id="print-score-9"></td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2" class="category-cell">القيادة والإدارة والحوكمة</td>
+                        <td>10</td>
+                        <td class="item-cell">الممارسات المهنية للتعلم المستمر</td>
+                        <td id="print-score-10"></td>
+                    </tr>
+                    <tr><td>11</td><td class="item-cell">المبادرات والأنشطة التربوية في المجتمع المدرسي</td><td id="print-score-11"></td></tr>
+                </tbody>
+            </table>
+
+            <table class="print-footer-table">
+                <tbody><tr><td class="label">التوصيات:</td><td class="content" id="print-recommendationsContent"></td></tr></tbody>
+            </table>
+
+            <div class="signature-section">
+                اسم الزائر: <span id="print-visitorName" class="line"></span><br><br>
+                الوظيفة: <span id="print-visitorPosition" class="line"></span>
+            </div>
+            <div class="evaluation-standard">
+                ● معيار التقييم: متميز (5) - جيد جداً (4) - جيد (3) - مقبول (2) - غير مرضٍ (1)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- All JS functions go here ---
+        const reportContent = {
+            '1': {
+                keyword: 'خطط',
+                '5': 'يخطط لجميع دروسه العملية بتسلسل منطقي للمهارات الحركية، ويربطها دائماً بالخطة الفصلية، وينوع بفاعلية في استراتيجيات التدريس وأساليب التقويم، ويلبي احتياجات جميع الطلبة ومستوياتهم البدنية',
+                '4': 'يخطط لمعظم دروسه العملية بتسلسل منطقي، ويربطها بالخطة الفصلية، وينوع في استراتيجيات التدريس وأساليب التقويم، ويلبي احتياجات معظم الطلبة',
+                '3': 'يخطط لأغلب دروسه العملية، ويربط الأهداف غالباً بالخطة الفصلية، ويستخدم استراتيجيات وأساليب تقويم مناسبة',
+                '2': 'يخطط لبعض دروسه العملية، ويستخدم استراتيجيات ومصادر تعلم قليلة، ويلبي احتياجات بعض الطلبة بشكل محدود',
+                '1': 'نادراً ما يخطط لدروسه، وتكون خططه غير مرتبطة بالمنهج أو بأهداف واضحة، ولا تراعي احتياجات الطلبة',
+                recommendation: 'يُنصح بالتركيز على بناء خطط درس يومية متكاملة تتوافق مع الخطة الفصلية، مع تحديد أهداف (مهارية، معرفية، وجدانية) واضحة ومتسلسلة. كذلك، يجب التنويع في استراتيجيات التدريس وأساليب التقويم لتلبية احتياجات جميع الطلبة.',
+                recommendation_for_3: 'يمكن تحسين التخطيط عبر التأكد من أن جميع الأهداف ترتبط بشكل مباشر بالخطة الفصلية، وزيادة التنويع في استراتيجيات التدريس المستخدمة لتشمل أساليب مختلفة مثل الاكتشاف الموجه.'
+            },
+            '2': {
+                keyword: 'بيئة',
+                '5': 'يستثمر زمن الحصة بالكامل في النشاط الحركي، ويدير تعلم جميع الطلبة بفعالية وأمان، ويثير دافعيتهم للمشاركة، ويعزز أداءهم باستمرار',
+                '4': 'يستثمر معظم زمن الحصة في النشاط الحركي، ويدير تعلم معظم الطلبة بفعالية، ويثير دافعيتهم، ويوفر بيئة آمنة ومنظمة',
+                '3': 'يستثمر أغلب زمن الحصة في النشاط الحركي، ويدير تعلم أغلب الطلبة بشكل ملائم، ويوفر بيئة آمنة',
+                '2': 'يستثمر وقتاً محدوداً في النشاط الحركي الفعلي، ويواجه صعوبة في إدارة بعض الطلبة، وأساليب تعزيزه محدودة',
+                '1': 'يهدر الكثير من زمن الحصة في التنظيم، ولا يدير تعلم الطلبة بفاعلية، والبيئة التعليمية غير آمنة أو محفزة',
+                recommendation: 'يوصى بالعمل على استثمار زمن الحصة بشكل أمثل في النشاط الحركي، وتطبيق استراتيجيات فعالة لإدارة المجموعات وتوزيع الأدوات لضمان بيئة تعليمية آمنة ومحفزة للجميع.',
+                recommendation_for_3: 'لتحسين بيئة التعلم، يُقترح استخدام ساعة توقيت لزيادة زمن النشاط الحركي الفعلي، وتطبيق أساليب تعزيز متنوعة (لفظية وحركية) لزيادة دافعية جميع الطلبة.'
+            },
+            '3': {
+                keyword: 'فاعلية',
+                '5': 'متمكن من تقديم نموذج حركي سليم لجميع المهارات، ويربط دائماً النشاط البدني بالصحة العامة، ويوجه جميع الطلبة لتصحيح أدائهم ذاتياً، ويفعل الأنشطة التنافسية البناءة',
+                '4': 'متمكن من تقديم نموذج حركي سليم لمعظم المهارات، ويربط في معظم الأحيان النشاط البدني بالصحة العامة، ويوجه معظم الطلبة للتعلم الذاتي',
+                '3': 'يمتلك تمكناً جيداً من المهارات ويربط أغلب الأنشطة بالصحة، ويفعل الأنشطة التنافسية بشكل ملائم',
+                '2': 'يظهر معرفة مقبولة بالمهارات، ويربط النشاط البدني بالصحة بشكل قليل، وتوجيهه للطلبة محدود',
+                '1': 'غير متمكن من تقديم نموذج حركي سليم، ونادراً ما يربط التعلم بواقع الطلبة، ولا يفعل الأنشطة بفاعلية',
+                recommendation: 'يُنصح بالتركيز على تقديم نموذج حركي سليم وواضح للمهارات، وربط الأنشطة البدنية بحياة الطلبة اليومية لزيادة دافعيتهم، وتفعيل الأنشطة التنافسية البناءة.',
+                recommendation_for_3: 'لزيادة فاعلية التدريس، يُقترح التركيز على ربط جميع الأنشطة البدنية بجوانب صحية من حياة الطلبة، وتوجيههم بشكل أكبر نحو تصحيح أدائهم ذاتياً عبر طرح أسئلة موجهة.'
+            },
+            '4': {
+                keyword: 'مصادر',
+                '5': 'يوظف جميع الأدوات والموارد المتاحة بابتكار وفاعلية عالية في جميع جوانب الدرس، ويشرك جميع الطلبة في استخدامها لتحقيق أهداف مهارية محددة',
+                '4': 'يوظف معظم الموارد المتاحة بفاعلية، ويشرك معظم الطلبة في استخدامها لتحقيق أهداف الدرس',
+                '3': 'يوظف أغلب الموارد المتاحة بشكل جيد، ويشرك أغلب الطلبة في استخدامها',
+                '2': 'يوظف الأدوات والموارد بشكل مقبول، ويشرك عدداً محدوداً من الطلبة في استخدامها',
+                '1': 'نادراً ما يوظف الموارد التعليمية المتاحة، أو يستخدمها بشكل غير فعال أو آمن',
+                recommendation: 'يوصى بالتخطيط المسبق لكيفية توظيف الأدوات والموارد المتاحة بشكل مبتكر وفعال، وإشراك الطلبة في استخدامها لتحقيق أهداف الدرس المهارية.',
+                recommendation_for_3: 'يُقترح البحث عن طرق مبتكرة لتوظيف الموارد المتاحة، مثل استخدام التقنيات الرقمية (الفيديو) لتحليل الأداء، وإشراك جميع الطلبة في إعداد وتوظيف الأدوات.'
+            },
+             '5': {
+                keyword: 'تقويم',
+                '5': 'يوظف دائماً أساليب تقويم أدائي متنوعة (قوائم رصد، ملاحظة منظمة)، ويقدم تغذية راجعة فورية وبناءة لجميع الطلبة لتحسين تكنيكهم الحركي',
+                '4': 'يوظف في معظم الأحيان أساليب تقويم أدائي متنوعة، ويقدم تغذية راجعة لمعظم الطلبة بهدف تطوير أدائهم',
+                '3': 'يوظف غالباً أساليب تقويم أدائي، ويقدم تغذية راجعة لأغلب الطلبة',
+                '2': 'يوظف أساليب تقويم محدودة، ويقدم تغذية راجعة لبعض الطلبة',
+                '1': 'نادراً ما يوظف أساليب تقويم، ولا يقدم تغذية راجعة هادفة للطلبة',
+                recommendation: 'يُنصح بتنويع أساليب التقويم الأدائي واستخدام أدوات مثل قوائم الرصد، مع الحرص على تقديم تغذية راجعة فورية وبناءة لجميع الطلبة لتصحيح أدائهم الحركي.',
+                recommendation_for_3: 'لتحسين التقويم، يُقترح تفعيل أدوات تقويم الأقران والتقييم الذاتي بشكل أكبر، والتأكد من أن التغذية الراجعة المقدمة للطلبة فورية ومحددة لمساعدتهم على التطور.'
+            },
+            '6': {
+                keyword: 'تحصيل',
+                '5': 'يكتسب جميع الطلبة المهارات الحركية المستهدفة بصورة متقنة، ويظهرون فهماً عميقاً لقوانين اللعبة وتطبيقاتها',
+                '4': 'يكتسب معظم الطلبة المهارات الحركية بصورة جيدة جداً، ويظهرون فهماً جيداً للقوانين',
+                '3': 'يكتسب أغلب الطلبة المهارات الحركية بصورة ملائمة، ويظهرون فهماً مقبولاً للقوانين',
+                '2': 'يكتسب بعض الطلبة المهارات الحركية بصورة محدودة',
+                '1': 'نادراً ما يكتسب الطلبة المهارات الحركية المستهدفة من الدرس',
+                recommendation: 'يوصى بمراجعة استراتيجيات التدريس المتبعة للتأكد من أنها تساعد الطلبة على اكتساب المهارات الحركية المستهدفة بصورة متقنة، مع التركيز على التطبيقات العملية.',
+                recommendation_for_3: 'لرفع مستوى التحصيل، يمكن التركيز على الأنشطة التطبيقية (المباريات المصغرة) التي تتيح للطلبة توظيف المهارات والمعارف في سياق اللعب الفعلي.'
+            },
+            '7': {
+                keyword: 'تقدم',
+                '5': 'يظهر جميع الطلبة تقدماً ملحوظاً في أدائهم للمهارات بين بداية الحصة ونهايتها، وينتقلون بسلاسة من التطبيق الفردي للمهارة إلى توظيفها في مواقف اللعب',
+                '4': 'يظهر معظم الطلبة تقدماً واضحاً في أدائهم وقدرتهم على تطبيق المهارات في اللعب',
+                '3': 'يظهر أغلب الطلبة تقدماً ملائماً في أدائهم خلال الحصة',
+                '2': 'يظهر بعض الطلبة تقدماً محدوداً في أدائهم المهاري',
+                '1': 'لا يظهر الطلبة أي تقدم يذكر في أدائهم المهاري خلال الحصة',
+                recommendation: 'يُنصح بتصميم أنشطة متدرجة تساعد الطلبة على إظهار تقدم مهاري ملحوظ خلال الحصة، والتركيز على الانتقال من التطبيق الفردي إلى اللعب الجماعي.',
+                recommendation_for_3: 'يمكن إبراز التقدم الدراسي بشكل أفضل عبر استخدام أداة تقويم بسيطة (مثل قائمة رصد) في بداية الحصة ونهايتها لملاحظة التطور في أداء الطلبة.'
+            },
+            '8': {
+                keyword: 'مهارت',
+                '5': 'يشارك جميع الطلبة تقريباً في قيادة الإحماء أو تنظيم الفرق، ويظهرون عملاً جماعياً وتفكيراً خططياً عالياً في مواقف اللعب',
+                '4': 'يشارك معظم الطلبة في تنظيم العمل، ويظهرون تعاوناً وتفكيراً خططياً في معظم مواقف اللعب',
+                '3': 'يشارك أغلب الطلبة في العمل الجماعي ويظهرون قدرة ملائمة على التفكير الخططي',
+                '2': 'يشارك بعض الطلبة في العمل الجماعي، وقدرتهم على التفكير الخططي محدودة',
+                '1': 'نادراً ما يشارك الطلبة في العمل الجماعي، ويعتمدون على الأداء الفردي فقط',
+                recommendation: 'يوصى بتعزيز مهارات التعلم من أجل المستقبل عبر إعطاء الطلبة أدواراً قيادية في تنظيم أجزاء من الدرس، وتشجيع العمل الجماعي والتفكير الخططي في مواقف اللعب.',
+                recommendation_for_3: 'لتنمية مهارات المستقبل، يُقترح زيادة فرص مشاركة الطلبة في قيادة أجزاء من الدرس (مثل الإحماء)، وتصميم مواقف لعب تتطلب منهم التعاون والتفكير الخططي.'
+            },
+            '9': {
+                keyword: 'قيم',
+                '5': 'يظهر جميع الطلبة التزاماً كاملاً بالروح الرياضية والانضباط الذاتي، ويبدون حماساً كبيراً للمشاركة في الأنشطة البدنية',
+                '4': 'يظهر معظم الطلبة التزاماً بالروح الرياضية والانضباط، واتجاهات إيجابية نحو المادة',
+                '3': 'يظهر أغلب الطلبة انضباطاً ذاتياً وقبولاً لقوانين اللعب',
+                '2': 'يظهر بعض الطلبة انضباطاً ذاتياً، بينما يحتاج الآخرون إلى توجيه مستمر',
+                '1': 'يفتقر الطلبة إلى الانضباط الذاتي وتنتشر بينهم السلوكيات غير الرياضية',
+                recommendation: 'يُنصح بالتركيز على غرس القيم الإيجابية كالروح الرياضية والانضباط الذاتي، وتوجيه الطلبة باستمرار نحو الالتزام بقوانين اللعب وأخلاقياته.',
+                recommendation_for_3: 'يمكن تعزيز القيم والاتجاهات الإيجابية عبر التأكيد المستمر على أخلاقيات اللعب (الروح الرياضية، احترام المنافس) ومناقشة مواقف من الحصة مع الطلبة.'
+            },
+            '10': {
+                keyword: 'ممارسات',
+                '5': 'لديه مشاركات متميزة في ورش عمل أو دورات تخصصية (تدريب، تحكيم)، ويتعاون دائماً مع زملائه، ويحلل بيانات أداء الطلبة لتطوير ممارساته بفاعلية عالية',
+                '4': 'لديه مشاركات مهنية جيدة، ويتعاون في معظم الأحيان مع زملائه، ويحلل بيانات أداء الطلبة لتطوير ممارساته',
+                '3': 'لديه مشاركات مهنية، ويتعاون مع زملائه، ويحلل بيانات أداء الطلبة بشكل ملائم',
+                '2': 'لديه مشاركات مهنية قليلة، ويتعاون بشكل محدود مع الزملاء',
+                '1': 'ليس لديه أي مشاركات مهنية تذكر، ونادراً ما يتعاون مع زملائه لتطوير أدائه',
+                recommendation: 'يوصى بالحرص على المشاركة في برامج التطوير المهني، والتعاون المستمر مع الزملاء لتبادل الخبرات، وتحليل أداء الطلبة لتطوير الخطط التدريسية.',
+                recommendation_for_3: 'لتعزيز النمو المهني، يُقترح تطبيق استراتيجية "التأمل في الممارسة" بعد كل درس لتحليل نقاط القوة وفرص التحسين، ومشاركة هذه التأملات مع الزملاء.'
+            },
+            '11': {
+                keyword: 'مبادرات',
+                '5': 'يقدم مبادرات فاعلة ومستمرة لدعم النشاط الرياضي بالمدرسة (يوم رياضي، بطولات، فرق مدرسية)، ويتفاعل بإيجابية قصوى مع كافة الأنشطة',
+                '4': 'يقدم مبادرات فاعلة لدعم النشاط الرياضي، ويتفاعل بإيجابية في معظم الأنشطة',
+                '3': 'يقدم مبادرات جيدة لدعم النشاط الرياضي، ويتفاعل بشكل إيجابي مع أغلب الأنشطة',
+                '2': 'يقدم مبادرات محدودة، وتفاعله مع الأنشطة المدرسية محدود',
+                '1': 'نادراً ما يقدم مبادرات، وتفاعله مع الأنشطة التربوية والمجتمع المدرسي محدود جداً',
+                recommendation: 'يُنصح بتقديم مبادرات فاعلة لدعم النشاط الرياضي في المدرسة، والتفاعل الإيجابي مع الأنشطة المدرسية والمجتمع المحلي لتعزيز دور التربية الرياضية.',
+                recommendation_for_3: 'يمكن البدء بمبادرات بسيطة مثل تنظيم بطولة داخلية للصف، أو تفعيل الإذاعة المدرسية بمواضيع رياضية، لزيادة التفاعل مع المجتمع المدرسي.'
+            }
+        };
+
+        function prepareOfficialPrint() {
+            document.getElementById('print-school').textContent = document.getElementById('school').value;
+            document.getElementById('print-teacherName').textContent = document.getElementById('teacherName').value;
+            document.getElementById('print-fileNumber').textContent = document.getElementById('fileNumber').value;
+            document.getElementById('print-subject').textContent = document.getElementById('subject').value;
+            document.getElementById('print-visitNumber').textContent = document.getElementById('visitNumber').value;
+            document.getElementById('print-visitDate').textContent = document.getElementById('visitDate').value;
+            document.getElementById('print-class').textContent = document.getElementById('class').value;
+            document.getElementById('print-lesson').textContent = document.getElementById('lesson').value;
+            document.getElementById('print-topic').textContent = document.getElementById('topic').value;
+            document.getElementById('print-visitorName').textContent = document.getElementById('visitorName').value;
+            document.getElementById('print-visitorPosition').textContent = document.getElementById('visitorPosition').value;
+            for (let i = 1; i <= 11; i++) {
+                const score = document.getElementById(`score-${i}`)?.textContent || '0';
+                document.getElementById(`print-score-${i}`).textContent = score;
+            }
+            document.getElementById('print-strengthsContent').textContent = document.getElementById('strengthsContent')?.value || 'لا يوجد.';
+            document.getElementById('print-developmentContent').textContent = document.getElementById('developmentContent')?.value || 'لا يوجد.';
+            document.getElementById('print-recommendationsContent').textContent = document.getElementById('recommendationsContent')?.value || 'لا يوجد.';
         }
-      });
-      // اختيار أعلى ثلاث إيجابيات وأعلى ثلاث جوانب تطوير
-      positive.sort((a,b) => b.grade - a.grade);
-      improvement.sort((a,b) => a.grade - b.grade);
-      const selectedPos = positive.slice(0,3);
-      const selectedImp = improvement.slice(0,3);
-      // إعداد التوصيات: توصيات للبنود 2 أو 1، وتوصيتان للبنود 3 إذا لزم الأمر
-      const selectedRecs = [];
-      // توصيات للبنود الضعيفة (2 أو 1)
-      selectedImp.forEach(item => {
-        // use the corresponding recommendation by index (we don't have index; just push recs) 
-      });
-      // إذا كانت التوصيات أقل من 5، نضيف توصيات للبنود بدرجة 3
-      const neutralRecs = neutralIndices.map(i => recommendations[i]);
-      // دمج كل التوصيات (إجرائية)
-      const finalRecs = [];
-      // Add improvement recs for weak items
-      improvement.forEach((imp) => {
-        // find index of imp text in descriptions map to get rec
-        const idx = descriptions[2].indexOf(imp.text);
-        if (idx !== -1) {
-          finalRecs.push({grade: imp.grade, text: recommendations[idx]});
-        }
-      });
-      // Add recommendations for grade 3 if less than 5 recs
-      if (finalRecs.length < 5) {
-        neutralRecs.forEach(rec => {
-          finalRecs.push({text: 'مواصلة تحسين: ' + rec.replace('تحسين ', '')});
-        });
-      }
-      // تقييد عدد التوصيات بخمس
-      const selectedFinalRecs = finalRecs.slice(0,5);
-      // إنشاء نص التقرير
-      let reportHTML = '';
-      reportHTML += `<p><strong>المعلم:</strong> ${teacher}</p>`;
-      reportHTML += `<p><strong>التاريخ:</strong> ${date}</p>`;
-      reportHTML += `<p><strong>عنوان الدرس:</strong> ${subject}</p>`;
-      reportHTML += `<p><strong>الصف:</strong> ${className}</p>`;
-      reportHTML += `<p><strong>الحصة:</strong> ${lesson}</p>`;
-      if (selectedPos.length > 0) {
-        reportHTML += '<h3>جوانب الإجادة في الأداء وإنجازاتها</h3><ul>';
-        selectedPos.forEach(item => {
-          reportHTML += `<li>${item.text}</li>`;
-        });
-        reportHTML += '</ul>';
-      }
-      if (selectedImp.length > 0) {
-        reportHTML += '<h3>الجوانب التي تحتاج إلى تطوير وإنجازاتها</h3><ul>';
-        selectedImp.forEach(item => {
-          reportHTML += `<li>${item.text}</li>`;
-        });
-        reportHTML += '</ul>';
-      }
-      if (selectedFinalRecs.length > 0) {
-        reportHTML += '<h3>التوصيات</h3><ul>';
-        selectedFinalRecs.forEach(rec => {
-          reportHTML += `<li>${rec.text}</li>`;
-        });
-        reportHTML += '</ul>';
-      }
-      const reportDiv = document.getElementById('report');
-      reportDiv.innerHTML = reportHTML;
-      document.getElementById('reportContainer').style.display = 'block';
-    }
 
-    // تهيئة الجدول عند تحميل الصفحة
-    document.addEventListener('DOMContentLoaded', () => {
-      fillItemsTable();
-    });
-  </script>
+        function printOfficialReport() {
+            prepareOfficialPrint();
+            window.print();
+        }
+        
+        function calculateScore(itemId) {
+            const card = document.getElementById(itemId);
+            if (!card) return;
+            const checkboxes = card.querySelectorAll('input[type="checkbox"]');
+            const scoreDisplay = document.getElementById('score-' + itemId.split('-')[1]);
+            const totalIndicators = checkboxes.length;
+            let checkedCount = 0;
+            checkboxes.forEach(box => { if (box.checked) checkedCount++; });
+            const percentage = totalIndicators > 0 ? (checkedCount / totalIndicators) * 100 : 0;
+            let finalScore = 0;
+            if (percentage >= 90) finalScore = 5;
+            else if (percentage >= 76) finalScore = 4;
+            else if (percentage >= 50) finalScore = 3;
+            else if (percentage >= 30) finalScore = 2;
+            else if (checkedCount > 0) finalScore = 1;
+            scoreDisplay.textContent = finalScore;
+            updateScoreColor(scoreDisplay, finalScore);
+            updateSummary(itemId.split('-')[1], finalScore);
+        }
+
+        function updateScoreColor(element, score) {
+            element.style.backgroundColor = '#f0f2f5';
+            element.style.color = '#d9534f';
+            if (score === 5) { element.style.backgroundColor = '#d4edda'; element.style.color = '#155724'; } 
+            else if (score === 4) { element.style.backgroundColor = '#cce5ff'; element.style.color = '#004085'; } 
+            else if (score === 3) { element.style.backgroundColor = '#fff3cd'; element.style.color = '#856404'; }
+        }
+
+        function updateSummary(itemNumber, score) {
+            const summaryCell = document.getElementById('summary-score-' + itemNumber);
+            if (summaryCell) { summaryCell.textContent = score; }
+        }
+
+        function selectAllIndicators(itemId) {
+            const card = document.getElementById(itemId);
+            if (!card) return;
+            const checkboxes = card.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(box => { box.checked = true; });
+            calculateScore(itemId);
+        }
+
+        function generateReport() {
+            let scoresOf5 = [], scoresOf4 = [], scoresOf1 = [], scoresOf2 = [], recommendationsFor3 = '';
+            for (let i = 1; i <= 11; i++) {
+                const score = parseInt(document.getElementById(`score-${i}`).textContent);
+                const title = document.querySelector(`#item-${i} h4`).textContent.split('(')[0].trim();
+                const content = reportContent[i];
+                const manualNotes = document.getElementById(`notes-${i}`).value.trim();
+                let description = content[score] || '';
+                if (manualNotes) { description += `، حيث لوحظ أن ${manualNotes}`; }
+                const itemData = { title, keyword: content.keyword, description, recommendation: content.recommendation, recommendation_for_3: content.recommendation_for_3 };
+                if (score === 5) scoresOf5.push(itemData);
+                else if (score === 4) scoresOf4.push(itemData);
+                else if (score === 1) scoresOf1.push(itemData);
+                else if (score === 2) scoresOf2.push(itemData);
+                else if (score === 3) { recommendationsFor3 += `• ${title} (لتحسين الأداء):\n${content.recommendation_for_3}\n\n`; }
+            }
+            const finalStrengths = [...scoresOf5, ...scoresOf4].slice(0, 4);
+            const finalDevelopment = [...scoresOf1, ...scoresOf2].slice(0, 4);
+            let strengthsText = finalStrengths.map(item => `${item.keyword}: ${item.description}.`).join('\n\n');
+            let developmentText = finalDevelopment.map(item => `${item.keyword}: ${item.description}.`).join('\n\n');
+            let developmentRecommendations = finalDevelopment.map(item => `• ${item.title}:\n${item.recommendation}`).join('\n\n');
+            let finalRecommendations = (developmentRecommendations + '\n\n' + recommendationsFor3).trim();
+            document.getElementById('strengthsContent').value = strengthsText.trim() || 'لم يتم تحديد نقاط قوة بعد.';
+            document.getElementById('developmentContent').value = developmentText.trim() || 'لم يتم تحديد جوانب للتطوير بعد.';
+            document.getElementById('recommendationsContent').value = finalRecommendations.trim() || 'لا توجد توصيات حالياً.';
+            const reportSection = document.getElementById('reportSection');
+            reportSection.style.display = 'block';
+            reportSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('evaluationForm').reset();
+            document.querySelectorAll('.info-grid input, .visitor-info input').forEach(input => input.value = '');
+            document.querySelectorAll('.item-card').forEach(card => calculateScore(card.id));
+            document.getElementById('strengthsContent').value = '';
+            document.getElementById('developmentContent').value = '';
+            document.getElementById('recommendationsContent').value = '';
+            document.getElementById('reportSection').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const summaryBody = document.getElementById('summary-tbody');
+            const formContainer = document.getElementById('evaluationForm');
+            
+            const allItemCards = formContainer.querySelectorAll('.item-card');
+            allItemCards.forEach(card => {
+                const itemId = card.id;
+                const itemNumber = itemId.split('-')[1];
+                const title = card.querySelector('h4').textContent.split('(')[0].trim();
+                
+                const row = summaryBody.insertRow();
+                row.innerHTML = `<td>${title}</td><td id="summary-score-${itemNumber}">0</td>`;
+
+                card.querySelectorAll('input[type="checkbox"]').forEach(box => {
+                    box.addEventListener('change', () => calculateScore(itemId));
+                });
+            });
+        });
+    </script>
 </body>
 </html>
