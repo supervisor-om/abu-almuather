@@ -4,6 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام التقييم الإشرافي الرقمي</title>
+    <!-- Library for Word Export -->
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+
     <style>
         /* --- Google Fonts --- */
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
@@ -58,6 +61,7 @@
         .controls button { padding: 12px 25px; font-size: 1rem; font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.2s, transform 0.1s; }
         .controls button:hover { transform: translateY(-2px); }
         .print-btn { background-color: #28a745; }
+        .word-btn { background-color: #17a2b8; }
         .reset-btn { background-color: #dc3545; }
         .generate-btn { background-color: #007bff; }
         .report-section { margin-top: 40px; border-top: 2px solid #007bff; padding-top: 20px; }
@@ -76,8 +80,8 @@
             .print-view { display: block; }
             
             .print-container { padding: 1cm; }
-            .print-logo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-            .print-logo-header .logo { height: 70px; width: auto; }
+            .print-logo-header { text-align: center; margin-bottom: 10px; }
+            .print-logo-header .logo-full { width: 100%; max-width: 600px; height: auto; }
             .print-header-text { text-align: center; font-size: 10px; color: #555; margin-bottom: 10px; }
             .print-title h2 { font-size: 1.5rem; background-color: #fde693 !important; padding: 10px; border: 1px solid #000; margin: 0; font-family: inherit; text-align: center; -webkit-print-color-adjust: exact; color-adjust: exact; }
             
@@ -86,13 +90,12 @@
             .print-info-table .label { font-weight: bold; width: 15%; }
             .print-info-table .value { border-bottom: 1px dotted #000; font-weight: normal; }
             
-            .print-main-table, .print-footer-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; font-family: inherit; }
-            .print-main-table th, .print-main-table td, .print-footer-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
-            .print-main-table th { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .print-main-table, .print-footer-table, .print-notes-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; font-family: inherit; }
+            .print-main-table th, .print-main-table td, .print-footer-table td, .print-notes-table th, .print-notes-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
+            .print-main-table th, .print-notes-table th { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
             .print-main-table .category-cell { font-weight: bold; }
             .print-main-table .item-cell { text-align: right; }
-            .print-main-table .merged-cell { white-space: pre-wrap; text-align: right; vertical-align: top; min-height: 200px; }
-            .print-main-table .separator-row th { border-top: 2px solid #000; }
+            .print-notes-table .merged-cell { white-space: pre-wrap; text-align: right; vertical-align: top; min-height: 150px; }
 
             .print-footer-table .label { font-weight: bold; width: 100px; }
             .print-footer-table .content { min-height: 60px; white-space: pre-wrap; text-align: right; vertical-align: top; }
@@ -196,6 +199,7 @@
             <section class="controls">
                 <button type="button" class="generate-btn" onclick="generateReport()">توليد التقرير</button>
                 <button class="print-btn" onclick="printOfficialReport()">طباعة التقرير</button>
+                <button type="button" class="word-btn" onclick="exportToWord()">تنزيل كملف وورد</button>
                 <button type="button" class="reset-btn" onclick="resetForm()">إعادة تعيين</button>
             </section>
         </main>
@@ -509,6 +513,18 @@
             document.getElementById('developmentContent').value = '';
             document.getElementById('recommendationsContent').value = '';
             document.getElementById('reportSection').style.display = 'none';
+        }
+
+        function exportToWord() {
+            prepareOfficialPrint();
+            const sourceHTML = document.getElementById("printView").innerHTML;
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'تقرير-الزيارة-الإشرافية.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
