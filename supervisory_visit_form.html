@@ -74,12 +74,22 @@
         .report-content-area:focus { background-color: #e7f3ff; border-color: #007bff; outline: none; }
         .visitor-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
 
+        /* --- Custom Modal Styles --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 90%; }
+        .modal-content h3 { margin-top: 0; color: #333; }
+        .modal-content p { margin-bottom: 20px; color: #666; }
+        .modal-buttons { display: flex; justify-content: center; gap: 15px; }
+        .modal-buttons button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-family: 'Tajawal', sans-serif; font-weight: 700; }
+        #confirm-reset-btn { background-color: #dc3545; color: white; }
+        #cancel-reset-btn { background-color: #6c757d; color: white; }
+
         /* --- Print-Only Styles --- */
         .print-view { display: none; }
 
         @media print {
             body { background-color: #fff; padding: 0; margin: 0; font-family: 'Times New Roman', Times, serif; }
-            .interactive-view { display: none; }
+            .interactive-view, .modal-overlay { display: none; }
             .print-view { display: block; }
             
             .print-container { padding: 1cm; }
@@ -93,12 +103,12 @@
             .print-info-table .label { font-weight: bold; width: 15%; }
             .print-info-table .value { border-bottom: 1px dotted #000; font-weight: normal; }
             
-            .print-main-table, .print-footer-table, .print-notes-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; font-family: inherit; }
-            .print-main-table th, .print-main-table td, .print-footer-table td, .print-notes-table th, .print-notes-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
-            .print-main-table th, .print-notes-table th { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .print-main-table, .print-footer-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; font-family: inherit; }
+            .print-main-table th, .print-main-table td, .print-footer-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
+            .print-main-table th { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
             .print-main-table .category-cell { font-weight: bold; }
             .print-main-table .item-cell { text-align: right; }
-            .print-notes-table .merged-cell { white-space: pre-wrap; text-align: right; vertical-align: top; min-height: 150px; }
+            .merged-cell { white-space: pre-wrap; text-align: right; vertical-align: top; min-height: 150px; }
 
             .print-footer-table .label { font-weight: bold; width: 100px; }
             .print-footer-table .content { min-height: 60px; white-space: pre-wrap; text-align: right; vertical-align: top; }
@@ -147,7 +157,8 @@
             </details>
 
             <form id="evaluationForm">
-                <!-- المجال الأول -->
+                <!-- All form content remains the same -->
+                 <!-- المجال الأول -->
                 <details open>
                     <summary>المجال الأول: التدريس والتقويم</summary>
                     <div class="item-card" id="item-1"><div class="item-header"><h4>1. خطط التدريس (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-1')">تحديد الكل</button><div class="score" id="score-1">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-1-1"> توافق خطة الدرس العملية (اليومية) مع الخطة الفصلية للوحدة التعليمية (كرة القدم، الجمباز، إلخ).</label><label class="indicator"><input type="checkbox" id="cb-1-2"> تنوع الأهداف (مهارية، معرفية، وجدانية) وتسلسلها المنطقي وارتباطها بالمهارة أو اللعبة المستهدفة.</label><label class="indicator"><input type="checkbox" id="cb-1-3"> التنوع في استراتيجيات التدريس (اللعب، الاكتشاف الموجه، التدريب) وأساليب التقويم (الملاحظة، قوائم الرصد) وارتباطها بالأهداف الحركية.</label><label class="indicator"><input type="checkbox" id="cb-1-4"> تنوع مصادر التعلم (أدوات، أجهزة رياضية، فيديوهات تعليمية) وارتباطها بالأهداف المهارية للدرس.</label><label class="indicator"><input type="checkbox" id="cb-1-5"> تلبية احتياجات الطلبة المختلفة (الموهوبين، ذوي التحديات الحركية) ومراعاة التمايز في الأنشطة البدنية.</label><textarea id="notes-1" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
@@ -206,11 +217,23 @@
                 <button type="button" class="generate-btn" onclick="generateReport()">توليد التقرير</button>
                 <button class="print-btn" onclick="printOfficialReport()">طباعة التقرير</button>
                 <button type="button" class="export-btn" onclick="exportToWord()">تصدير إلى وورد</button>
-                <button type="button" class="reset-btn" onclick="resetForm()">إعادة تعيين</button>
+                <button type="button" class="reset-btn" onclick="showResetModal()">إعادة تعيين</button>
             </section>
         </main>
     </div>
     
+    <!-- Custom Modal for Reset Confirmation -->
+    <div id="reset-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>تأكيد إعادة التعيين</h3>
+            <p>هل أنت متأكد من رغبتك في إعادة تعيين كافة الحقول؟ سيتم فقدان جميع البيانات المدخلة.</p>
+            <div class="modal-buttons">
+                <button id="confirm-reset-btn">تأكيد</button>
+                <button id="cancel-reset-btn">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Hidden view for official printing -->
     <div class="print-view" id="printView">
         <div class="print-container">
@@ -415,7 +438,6 @@
         };
 
         function prepareOfficialPrint() {
-            // Transfer all data from interactive form to the hidden print view
             document.getElementById('print-school').textContent = document.getElementById('school').value;
             document.getElementById('print-teacherName').textContent = document.getElementById('teacherName').value;
             document.getElementById('print-fileNumber').textContent = document.getElementById('fileNumber').value;
@@ -427,12 +449,10 @@
             document.getElementById('print-topic').textContent = document.getElementById('topic').value;
             document.getElementById('print-visitorName').textContent = document.getElementById('visitorName').value;
             document.getElementById('print-visitorPosition').textContent = document.getElementById('visitorPosition').value;
-            
             for (let i = 1; i <= 11; i++) {
                 const score = document.getElementById(`score-${i}`)?.textContent || '0';
                 document.getElementById(`print-score-${i}`).textContent = score;
             }
-            
             document.getElementById('print-strengthsContent').textContent = document.getElementById('strengthsContent')?.value || 'لا يوجد.';
             document.getElementById('print-developmentContent').textContent = document.getElementById('developmentContent')?.value || 'لا يوجد.';
             document.getElementById('print-recommendationsContent').textContent = document.getElementById('recommendationsContent')?.value || 'لا يوجد.';
@@ -493,7 +513,7 @@
                 const content = reportContent[i];
                 const manualNotes = document.getElementById(`notes-${i}`).value.trim();
                 let description = content[score] || '';
-                if (manualNotes) { description += `، حيث لوحظ أن ${manualNotes}`; }
+                if (manualNotes) { description += `، حيث لوحظ أن: ${manualNotes}`; }
                 const itemData = { title, keyword: content.keyword, description, recommendation: content.recommendation, recommendation_for_3: content.recommendation_for_3 };
                 if (score === 5) scoresOf5.push(itemData);
                 else if (score === 4) scoresOf4.push(itemData);
@@ -501,11 +521,11 @@
                 else if (score === 2) scoresOf2.push(itemData);
                 else if (score === 3) { recommendationsFor3 += `• ${title} (لتحسين الأداء):\n${content.recommendation_for_3}\n\n`; }
             }
-            const finalStrengths = [...scoresOf5, ...scoresOf4].slice(0, 4);
-            const finalDevelopment = [...scoresOf1, ...scoresOf2].slice(0, 4);
-            let strengthsText = finalStrengths.map(item => ` ${item.description}.`).join('\n\n');
-            let developmentText = finalDevelopment.map(item => ` ${item.description}.`).join('\n\n');
-            let developmentRecommendations = finalDevelopment.map(item => `• ${item.title}:\n${item.recommendation}`).join('\n\n');
+            
+            let strengthsText = [...scoresOf5, ...scoresOf4].map(item => `• **${item.title}:** ${item.description}.`).join('\n\n');
+            let developmentText = [...scoresOf1, ...scoresOf2].map(item => `• **${item.title}:** ${item.description}.`).join('\n\n');
+            let developmentRecommendations = [...scoresOf1, ...scoresOf2].map(item => `• ${item.title}:\n${item.recommendation}`).join('\n\n');
+            
             let finalRecommendations = (developmentRecommendations + '\n\n' + recommendationsFor3).trim();
             document.getElementById('strengthsContent').value = strengthsText.trim() || 'لم يتم تحديد نقاط قوة بعد.';
             document.getElementById('developmentContent').value = developmentText.trim() || 'لم يتم تحديد جوانب للتطوير بعد.';
@@ -515,23 +535,26 @@
             reportSection.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function resetForm() {
-            if (confirm('هل أنت متأكد من رغبتك في إعادة تعيين كافة الحقول؟ سيتم فقدان جميع البيانات المدخلة.')) {
-                document.getElementById('evaluationForm').reset();
-                document.querySelectorAll('.info-grid input, .visitor-info input').forEach(input => input.value = '');
-                document.querySelectorAll('.item-card').forEach(card => calculateScore(card.id));
-                document.getElementById('strengthsContent').value = '';
-                document.getElementById('developmentContent').value = '';
-                document.getElementById('recommendationsContent').value = '';
-                document.getElementById('reportSection').style.display = 'none';
-                localStorage.removeItem('evaluationFormData');
-                displayStatusMessage('تمت إعادة تعيين النموذج بنجاح.', 'green');
-            }
+        function showResetModal() {
+            document.getElementById('reset-modal').style.display = 'flex';
+        }
+
+        function hideResetModal() {
+            document.getElementById('reset-modal').style.display = 'none';
+        }
+
+        function performReset() {
+            document.getElementById('evaluationForm').reset();
+            document.querySelectorAll('.info-grid input, .visitor-info input, .item-notes, .report-content-area').forEach(input => input.value = '');
+            document.querySelectorAll('.item-card').forEach(card => calculateScore(card.id));
+            document.getElementById('reportSection').style.display = 'none';
+            localStorage.removeItem('evaluationFormData');
+            hideResetModal();
+            displayStatusMessage('تمت إعادة تعيين النموذج بنجاح.', 'green');
         }
 
         function exportToWord() {
             prepareOfficialPrint();
-            // We need to create a temporary container to add the rtl attribute for Word export
             const contentContainer = document.createElement('div');
             contentContainer.setAttribute('dir', 'rtl');
             contentContainer.innerHTML = document.getElementById("printView").innerHTML;
@@ -572,12 +595,12 @@
             
             var converted = htmlDocx.asBlob(content, {
                 orientation: 'portrait',
-                margins: { top: 720, right: 720, bottom: 720, left: 720 } // 1 inch margins
+                margins: { top: 720, right: 720, bottom: 720, left: 720 }
             });
             
             var link = document.createElement('a');
             link.href = URL.createObjectURL(converted);
-            link.download = 'تقرير-الزيارة-الإشرافية.docx';
+            link.download = `تقرير-زيارة-${document.getElementById('teacherName').value || 'معلم'}.docx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -595,7 +618,6 @@
 
         function saveData() {
             const data = {};
-            // Save all input fields
             document.querySelectorAll('input, textarea').forEach(el => {
                 if (el.id) {
                     if (el.type === 'checkbox') {
@@ -622,7 +644,6 @@
                         }
                     }
                 });
-                // Recalculate scores after loading data
                 document.querySelectorAll('.item-card').forEach(card => calculateScore(card.id));
                 displayStatusMessage('تم استرجاع البيانات المحفوظة.', '#007bff');
             }
@@ -646,7 +667,15 @@
                 });
             });
 
-            // Load saved data on page load
+            // Modal event listeners
+            document.getElementById('confirm-reset-btn').addEventListener('click', performReset);
+            document.getElementById('cancel-reset-btn').addEventListener('click', hideResetModal);
+            document.getElementById('reset-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideResetModal();
+                }
+            });
+
             loadData();
         });
     </script>
