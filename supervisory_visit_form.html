@@ -3,7 +3,10 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام التقييم الإشرافي الرقمي</title>
+    <title>نظام التقييم الإشرافي الرقمي المطور</title>
+    
+    <!-- Chart.js for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Script for Word Export Functionality -->
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
@@ -21,8 +24,8 @@
             color: #333;
         }
 
-        /* --- Interactive View Styles --- */
-        .interactive-view {
+        /* --- Main Container & Views --- */
+        .main-container {
             max-width: 900px;
             margin: auto;
             background-color: #ffffff;
@@ -30,9 +33,54 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .page-header { text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 25px; }
-        .page-header h1 { color: #0056b3; margin: 0; }
-        .page-header p { margin: 5px 0 0; color: #666; font-size: 1.1rem; }
+
+        #form-view, #dashboard-view, #saved-reports-view { display: none; }
+        #form-view.active, #dashboard-view.active, #saved-reports-view.active { display: block; }
+
+
+        /* --- Navigation & Header --- */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            flex-grow: 1;
+        }
+        .nav-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: color 0.2s, border-bottom-color 0.2s;
+        }
+        .nav-tab:hover { color: #0056b3; }
+        .nav-tab.active {
+            color: #0056b3;
+            font-weight: 700;
+            border-bottom-color: #007bff;
+        }
+        .view-toggle { display: flex; align-items: center; gap: 8px; }
+        .view-toggle label { font-weight: 500; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #007bff; }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+
+        /* --- Interactive Form Styles --- */
+        .page-header h1 { color: #0056b3; margin: 0; text-align: center;}
+        .page-header p { margin: 5px 0 0; color: #666; font-size: 1.1rem; text-align: center;}
         h2 { color: #0056b3; border-right: 4px solid #007bff; padding-right: 10px; margin-top: 30px; }
         details { border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 15px; margin-bottom: 20px; background-color: #fafafa; }
         summary { cursor: pointer; font-weight: 700; font-size: 1.2rem; color: #0056b3; list-style: none; display: flex; align-items: center; }
@@ -41,46 +89,114 @@
         details[open] > summary::before { transform: rotate(90deg); }
         .item-card { border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin: 15px 0; background-color: #fdfdfd; transition: box-shadow 0.3s; }
         .item-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-        .item-header { display: flex; justify-content: space-between; align-items: center; }
+        .item-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
         .item-header h4 { margin: 0; font-size: 1.1rem; color: #333; }
-        .score-controls { display: flex; align-items: center; gap: 15px; }
+        .controls-container { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .quick-rate-buttons { display: flex; gap: 5px; }
+        .quick-rate-btn { padding: 4px 8px; font-size: 0.75rem; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; border-radius: 4px; transition: background-color 0.2s, color 0.2s; }
+        .quick-rate-btn:hover { background-color: #e2e6ea; }
+        .quick-rate-btn.excellent { border-color: #155724; color: #155724;}
+        .quick-rate-btn.very-good { border-color: #004085; color: #004085;}
+        .quick-rate-btn.good { border-color: #856404; color: #856404;}
+        .quick-rate-btn.dev { border-color: #d9534f; color: #d9534f;}
+
+        .score-controls { display: flex; align-items: center; gap: 10px; }
         .score { font-size: 2rem; font-weight: bold; color: #d9534f; background-color: #f0f2f5; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: color 0.3s, background-color 0.3s; }
         .select-all-btn { padding: 6px 12px; font-size: 0.85rem; font-family: 'Tajawal', sans-serif; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
         .select-all-btn:hover { background-color: #5a6268; }
+        .indicators-container { padding-top: 10px; transition: max-height 0.5s ease-in-out, opacity 0.5s; overflow: hidden; max-height: 1000px; opacity: 1;}
         .indicator { display: block; margin: 12px 5px; font-size: 1rem; padding: 8px; border-radius: 5px; transition: background-color 0.2s; }
         .indicator:hover { background-color: #e9ecef; }
         .indicator input { margin-left: 10px; transform: scale(1.2); }
-        .item-notes { width: 100%; box-sizing: border-box; margin-top: 15px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; font-size: 0.95rem; resize: vertical; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-        .info-grid input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .notes-wrapper { position: relative; }
+        .item-notes { width: 100%; box-sizing: border-box; margin-top: 15px; padding: 8px; padding-left: 35px; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; font-size: 0.95rem; resize: vertical; }
+        .mic-btn { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #6c757d; transition: color 0.2s;}
+        .mic-btn:hover { color: #007bff; }
+        .mic-btn.recording { color: #dc3545; }
+        
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; align-items: center;}
+        .info-grid input, .info-grid select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: 'Tajawal', sans-serif; font-size: 1rem; }
+        .info-grid .dropdown-wrapper { display: flex; flex-direction: column; gap: 5px; }
         .summary-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .summary-table th, .summary-table td { padding: 12px; text-align: right; border-bottom: 1px solid #ddd; }
-        .summary-table th { background-color: #0056b3; color: white; font-weight: 700; }
-        .summary-table tr:nth-child(even) { background-color: #f9f9f9; }
-        .summary-table td:last-child { text-align: center; font-weight: bold; font-size: 1.2rem; }
-        .controls { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .controls button { padding: 12px 25px; font-size: 1rem; font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.2s, transform 0.1s; }
+        .summary-score-input {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            -moz-appearance: textfield; /* Firefox */
+        }
+        .summary-score-input::-webkit-outer-spin-button,
+        .summary-score-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .controls { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .controls button { padding: 10px 20px; font-size: 0.9rem; font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.2s, transform 0.1s; }
         .controls button:hover { transform: translateY(-2px); }
         .print-btn { background-color: #28a745; }
         .reset-btn { background-color: #dc3545; }
         .generate-btn { background-color: #007bff; }
-        .save-btn { background-color: #ffc107; }
+        .gemini-btn { background: linear-gradient(45deg, #4285F4, #9B59B6, #F4B400, #0F9D58); color: white; }
+        .archive-btn { background-color: #3f51b5; }
         .export-btn { background-color: #17a2b8; }
         #status-message { text-align: center; color: green; margin-top: 15px; font-weight: 500; height: 20px; transition: opacity 0.5s; }
         .report-section { margin-top: 40px; border-top: 2px solid #007bff; padding-top: 20px; }
-        .report-box { background-color: #fdfdfd; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
         .report-box h3 { color: #0056b3; margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        .report-content-area { width: 100%; box-sizing: border-box; border: 1px solid transparent; background-color: transparent; font-family: inherit; font-size: 1rem; line-height: 1.7; resize: vertical; min-height: 120px; padding: 5px; margin-top: 10px; transition: background-color 0.2s, border-color 0.2s; }
-        .report-content-area:focus { background-color: #e7f3ff; border-color: #007bff; outline: none; }
+        .report-content-area { width: 100%; box-sizing: border-box; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa; font-family: inherit; font-size: 1rem; line-height: 1.7; resize: vertical; min-height: 120px; padding: 8px; margin-top: 10px; }
         .visitor-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+
+        /* Template Section Styles */
+        .template-section { margin-top: 20px; padding: 15px; border: 1px dashed #007bff; border-radius: 8px; background-color: #f8f9fa;}
+        .template-controls { display: flex; gap: 10px; align-items: center; }
+        .template-controls select { flex-grow: 1; }
+
+        /* Compact View Styles */
+        .compact-mode .indicators-container {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            margin-top: -10px;
+        }
+        .compact-mode .item-card {
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        /* --- Dashboard & Saved Reports Styles --- */
+        .dashboard-controls { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        .dashboard-controls input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Tajawal', sans-serif; font-size: 1rem;}
+        .dashboard-controls button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #chart-container { margin-top: 20px; height: 450px; }
+        #no-data-message, #no-saved-reports-message { text-align: center; color: #6c757d; font-size: 1.2rem; padding: 40px; }
+        .saved-report-card {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .saved-report-info { font-size: 1.1rem; }
+        .saved-report-info strong { color: #0056b3; }
+        .saved-report-actions button {
+            padding: 8px 12px;
+            margin-right: 5px;
+        }
+
 
         /* --- Custom Modal Styles --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 90%; }
-        .modal-content h3 { margin-top: 0; color: #333; }
-        .modal-content p { margin-bottom: 20px; color: #666; }
         .modal-buttons { display: flex; justify-content: center; gap: 15px; }
-        .modal-buttons button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-family: 'Tajawal', sans-serif; font-weight: 700; }
+        .modal-buttons button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: 700; }
         #confirm-reset-btn { background-color: #dc3545; color: white; }
         #cancel-reset-btn { background-color: #6c757d; color: white; }
 
@@ -89,155 +205,155 @@
 
         @media print {
             body { background-color: #fff; padding: 0; margin: 0; font-family: 'Times New Roman', Times, serif; }
-            .interactive-view, .modal-overlay { display: none; }
+            .main-container, .modal-overlay { display: none; }
             .print-view { display: block; }
-            
-            .print-container { padding: 1cm; }
-            .print-logo-header { text-align: center; margin-bottom: 10px; }
-            .print-logo-header .logo { width: 150px; height: auto; margin: 0 15px; }
-            .print-header-text { text-align: center; font-size: 10px; color: #555; margin-bottom: 10px; }
-            .print-title h2 { font-size: 1.5rem; background-color: #fde693 !important; padding: 10px; border: 1px solid #000; margin: 0; font-family: inherit; text-align: center; -webkit-print-color-adjust: exact; color-adjust: exact; }
-            
-            .print-info-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; border: none; }
-            .print-info-table td { padding: 4px; vertical-align: bottom; }
-            .print-info-table .label { font-weight: bold; width: 15%; }
-            .print-info-table .value { border-bottom: 1px dotted #000; font-weight: normal; }
-            
-            .print-main-table, .print-footer-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; font-family: inherit; }
-            .print-main-table th, .print-main-table td, .print-footer-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
-            .print-main-table th { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-            .print-main-table .category-cell { font-weight: bold; }
-            .print-main-table .item-cell { text-align: right; }
-            .merged-cell { white-space: pre-wrap; text-align: right; vertical-align: top; min-height: 150px; }
-
-            .print-footer-table .label { font-weight: bold; width: 100px; }
-            .print-footer-table .content { min-height: 60px; white-space: pre-wrap; text-align: right; vertical-align: top; }
-
-            .signature-section { margin-top: 20px; font-weight: bold; }
-            .signature-section .line { border-bottom: 1px dotted #000; display: inline-block; min-width: 200px; }
-            .evaluation-standard { text-align: center; font-weight: bold; margin-top: 15px; }
         }
     </style>
 </head>
 <body>
-
-    <div class="interactive-view">
-        <header class="page-header">
-            <h1>استمارة زيارة إشرافية إلكترونية</h1>
-            <p>نظام التقييم الإشرافي الرقمي</p>
+    <div class="main-container">
+        <header class="top-header">
+            <nav class="nav-tabs">
+                <button class="nav-tab active" onclick="toggleView('form-view')">نموذج التقييم</button>
+                <button class="nav-tab" onclick="toggleView('dashboard-view')">لوحة المتابعة</button>
+                <button class="nav-tab" onclick="toggleView('saved-reports-view')">التقارير المحفوظة</button>
+            </nav>
+            <div class="view-toggle">
+                <label for="compact-view-toggle">عرض مكثف</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="compact-view-toggle" onchange="toggleCompactView()">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </header>
 
-        <main>
-            <section class="visit-info">
-                <h2>معلومات الزيارة</h2>
-                <div class="info-grid">
-                    <input id="school" type="text" placeholder="المدرسة">
-                    <input id="teacherName" type="text" placeholder="اسم المعلم">
-                    <input id="fileNumber" type="text" placeholder="رقم الملف">
-                    <input id="subject" type="text" placeholder="المادة">
-                    <input id="visitNumber" type="text" placeholder="رقم الزيارة">
-                    <input id="visitDate" type="date" placeholder="التاريخ">
-                    <input id="class" type="text" placeholder="الصف">
-                    <input id="lesson" type="text" placeholder="الحصة">
-                    <input id="topic" type="text" placeholder="الموضوع">
-                </div>
-            </section>
-            
-            <details>
-                <summary>اضغط هنا لعرض معيار التقييم</summary>
-                <div style="padding: 10px;">
-                    <ul>
-                        <li><b>5 (متميز):</b> تحقيق 90% فأكثر من المؤشرات</li>
-                        <li><b>4 (جيد جداً):</b> تحقيق من 76% إلى 89%</li>
-                        <li><b>3 (جيد):</b> تحقيق من 50% إلى 75%</li>
-                        <li><b>2 (مقبول):</b> تحقيق من 30% إلى 49%</li>
-                        <li><b>1 (غير مرضٍ):</b> تحقيق أقل من 30%</li>
-                    </ul>
-                </div>
-            </details>
+        <div id="form-view" class="active">
+            <div class="page-header">
+                <h1>استمارة زيارة إشرافية إلكترونية</h1>
+                <p>نظام التقييم الإشرافي الرقمي المطور</p>
+            </div>
+            <main>
+                <section class="visit-info">
+                    <h2>معلومات الزيارة</h2>
+                    <div class="info-grid">
+                        <div class="dropdown-wrapper">
+                            <select id="school"></select>
+                            <input id="school-other" type="text" placeholder="أو أدخل اسم المدرسة يدويًا" style="display: none; margin-top: 5px;">
+                        </div>
+                        <input id="teacherName" type="text" placeholder="اسم المعلم">
+                        <input id="fileNumber" type="text" placeholder="رقم الملف">
+                        <input id="subject" type="text" placeholder="المادة">
+                        <input id="visitNumber" type="text" placeholder="رقم الزيارة">
+                        <input id="visitDate" type="date" placeholder="التاريخ">
+                        <input id="class" type="text" placeholder="الصف">
+                        <input id="lesson" type="text" placeholder="الحصة">
+                        <input id="topic" type="text" placeholder="الموضوع">
+                    </div>
+                </section>
 
-            <form id="evaluationForm">
-                <!-- All form content remains the same -->
-                 <!-- المجال الأول -->
-                <details open>
-                    <summary>المجال الأول: التدريس والتقويم</summary>
-                    <div class="item-card" id="item-1"><div class="item-header"><h4>1. خطط التدريس (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-1')">تحديد الكل</button><div class="score" id="score-1">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-1-1"> توافق خطة الدرس العملية (اليومية) مع الخطة الفصلية للوحدة التعليمية (كرة القدم، الجمباز، إلخ).</label><label class="indicator"><input type="checkbox" id="cb-1-2"> تنوع الأهداف (مهارية، معرفية، وجدانية) وتسلسلها المنطقي وارتباطها بالمهارة أو اللعبة المستهدفة.</label><label class="indicator"><input type="checkbox" id="cb-1-3"> التنوع في استراتيجيات التدريس (اللعب، الاكتشاف الموجه، التدريب) وأساليب التقويم (الملاحظة، قوائم الرصد) وارتباطها بالأهداف الحركية.</label><label class="indicator"><input type="checkbox" id="cb-1-4"> تنوع مصادر التعلم (أدوات، أجهزة رياضية، فيديوهات تعليمية) وارتباطها بالأهداف المهارية للدرس.</label><label class="indicator"><input type="checkbox" id="cb-1-5"> تلبية احتياجات الطلبة المختلفة (الموهوبين، ذوي التحديات الحركية) ومراعاة التمايز في الأنشطة البدنية.</label><textarea id="notes-1" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                    <div class="item-card" id="item-2"><div class="item-header"><h4>2. بيئة التعلم (في الملعب/ الصالة الرياضية) (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-2')">تحديد الكل</button><div class="score" id="score-2">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-2-1"> الاستثمار الأمثل لزمن النشاط الحركي الفعلي خلال الحصة.</label><label class="indicator"><input type="checkbox" id="cb-2-2"> إثارة دافعية الطلبة للمشاركة في النشاط البدني بما يتناسب مع قدراتهم البدنية.</label><label class="indicator"><input type="checkbox" id="cb-2-3"> إدارة تعلم الطلبة بفاعلية (تنظيم المجموعات، توزيع الأدوات، الانتقال بين المحطات).</label><label class="indicator"><input type="checkbox" id="cb-2-4"> توفير بيئة تعلم آمنة جسديًا ونفسيًا (التأكد من سلامة الأدوات، الإحماء المناسب، منع التنمر).</label><label class="indicator"><input type="checkbox" id="cb-2-5"> التنوع في أساليب التعزيز (لفظي، حركي) لتشجيع الأداء والمحاولة.</label><textarea id="notes-2" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                    <div class="item-card" id="item-3"><div class="item-header"><h4>3. فاعلية التدريس (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-3')">تحديد الكل</button><div class="score" id="score-3">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-3-1"> التمكن من المادة العلمية (قوانين الألعاب) وتقديم نموذج حركي سليم للمهارات.</label><label class="indicator"><input type="checkbox" id="cb-3-2"> توجيه الطلبة للاعتماد على أنفسهم في تطبيق المهارات وتصحيح أخطائهم.</label><label class="indicator"><input type="checkbox" id="cb-3-3"> ربط النشاط البدني بحياة الطلبة اليومية (الصحة، اللياقة البدنية، قضاء وقت الفراغ).</label><label class="indicator"><input type="checkbox" id="cb-3-4"> تفعيل الأنشطة التطبيقية (مباريات مصغرة) واللاصفية (اليوم الرياضي، المنتخبات المدرسية).</label><label class="indicator"><input type="checkbox" id="cb-3-5"> تفعيل أساليب التعلم القائمة على اللعب والمنافسات البناءة.</label><textarea id="notes-3" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                    <div class="item-card" id="item-4"><div class="item-header"><h4>4. المصادر والموارد التعليمية (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-4')">تحديد الكل</button><div class="score" id="score-4">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-4-1"> توظيف الأدوات والأجهزة الرياضية بشكل فعال لتحقيق أهداف الدرس.</label><label class="indicator"><input type="checkbox" id="cb-4-2"> توظيف التقنيات الرقمية (تطبيقات اللياقة، تحليل الفيديو) لتحسين الأداء.</label><label class="indicator"><input type="checkbox" id="cb-4-3"> الاستفادة القصوى من مرافق المدرسة (الملعب، الصالة، حوض السباحة).</label><label class="indicator"><input type="checkbox" id="cb-4-4"> إشراك الطلبة في إعداد وتوظيف الأدوات والموارد المتاحة.</label><label class="indicator"><input type="checkbox" id="cb-4-5"> ملاءمة الأدوات والموارد المستخدمة للفئة العمرية والمهارة المستهدفة.</label><textarea id="notes-4" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                    <div class="item-card" id="item-5"><div class="item-header"><h4>5. التقويم من أجل التعلم (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-5')">تحديد الكل</button><div class="score" id="score-5">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-5-1"> توظيف أساليب تقويم (قوائم رصد المهارات، تقويم الأداء الحركي) تراعي الفروق البدنية بين الطلبة.</label><label class="indicator"><input type="checkbox" id="cb-5-2"> تقديم تغذية راجعة فورية وبناءة لتصحيح الأداء الحركي للطلبة.</label><label class="indicator"><input type="checkbox" id="cb-5-3"> مشاركة الطلبة في أهداف الدرس ومعايير إتقان المهارة (نقاط فنية واضحة).</label><label class="indicator"><input type="checkbox" id="cb-5-4"> تفعيل تقييم الأقران (ملاحظة الزملاء للأداء) والتقييم الذاتي لتعزيز وعيهم الحركي.</label><label class="indicator"><input type="checkbox" id="cb-5-5"> تقديم تغذية راجعة لمساعدة الطلبة على تطوير مهاراتهم وأدائهم في الأنشطة.</label><textarea id="notes-5" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                </details>
+                <section class="template-section">
+                     <div class="template-controls">
+                        <select id="template-select" class="info-grid-input"></select>
+                        <button onclick="loadTemplate()" class="generate-btn" style="padding: 8px 12px; font-size: 0.9rem;">تحميل قالب</button>
+                        <button onclick="saveTemplate()" class="save-btn" style="padding: 8px 12px; font-size: 0.9rem;">حفظ كقالب</button>
+                    </div>
+                </section>
                 
                 <details>
-                    <summary>المجال الثاني: إنجاز الطلبة</summary>
-                    <div class="item-card" id="item-6"><div class="item-header"><h4>6. التحصيل (الأداء المهاري والمعرفي) (3 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-6')">تحديد الكل</button><div class="score" id="score-6">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-6-1"> اكتساب الطلبة للمهارات الحركية الأساسية (الجري، القفز، الرمي).</label><label class="indicator"><input type="checkbox" id="cb-6-2"> اكتساب الطلبة للمعارف (القوانين، الخطط) والمهارات الخاصة باللعبة أو الرياضة.</label><label class="indicator"><input type="checkbox" id="cb-6-3"> مستوى أداء الطلبة في التطبيقات العملية (المباريات، الأنشطة التقويمية).</label><textarea id="notes-6" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                    <div class="item-card" id="item-7"><div class="item-header"><h4>7. التقدم الدراسي (3 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-7')">تحديد الكل</button><div class="score" id="score-7">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-7-1"> التقدم الذي يظهره الطلبة في مستوى أدائهم المهاري بين بداية الحصة ونهايتها.</label><label class="indicator"><input type="checkbox" id="cb-7-2"> التقدم أثناء الحصة في فهم الجوانب الخططية وتطبيقها (الانتقال من التطبيق الفردي للمهارة إلى توظيفها في اللعب).</label><label class="indicator"><input type="checkbox" id="cb-7-3"> قدرة الطلبة على فهم القوانين وتطبيق المهارات في مواقف اللعب المختلفة.</label><textarea id="notes-7" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                    <div class="item-card" id="item-8"><div class="item-header"><h4>8. مهارات التعلم من أجل المستقبل (4 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-8')">تحديد الكل</button><div class="score" id="score-8">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-8-1"> المشاركة في تنظيم وقيادة بعض أجزاء الدرس (الإحماء، تنظيم المجموعات).</label><label class="indicator"><input type="checkbox" id="cb-8-2"> قدرة الطلبة على التعاون والتواصل الفعال مع زملائهم في الفريق أثناء اللعب.</label><label class="indicator"><input type="checkbox" id="cb-8-3"> توظيف الطلبة لمهارات التفكير الخططي وحل المشكلات في مواقف اللعب.</label><label class="indicator"><input type="checkbox" id="cb-8-4"> توظيف الطلبة للمهارات التقنية (ساعات رياضية، تطبيقات) في ممارسة النشاط البدني.</label><textarea id="notes-8" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
+                    <summary>اضغط هنا لعرض معيار التقييم</summary>
+                    <div style="padding: 10px;">
+                        <ul>
+                            <li><b>5 (متميز):</b> تحقيق 90% فأكثر من المؤشرات</li>
+                            <li><b>4 (جيد جداً):</b> تحقيق من 75% إلى 89%</li>
+                            <li><b>3 (جيد):</b> تحقيق من 50% إلى 74%</li>
+                            <li><b>2 (مقبول):</b> تحقيق من 30% إلى 49%</li>
+                            <li><b>1 (غير مرضٍ):</b> تحقيق أقل من 30%</li>
+                        </ul>
+                    </div>
                 </details>
-                <details>
-                    <summary>المجال الثالث: النمو الشخصي للطلبة ورعايتهم</summary>
-                    <div class="item-card" id="item-9"><div class="item-header"><h4>9. القيم والاتجاهات الإيجابية في التعلم (4 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-9')">تحديد الكل</button><div class="score" id="score-9">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-9-1"> حرص الطلبة على أداء المهارات والأنشطة البدنية بإتقان وجدية.</label><label class="indicator"><input type="checkbox" id="cb-9-2"> إظهار الطلبة توجهات إيجابية نحو ممارسة الرياضة والمحافظة على اللياقة البدنية.</label><label class="indicator"><input type="checkbox" id="cb-9-3"> إظهار الطلبة انضباطًا ذاتيًا والتزامًا بقوانين اللعب وقرارات الحكم.</label><label class="indicator"><input type="checkbox" id="cb-9-4"> إبداء الطلبة لأخلاقيات رياضية عالية (الروح الرياضية، احترام المنافس والزميل).</label><textarea id="notes-9" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                </details>
-                <details>
-                    <summary>المجال الرابع: القيادة والإدارة والحوكمة</summary>
-                    <div class="item-card" id="item-10"><div class="item-header"><h4>10. الممارسات المهنية للتعلم المستمر (5 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-10')">تحديد الكل</button><div class="score" id="score-10">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-10-1"> المشاركة في دورات وورش عمل تخصصية (تدريب, تحكيم, إصابات رياضية).</label><label class="indicator"><input type="checkbox" id="cb-10-2"> نقل أثر المشاركات المهنية وتطبيقها لتطوير طرق تدريس المهارات المختلفة.</label><label class="indicator"><input type="checkbox" id="cb-10-3"> التعاون مع الزملاء لتبادل الخبرات في تدريس وحدات رياضية معينة.</label><label class="indicator"><input type="checkbox" id="cb-10-4"> التفكر والتأمل في ممارساته التدريسية لتحسين أداء الطلبة المهاري.</label><label class="indicator"><input type="checkbox" id="cb-10-5"> تحليل نتائج تقويم أداء الطلبة (المهاري والبدني) لتطوير خططه التدريسية.</label><textarea id="notes-10" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                    <div class="item-card" id="item-11"><div class="item-header"><h4>11. المبادرات والأنشطة التربوية في المجتمع المدرسي (3 مؤشرات)</h4><div class="score-controls"><button type="button" class="select-all-btn" onclick="selectAllIndicators('item-11')">تحديد الكل</button><div class="score" id="score-11">0</div></div></div><hr><label class="indicator"><input type="checkbox" id="cb-11-1"> تقديم مبادرات فاعلة (يوم رياضي, بطولة داخلية) تدعم النشاط البدني في المدرسة.</label><label class="indicator"><input type="checkbox" id="cb-11-2"> التفاعل الإيجابي مع مختلف الأنشطة الرياضية والثقافية في المدرسة.</label><label class="indicator"><input type="checkbox" id="cb-11-3"> التفاعل الإيجابي مع المجتمع المحلي (تنظيم فعاليات رياضية مشتركة, استضافة فرق رياضية).</label><textarea id="notes-11" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea></div>
-                </details>
-            </form>
 
-            <section class="summary">
-                <h2>ملخص النتائج</h2>
-                <table class="summary-table">
-                    <thead><tr><th>البند</th><th>التقدير (من 5)</th></tr></thead>
-                    <tbody id="summary-tbody">
-                        <!-- Summary rows populated by JS -->
-                    </tbody>
-                </table>
-            </section>
-            
-            <section id="reportSection" class="report-section" style="display: none;">
-                <h2>التقرير النهائي</h2>
-                <div class="report-box"><h3>جوانب الإجادة</h3><textarea id="strengthsContent" class="report-content-area" placeholder="..."></textarea></div>
-                <div class="report-box"><h3>الجوانب التي تحتاج إلى تطوير</h3><textarea id="developmentContent" class="report-content-area" placeholder="..."></textarea></div>
-                <div class="report-box"><h3>التوصيات</h3><textarea id="recommendationsContent" class="report-content-area" placeholder="..."></textarea></div>
-            </section>
+                <form id="evaluationForm">
+                    <!-- Item Cards will be generated by JS -->
+                </form>
 
-            <section class="visitor-info">
-                <h2>معلومات الزائر</h2>
-                <div class="info-grid">
-                    <input id="visitorName" type="text" placeholder="اسم الزائر">
-                    <input id="visitorPosition" type="text" placeholder="الوظيفة (مثال: مشرف رياضة مدرسية)">
-                </div>
-            </section>
-            
-            <p id="status-message"></p>
+                <section class="summary">
+                    <h2>ملخص النتائج</h2>
+                    <table class="summary-table">
+                        <thead><tr><th>البند</th><th>التقدير (من 5)</th></tr></thead>
+                        <tbody id="summary-tbody">
+                            <!-- Summary rows populated by JS -->
+                        </tbody>
+                    </table>
+                </section>
+                
+                <section id="reportSection" class="report-section" style="display: none;">
+                    <h2>التقرير النهائي</h2>
+                    <div class="report-box"><h3>جوانب الإجادة</h3><textarea id="strengthsContent" class="report-content-area" placeholder="..."></textarea></div>
+                    <div class="report-box"><h3>الجوانب التي تحتاج إلى تطوير</h3><textarea id="developmentContent" class="report-content-area" placeholder="..."></textarea></div>
+                    <div class="report-box"><h3>التوصيات</h3><textarea id="recommendationsContent" class="report-content-area" placeholder="..."></textarea></div>
+                </section>
 
-            <section class="controls">
-                <button type="button" class="save-btn" onclick="saveData()">حفظ البيانات</button>
-                <button type="button" class="generate-btn" onclick="generateReport()">توليد التقرير</button>
-                <button class="print-btn" onclick="printOfficialReport()">طباعة التقرير</button>
-                <button type="button" class="export-btn" onclick="exportToWord()">تصدير إلى وورد</button>
-                <button type="button" class="reset-btn" onclick="showResetModal()">إعادة تعيين</button>
-            </section>
-        </main>
+                <section class="visitor-info">
+                    <h2>معلومات الزائر</h2>
+                    <div class="info-grid">
+                        <input id="visitorName" type="text" placeholder="اسم الزائر">
+                        <input id="visitorPosition" type="text" placeholder="الوظيفة (مثال: مشرف رياضة مدرسية)">
+                    </div>
+                </section>
+                
+                <p id="status-message"></p>
+
+                <section class="controls">
+                    <button type="button" class="archive-btn" onclick="savePermanentReport()">حفظ التقرير</button>
+                    <button type="button" class="generate-btn" onclick="generateReport()">توليد تقرير يدوي</button>
+                    <button type="button" class="gemini-btn" onclick="generateAiReport()">✨ توليد تقرير ذكي</button>
+                    <button class="print-btn" onclick="printOfficialReport()">طباعة</button>
+                    <button type="button" class="export-btn" onclick="exportToWord()">تصدير Word</button>
+                    <button type="button" class="reset-btn" onclick="showResetModal()">إعادة تعيين</button>
+                </section>
+            </main>
+        </div>
+
+        <div id="dashboard-view">
+            <h2>لوحة متابعة أداء المعلم</h2>
+            <div class="dashboard-controls">
+                <input type="text" id="teacher-dashboard-name" placeholder="أدخل اسم المعلم لعرض بياناته...">
+                <button onclick="loadTeacherDashboard()">عرض الأداء</button>
+            </div>
+            <div id="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+            <div id="no-data-message" style="display: none;">
+                <p>لا توجد بيانات مؤرشفة لهذا المعلم حتى الآن.</p>
+            </div>
+        </div>
+
+        <div id="saved-reports-view">
+            <h2>التقارير المحفوظة</h2>
+            <p>هنا يمكنك عرض وتحميل التقارير التي تم حفظها بشكل دائم.</p>
+            <div id="saved-reports-list">
+                <!-- Reports will be injected here -->
+            </div>
+            <div id="no-saved-reports-message" style="display: none;">
+                <p>لا توجد تقارير محفوظة حتى الآن.</p>
+            </div>
+        </div>
     </div>
     
-    <!-- Custom Modal for Reset Confirmation -->
+    <!-- Modals and Print View -->
     <div id="reset-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>تأكيد إعادة التعيين</h3>
             <p>هل أنت متأكد من رغبتك في إعادة تعيين كافة الحقول؟ سيتم فقدان جميع البيانات المدخلة.</p>
             <div class="modal-buttons">
-                <button id="confirm-reset-btn">تأكيد</button>
-                <button id="cancel-reset-btn">إلغاء</button>
+                <button id="confirm-reset-btn" onclick="performReset()">تأكيد</button>
+                <button id="cancel-reset-btn" onclick="hideResetModal()">إلغاء</button>
             </div>
         </div>
     </div>
-
-    <!-- Hidden view for official printing -->
     <div class="print-view" id="printView">
         <div class="print-container">
-            <div class="print-logo-header">
+             <div class="print-logo-header">
                 <img src="https://j.top4top.io/p_35222ql0t1.png" alt="شعار وزارة التربية" class="logo" onerror="this.style.display='none'">
                 <img src="https://k.top4top.io/p_3522wfvvr2.png" alt="شعار رؤية عمان 2040" class="logo" onerror="this.style.display='none'">
                 <img src="https://l.top4top.io/p_35225xfin3.png" alt="شعار الجودة" class="logo" onerror="this.style.display='none'">
@@ -265,46 +381,8 @@
                         <th style="width: 30%;">جوانب الإجادة في الأداء وأدلتها</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td rowspan="5" class="category-cell">التدريس والتقويم</td>
-                        <td>1</td>
-                        <td class="item-cell">خطط التدريس</td>
-                        <td id="print-score-1"></td>
-                        <td id="print-strengthsContent" class="merged-cell" rowspan="5"></td>
-                    </tr>
-                    <tr><td>2</td><td class="item-cell">بيئة التعلم الصفية</td><td id="print-score-2"></td></tr>
-                    <tr><td>3</td><td class="item-cell">فاعلية التدريس</td><td id="print-score-3"></td></tr>
-                    <tr><td>4</td><td class="item-cell">المصادر والموارد التعليمية</td><td id="print-score-4"></td></tr>
-                    <tr><td>5</td><td class="item-cell">التقويم من أجل التعلم</td><td id="print-score-5"></td></tr>
-                    
-                    <tr class="separator-row">
-                        <td colspan="4" style="border-right: 1px solid #000; border-bottom: 2px solid #000;"></td>
-                        <th style="border-top: 2px solid #000;">الجوانب التي تحتاج لتطوير وأدلتها</th>
-                    </tr>
-
-                    <tr>
-                        <td rowspan="3" class="category-cell">إنجاز الطلبة</td>
-                        <td>6</td>
-                        <td class="item-cell">التحصيل الدراسي</td>
-                        <td id="print-score-6"></td>
-                        <td id="print-developmentContent" class="merged-cell" rowspan="6"></td>
-                    </tr>
-                    <tr><td>7</td><td class="item-cell">التقدم الدراسي</td><td id="print-score-7"></td></tr>
-                    <tr><td>8</td><td class="item-cell">مهارات التعلم من أجل المستقبل</td><td id="print-score-8"></td></tr>
-                    <tr>
-                        <td class="category-cell">النمو الشخصي للطلبة ورعايتهم</td>
-                        <td>9</td>
-                        <td class="item-cell">القيم والاتجاهات الإيجابية في التعلم</td>
-                        <td id="print-score-9"></td>
-                    </tr>
-                    <tr>
-                        <td rowspan="2" class="category-cell">القيادة والإدارة والحوكمة</td>
-                        <td>10</td>
-                        <td class="item-cell">الممارسات المهنية للتعلم المستمر</td>
-                        <td id="print-score-10"></td>
-                    </tr>
-                    <tr><td>11</td><td class="item-cell">المبادرات والأنشطة التربوية في المجتمع المدرسي</td><td id="print-score-11"></td></tr>
+                <tbody id="print-main-tbody">
+                    <!-- Rows generated by script -->
                 </tbody>
             </table>
 
@@ -323,10 +401,87 @@
     </div>
 
     <script>
-        // --- All JS functions go here ---
+        // --- Globals & Constants ---
+        let performanceChartInstance;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+        if (recognition) {
+            recognition.continuous = false;
+            recognition.lang = 'ar-SA';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+        }
+
+        const schoolsList = [
+            "أبو القاسم الزهراوي", "أبو أيوب الحضرمي", "أبو تمام", "أحمد بن النعمان", 
+            "الشيخ سالم السيابي", "الشيخ سعيد الكندي مساني", "الشيخ ناصر الخروصي", 
+            "جنادة الازدي", "حفص بن راشد", "خريس الحبوس", "سهيل بن عمرو العامري", 
+            "كعب بن زيد", "يزيد الطائي", "أجيال الثقافة", "أجيال الفردوس – الحيل", 
+            "البيان", "الجيل المبدع", "الريادة", "الصفوة -المعبيلة", "المجد", 
+            "جيفر بن الجلندى", "السراج", "ضياء المستقبل", "مشاعل مسقط سور ال حديد"
+        ];
+
+        const evaluationItems = [
+            { id: 1, title: 'خطط التدريس', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
+                'توافق خطة الدرس العملية (اليومية) مع الخطة الفصلية للوحدة التعليمية (كرة القدم، الجمباز، إلخ).',
+                'تنوع الأهداف (مهارية، معرفية، وجدانية) وتسلسلها المنطقي وارتباطها بالمهارة أو اللعبة المستهدفة.',
+                'التنوع في استراتيجيات التدريس (اللعب، الاكتشاف الموجه، التدريب) وأساليب التقويم (الملاحظة، قوائم الرصد) وارتباطها بالأهداف الحركية.',
+                'تنوع مصادر التعلم (أدوات، أجهزة رياضية، فيديوهات تعليمية) وارتباطها بالأهداف المهارية للدرس.',
+                'تلبية احتياجات الطلبة المختلفة (الموهوبين، ذوي التحديات الحركية) ومراعاة التمايز في الأنشطة البدنية.'
+            ]},
+            { id: 2, title: 'بيئة التعلم', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
+                'الاستثمار الأمثل لزمن النشاط الحركي الفعلي خلال الحصة.', 'إثارة دافعية الطلبة للمشاركة في النشاط البدني بما يتناسب مع قدراتهم البدنية.',
+                'إدارة تعلم الطلبة بفاعلية (تنظيم المجموعات، توزيع الأدوات، الانتقال بين المحطات).', 'توفير بيئة تعلم آمنة جسديًا ونفسيًا (التأكد من سلامة الأدوات، الإحماء المناسب، منع التنمر).',
+                'التنوع في أساليب التعزيز (لفظي، حركي) لتشجيع الأداء والمحاولة.'
+            ]},
+            { id: 3, title: 'فاعلية التدريس', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
+                'التمكن من المادة العلمية (قوانين الألعاب) وتقديم نموذج حركي سليم للمهارات.', 'توجيه الطلبة للاعتماد على أنفسهم في تطبيق المهارات وتصحيح أخطائهم.',
+                'ربط النشاط البدني بحياة الطلبة اليومية (الصحة، اللياقة البدنية، قضاء وقت الفراغ).', 'تفعيل الأنشطة التطبيقية (مباريات مصغرة) واللاصفية (اليوم الرياضي، المنتخبات المدرسية).',
+                'تفعيل أساليب التعلم القائمة على اللعب والمنافسات البناءة.'
+            ]},
+            { id: 4, title: 'المصادر والموارد التعليمية', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
+                'توظيف الأدوات والأجهزة الرياضية بشكل فعال لتحقيق أهداف الدرس.', 
+                'توظيف المنصات الرقمية والتفاعلية (منصة نور ، تحليل الفيديو) لتحسين الأداء.',
+                'الاستفادة القصوى من مرافق المدرسة (الملعب، الصالة، حوض السباحة).', 
+                'إشراك الطلبة في إعداد وتوظيف الأدوات والموارد المتاحة.',
+                'ملاءمة الأدوات والموارد المستخدمة للفئة العمرية والمهارة المستهدفة.'
+            ]},
+            { id: 5, title: 'التقويم من أجل التعلم', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
+                'توظيف أساليب تقويم (قوائم رصد المهارات، تقويم الأداء الحركي) تراعي الفروق البدنية بين الطلبة.', 'تقديم تغذية راجعة فورية وبناءة لتصحيح الأداء الحركي للطلبة.',
+                'مشاركة الطلبة في أهداف الدرس ومعايير إتقان المهارة (نقاط فنية واضحة).', 'تفعيل تقييم الأقران (ملاحظة الزملاء للأداء) والتقييم الذاتي لتعزيز وعيهم الحركي.',
+                'تقديم تغذية راجعة لمساعدة الطلبة على تطوير مهاراتهم وأدائهم في الأنشطة.'
+            ]},
+            { id: 6, title: 'التحصيل', indicators: 3, domain: 'المجال الثاني: إنجاز الطلبة', details: [
+                'اكتساب الطلبة للمهارات الحركية الأساسية (الجري، القفز، الرمي).', 'اكتساب الطلبة للمعارف (القوانين، الخطط) والمهارات الخاصة باللعبة أو الرياضة.',
+                'مستوى أداء الطلبة في التطبيقات العملية (المباريات، الأنشطة التقويمية).'
+            ]},
+            { id: 7, title: 'التقدم الدراسي', indicators: 3, domain: 'المجال الثاني: إنجاز الطلبة', details: [
+                'التقدم الذي يظهره الطلبة في مستوى أدائهم المهاري بين بداية الحصة ونهايتها.', 'التقدم أثناء الحصة في فهم الجوانب الخططية وتطبيقها (الانتقال من التطبيق الفردي للمهارة إلى توظيفها في اللعب).',
+                'قدرة الطلبة على فهم القوانين وتطبيق المهارات في مواقف اللعب المختلفة.'
+            ]},
+            { id: 8, title: 'مهارات التعلم', indicators: 4, domain: 'المجال الثاني: إنجاز الطلبة', details: [
+                'المشاركة في تنظيم وقيادة بعض أجزاء الدرس (الإحماء، تنظيم المجموعات).', 'قدرة الطلبة على التعاون والتواصل الفعال مع زملائهم في الفريق أثناء اللعب.',
+                'توظيف الطلبة لمهارات التفكير الخططي وحل المشكلات في مواقف اللعب.', 'توظيف الطلبة للمهارات التقنية (ساعات رياضية، تطبيقات) في ممارسة النشاط البدني.'
+            ]},
+            { id: 9, title: 'القيم والاتجاهات', indicators: 4, domain: 'المجال الثالث: النمو الشخصي للطلبة ورعايتهم', details: [
+                'حرص الطلبة على أداء المهارات والأنشطة البدنية بإتقان وجدية.', 'إظهار الطلبة توجهات إيجابية نحو ممارسة الرياضة والمحافظة على اللياقة البدنية.',
+                'إظهار الطلبة انضباطًا ذاتيًا والتزامًا بقوانين اللعب وقرارات الحكم.', 'إبداء الطلبة لأخلاقيات رياضية عالية (الروح الرياضية، احترام المنافس والزميل).'
+            ]},
+            { id: 10, title: 'الممارسات المهنية', indicators: 5, domain: 'المجال الرابع: القيادة والإدارة والحوكمة', details: [
+                'المشاركة في دورات وورش عمل تخصصية (تدريب, تحكيم, إصابات رياضية).', 'نقل أثر المشاركات المهنية وتطبيقها لتطوير طرق تدريس المهارات المختلفة.',
+                'التعاون مع الزملاء لتبادل الخبرات في تدريس وحدات رياضية معينة.', 'التفكر والتأمل في ممارساته التدريسية لتحسين أداء الطلبة المهاري.',
+                'تحليل نتائج تقويم أداء الطلبة (المهاري والبدني) لتطوير خططه التدريسية.'
+            ]},
+            { id: 11, title: 'المبادرات والأنشطة', indicators: 3, domain: 'المجال الرابع: القيادة والإدارة والحوكمة', details: [
+                'تقديم مبادرات فاعلة (يوم رياضي, بطولة داخلية) تدعم النشاط البدني في المدرسة.', 'التفاعل الإيجابي مع مختلف الأنشطة الرياضية والثقافية في المدرسة.',
+                'التفاعل الإيجابي مع المجتمع المحلي (تنظيم فعاليات رياضية مشتركة, استضافة فرق رياضية).'
+            ]}
+        ];
+        
         const reportContent = {
             '1': {
                 keyword: 'خطط',
+                title: 'خطط التدريس',
                 '5': 'يخطط لجميع دروسه العملية بتسلسل منطقي للمهارات الحركية، ويربطها دائماً بالخطة الفصلية، وينوع بفاعلية في استراتيجيات التدريس وأساليب التقويم، ويلبي احتياجات جميع الطلبة ومستوياتهم البدنية',
                 '4': 'يخطط لمعظم دروسه العملية بتسلسل منطقي، ويربطها بالخطة الفصلية، وينوع في استراتيجيات التدريس وأساليب التقويم، ويلبي احتياجات معظم الطلبة',
                 '3': 'يخطط لأغلب دروسه العملية، ويربط الأهداف غالباً بالخطة الفصلية، ويستخدم استراتيجيات وأساليب تقويم مناسبة',
@@ -337,6 +492,7 @@
             },
             '2': {
                 keyword: 'بيئة',
+                title: 'بيئة التعلم',
                 '5': 'يستثمر زمن الحصة بالكامل في النشاط الحركي، ويدير تعلم جميع الطلبة بفعالية وأمان، ويثير دافعيتهم للمشاركة، ويعزز أداءهم باستمرار',
                 '4': 'يستثمر معظم زمن الحصة في النشاط الحركي، ويدير تعلم معظم الطلبة بفعالية، ويثير دافعيتهم، ويوفر بيئة آمنة ومنظمة',
                 '3': 'يستثمر أغلب زمن الحصة في النشاط الحركي، ويدير تعلم أغلب الطلبة بشكل ملائم، ويوفر بيئة آمنة',
@@ -347,6 +503,7 @@
             },
             '3': {
                 keyword: 'فاعلية',
+                title: 'فاعلية التدريس',
                 '5': 'متمكن من تقديم نموذج حركي سليم لجميع المهارات، ويربط دائماً النشاط البدني بالصحة العامة، ويوجه جميع الطلبة لتصحيح أدائهم ذاتياً، ويفعل الأنشطة التنافسية البناءة',
                 '4': 'متمكن من تقديم نموذج حركي سليم لمعظم المهارات، ويربط في معظم الأحيان النشاط البدني بالصحة العامة، ويوجه معظم الطلبة للتعلم الذاتي',
                 '3': 'يمتلك تمكناً جيداً من المهارات ويربط أغلب الأنشطة بالصحة، ويفعل الأنشطة التنافسية بشكل ملائم',
@@ -357,6 +514,7 @@
             },
             '4': {
                 keyword: 'مصادر',
+                title: 'المصادر والموارد التعليمية',
                 '5': 'يوظف جميع الأدوات والموارد المتاحة بابتكار وفاعلية عالية في جميع جوانب الدرس، ويشرك جميع الطلبة في استخدامها لتحقيق أهداف مهارية محددة',
                 '4': 'يوظف معظم الموارد المتاحة بفاعلية، ويشرك معظم الطلبة في استخدامها لتحقيق أهداف الدرس',
                 '3': 'يوظف أغلب الموارد المتاحة بشكل جيد، ويشرك أغلب الطلبة في استخدامها',
@@ -367,6 +525,7 @@
             },
              '5': {
                 keyword: 'تقويم',
+                title: 'التقويم من أجل التعلم',
                 '5': 'يوظف دائماً أساليب تقويم أدائي متنوعة (قوائم رصد، ملاحظة منظمة)، ويقدم تغذية راجعة فورية وبناءة لجميع الطلبة لتحسين تكنيكهم الحركي',
                 '4': 'يوظف في معظم الأحيان أساليب تقويم أدائي متنوعة، ويقدم تغذية راجعة لمعظم الطلبة بهدف تطوير أدائهم',
                 '3': 'يوظف غالباً أساليب تقويم أدائي، ويقدم تغذية راجعة لأغلب الطلبة',
@@ -377,6 +536,7 @@
             },
             '6': {
                 keyword: 'تحصيل',
+                title: 'التحصيل',
                 '5': 'يكتسب جميع الطلبة المهارات الحركية المستهدفة بصورة متقنة، ويظهرون فهماً عميقاً لقوانين اللعبة وتطبيقاتها',
                 '4': 'يكتسب معظم الطلبة المهارات الحركية بصورة جيدة جداً، ويظهرون فهماً جيداً للقوانين',
                 '3': 'يكتسب أغلب الطلبة المهارات الحركية بصورة ملائمة، ويظهرون فهماً مقبولاً للقوانين',
@@ -387,6 +547,7 @@
             },
             '7': {
                 keyword: 'تقدم',
+                title: 'التقدم الدراسي',
                 '5': 'يظهر جميع الطلبة تقدماً ملحوظاً في أدائهم للمهارات بين بداية الحصة ونهايتها، وينتقلون بسلاسة من التطبيق الفردي للمهارة إلى توظيفها في مواقف اللعب',
                 '4': 'يظهر معظم الطلبة تقدماً واضحاً في أدائهم وقدرتهم على تطبيق المهارات في اللعب',
                 '3': 'يظهر أغلب الطلبة تقدماً ملائماً في أدائهم خلال الحصة',
@@ -396,7 +557,8 @@
                 recommendation_for_3: 'يمكن إبراز التقدم الدراسي بشكل أفضل عبر استخدام أداة تقويم بسيطة (مثل قائمة رصد) في بداية الحصة ونهايتها لملاحظة التطور في أداء الطلبة.'
             },
             '8': {
-                keyword: 'مهارت',
+                keyword: 'مهارات',
+                title: 'مهارات التعلم',
                 '5': 'يشارك جميع الطلبة تقريباً في قيادة الإحماء أو تنظيم الفرق، ويظهرون عملاً جماعياً وتفكيراً خططياً عالياً في مواقف اللعب',
                 '4': 'يشارك معظم الطلبة في تنظيم العمل، ويظهرون تعاوناً وتفكيراً خططياً في معظم مواقف اللعب',
                 '3': 'يشارك أغلب الطلبة في العمل الجماعي ويظهرون قدرة ملائمة على التفكير الخططي',
@@ -407,6 +569,7 @@
             },
             '9': {
                 keyword: 'قيم',
+                title: 'القيم والاتجاهات',
                 '5': 'يظهر جميع الطلبة التزاماً كاملاً بالروح الرياضية والانضباط الذاتي، ويبدون حماساً كبيراً للمشاركة في الأنشطة البدنية',
                 '4': 'يظهر معظم الطلبة التزاماً بالروح الرياضية والانضباط، واتجاهات إيجابية نحو المادة',
                 '3': 'يظهر أغلب الطلبة انضباطاً ذاتياً وقبولاً لقوانين اللعب',
@@ -417,6 +580,7 @@
             },
             '10': {
                 keyword: 'ممارسات',
+                title: 'الممارسات المهنية',
                 '5': 'لديه مشاركات متميزة في ورش عمل أو دورات تخصصية (تدريب، تحكيم)، ويتعاون دائماً مع زملائه، ويحلل بيانات أداء الطلبة لتطوير ممارساته بفاعلية عالية',
                 '4': 'لديه مشاركات مهنية جيدة، ويتعاون في معظم الأحيان مع زملائه، ويحلل بيانات أداء الطلبة لتطوير ممارساته',
                 '3': 'لديه مشاركات مهنية، ويتعاون مع زملائه، ويحلل بيانات أداء الطلبة بشكل ملائم',
@@ -427,6 +591,7 @@
             },
             '11': {
                 keyword: 'مبادرات',
+                title: 'المبادرات والأنشطة',
                 '5': 'يقدم مبادرات فاعلة ومستمرة لدعم النشاط الرياضي بالمدرسة (يوم رياضي، بطولات، فرق مدرسية)، ويتفاعل بإيجابية قصوى مع كافة الأنشطة',
                 '4': 'يقدم مبادرات فاعلة لدعم النشاط الرياضي، ويتفاعل بإيجابية في معظم الأنشطة',
                 '3': 'يقدم مبادرات جيدة لدعم النشاط الرياضي، ويتفاعل بشكل إيجابي مع أغلب الأنشطة',
@@ -436,33 +601,33 @@
                 recommendation_for_3: 'يمكن البدء بمبادرات بسيطة مثل تنظيم بطولة داخلية للصف، أو تفعيل الإذاعة المدرسية بمواضيع رياضية، لزيادة التفاعل مع المجتمع المدرسي.'
             }
         };
+        const reportKeywords = {
+            '1': 'خطط', '2': 'بيئة', '3': 'فاعلية', '4': 'مصادر', '5': 'تقويم', 
+            '6': 'تحصيل', '7': 'تقدم', '8': 'مهارات', '9': 'قيم', '10': 'ممارسات', '11': 'مبادرات'
+        };
 
-        function prepareOfficialPrint() {
-            document.getElementById('print-school').textContent = document.getElementById('school').value;
-            document.getElementById('print-teacherName').textContent = document.getElementById('teacherName').value;
-            document.getElementById('print-fileNumber').textContent = document.getElementById('fileNumber').value;
-            document.getElementById('print-subject').textContent = document.getElementById('subject').value;
-            document.getElementById('print-visitNumber').textContent = document.getElementById('visitNumber').value;
-            document.getElementById('print-visitDate').textContent = document.getElementById('visitDate').value;
-            document.getElementById('print-class').textContent = document.getElementById('class').value;
-            document.getElementById('print-lesson').textContent = document.getElementById('lesson').value;
-            document.getElementById('print-topic').textContent = document.getElementById('topic').value;
-            document.getElementById('print-visitorName').textContent = document.getElementById('visitorName').value;
-            document.getElementById('print-visitorPosition').textContent = document.getElementById('visitorPosition').value;
-            for (let i = 1; i <= 11; i++) {
-                const score = document.getElementById(`score-${i}`)?.textContent || '0';
-                document.getElementById(`print-score-${i}`).textContent = score;
+        // --- All JS Functions Definition ---
+        // VIEWS
+        function toggleView(viewId) {
+            document.querySelectorAll('#form-view, #dashboard-view, #saved-reports-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(viewId).classList.add('active');
+
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.nav-tab[onclick="toggleView('${viewId}')"]`).classList.add('active');
+
+            if (viewId === 'saved-reports-view') {
+                renderSavedReports();
             }
-            document.getElementById('print-strengthsContent').textContent = document.getElementById('strengthsContent')?.value || 'لا يوجد.';
-            document.getElementById('print-developmentContent').textContent = document.getElementById('developmentContent')?.value || 'لا يوجد.';
-            document.getElementById('print-recommendationsContent').textContent = document.getElementById('recommendationsContent')?.value || 'لا يوجد.';
         }
 
-        function printOfficialReport() {
-            prepareOfficialPrint();
-            window.print();
+        function toggleCompactView() {
+            const form = document.getElementById('evaluationForm');
+            form.classList.toggle('compact-mode');
         }
-        
+
+        // SCORING
         function calculateScore(itemId) {
             const card = document.getElementById(itemId);
             if (!card) return;
@@ -474,7 +639,7 @@
             const percentage = totalIndicators > 0 ? (checkedCount / totalIndicators) * 100 : 0;
             let finalScore = 0;
             if (percentage >= 90) finalScore = 5;
-            else if (percentage >= 76) finalScore = 4;
+            else if (percentage >= 75) finalScore = 4;
             else if (percentage >= 50) finalScore = 3;
             else if (percentage >= 30) finalScore = 2;
             else if (checkedCount > 0) finalScore = 1;
@@ -493,48 +658,420 @@
         }
 
         function updateSummary(itemNumber, score) {
-            const summaryCell = document.getElementById('summary-score-' + itemNumber);
-            if (summaryCell) { summaryCell.textContent = score; }
+            const summaryInput = document.getElementById('summary-score-' + itemNumber);
+            if (summaryInput) { summaryInput.value = score; }
+        }
+        
+        function setQuickRating(itemId, rating) {
+            const card = document.getElementById(itemId);
+            const checkboxes = card.querySelectorAll('input[type="checkbox"]');
+            const total = checkboxes.length;
+
+            let numToCheck = 0;
+            switch(rating) {
+                case 5: numToCheck = total; break;
+                case 4: numToCheck = Math.ceil(total * 0.8); break;
+                case 3: numToCheck = Math.ceil(total * 0.6); break;
+                case 2: numToCheck = Math.ceil(total * 0.4); break;
+                case 0: numToCheck = 0; break;
+            }
+
+            checkboxes.forEach((box, index) => {
+                box.checked = index < numToCheck;
+            });
+
+            calculateScore(itemId);
+        }
+        
+        function manuallyUpdateScore(itemNumber) {
+            const scoreInput = document.getElementById(`summary-score-${itemNumber}`);
+            let newScore = parseInt(scoreInput.value);
+
+            if (isNaN(newScore) || newScore < 0) newScore = 0;
+            else if (newScore > 5) newScore = 5;
+            scoreInput.value = newScore; 
+
+            const mainScoreDisplay = document.getElementById(`score-${itemNumber}`);
+            if (mainScoreDisplay) {
+                mainScoreDisplay.textContent = newScore;
+                updateScoreColor(mainScoreDisplay, newScore);
+            }
         }
 
-        function selectAllIndicators(itemId) {
-            const card = document.getElementById(itemId);
-            if (!card) return;
-            const checkboxes = card.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(box => { box.checked = true; });
-            calculateScore(itemId);
+
+        // FORM & DATA
+        function generateEvaluationForm() {
+            const formContainer = document.getElementById('evaluationForm');
+            let currentDomain = '';
+            let detailsElement;
+
+            evaluationItems.forEach(item => {
+                if(item.domain !== currentDomain) {
+                    currentDomain = item.domain;
+                    detailsElement = document.createElement('details');
+                    detailsElement.open = true;
+                    const summary = document.createElement('summary');
+                    summary.textContent = currentDomain;
+                    detailsElement.appendChild(summary);
+                    formContainer.appendChild(detailsElement);
+                }
+
+                const indicatorsHTML = item.details.map((detail, index) => 
+                    `<label class="indicator"><input type="checkbox" id="cb-${item.id}-${index+1}" onchange="calculateScore('item-${item.id}')"> ${detail}</label>`
+                ).join('');
+
+                const itemCardHTML = `
+                    <div class="item-card" id="item-${item.id}">
+                        <div class="item-header">
+                            <h4>${item.id}. ${item.title} (${item.indicators} مؤشرات)</h4>
+                            <div class="controls-container">
+                                <div class="quick-rate-buttons">
+                                    <button type="button" class="quick-rate-btn excellent" onclick="setQuickRating('item-${item.id}', 5)">متميز</button>
+                                    <button type="button" class="quick-rate-btn very-good" onclick="setQuickRating('item-${item.id}', 4)">جيد جدا</button>
+                                    <button type="button" class="quick-rate-btn good" onclick="setQuickRating('item-${item.id}', 3)">جيد</button>
+                                    <button type="button" class="quick-rate-btn dev" onclick="setQuickRating('item-${item.id}', 2)">تطوير</button>
+                                    <button type="button" class="quick-rate-btn" onclick="setQuickRating('item-${item.id}', 0)">مسح</button>
+                                </div>
+                                <div class="score-controls">
+                                    <div class="score" id="score-${item.id}">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="indicators-container">
+                            ${indicatorsHTML}
+                        </div>
+                        <div class="notes-wrapper">
+                            <textarea id="notes-${item.id}" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea>
+                            ${recognition ? `<button type="button" class="mic-btn" onclick="startDictation('notes-${item.id}', this)">🎤</button>` : ''}
+                        </div>
+                    </div>
+                `;
+                detailsElement.innerHTML += itemCardHTML;
+            });
+        }
+        
+        function getSchoolName() {
+            const schoolSelect = document.getElementById('school');
+            return schoolSelect.value === 'other' ? document.getElementById('school-other').value.trim() : schoolSelect.value;
+        }
+
+        function getTeacherName() {
+            return document.getElementById('teacherName').value.trim();
+        }
+        
+        function populateDropdown(selectElement, dataArray, placeholderText) {
+            selectElement.innerHTML = `<option value="">${placeholderText}</option>`;
+            dataArray.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                selectElement.appendChild(option);
+            });
+            selectElement.innerHTML += `<option value="other">أخرى...</option>`;
+        }
+        
+        function handleOtherOption(selectElement, otherInputElement) {
+            if (selectElement.value === 'other') {
+                otherInputElement.style.display = 'block';
+            } else {
+                otherInputElement.style.display = 'none';
+                otherInputElement.value = '';
+            }
+        }
+
+        // ACTIONS (Print, Export, Report)
+        function prepareOfficialPrint() {
+            const printTbody = document.getElementById('print-main-tbody');
+            printTbody.innerHTML = ''; 
+
+            document.getElementById('print-school').textContent = getSchoolName();
+            document.getElementById('print-teacherName').textContent = getTeacherName();
+            document.getElementById('print-fileNumber').textContent = document.getElementById('fileNumber').value;
+            document.getElementById('print-subject').textContent = document.getElementById('subject').value;
+            document.getElementById('print-visitNumber').textContent = document.getElementById('visitNumber').value;
+            document.getElementById('print-visitDate').textContent = document.getElementById('visitDate').value;
+            document.getElementById('print-class').textContent = document.getElementById('class').value;
+            document.getElementById('print-lesson').textContent = document.getElementById('lesson').value;
+            document.getElementById('print-topic').textContent = document.getElementById('topic').value;
+            document.getElementById('print-visitorName').textContent = document.getElementById('visitorName').value;
+            document.getElementById('print-visitorPosition').textContent = document.getElementById('visitorPosition').value;
+
+            let strengthsText = document.getElementById('strengthsContent').value;
+            let devText = document.getElementById('developmentContent').value;
+            let recText = document.getElementById('recommendationsContent').value;
+            document.getElementById('print-recommendationsContent').textContent = recText;
+
+            const itemsByDomain = evaluationItems.reduce((acc, item) => {
+                (acc[item.domain] = acc[item.domain] || []).push(item);
+                return acc;
+            }, {});
+
+            let isFirstSection = true;
+            for (const domain in itemsByDomain) {
+                const items = itemsByDomain[domain];
+                items.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    const score = document.getElementById(`score-${item.id}`).textContent;
+                    let domainCell = '';
+                    if (index === 0) {
+                        domainCell = `<td rowspan="${items.length}" class="category-cell">${domain.split(':')[1].trim()}</td>`;
+                    }
+                    row.innerHTML = `
+                        ${domainCell}
+                        <td>${item.id}</td>
+                        <td class="item-cell">${item.title}</td>
+                        <td id="print-score-${item.id}">${score}</td>
+                    `;
+
+                    if(isFirstSection && index === 0) {
+                         row.innerHTML += `<td id="print-strengthsContent" class="merged-cell" rowspan="5">${strengthsText}</td>`;
+                    }
+                    
+                    if(item.id === 6){
+                        row.innerHTML += `<td id="print-developmentContent" class="merged-cell" rowspan="6">${devText}</td>`;
+                        
+                        const separatorRow = document.createElement('tr');
+                        separatorRow.innerHTML = `
+                             <td colspan="4" style="border-right: 1px solid #000; border-bottom: 2px solid #000;"></td>
+                             <th style="border-top: 2px solid #000;">الجوانب التي تحتاج لتطوير وأدلتها</th>
+                        `;
+                        printTbody.appendChild(separatorRow);
+                    }
+                    
+                    printTbody.appendChild(row);
+                });
+                if(items[0].domain.includes("التدريس")) isFirstSection = false;
+            }
+        }
+
+
+        function printOfficialReport() {
+            prepareOfficialPrint();
+            window.print();
+        }
+        
+        function exportToWord() {
+            prepareOfficialPrint();
+            const visitNumber = document.getElementById('visitNumber').value.trim() || 'زيارة';
+            const schoolName = getSchoolName() || 'مدرسة';
+            const teacherName = getTeacherName() || 'معلم';
+            const fileName = `${visitNumber} - ${schoolName} - ${teacherName}.docx`;
+
+            const content = `
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; direction: rtl; }
+                        /* Add all print styles here */
+                    </style>
+                </head>
+                <body>${document.getElementById("printView").innerHTML}</body>
+                </html>
+            `;
+            const converted = htmlDocx.asBlob(content, {
+                orientation: 'portrait',
+                margins: { top: 720, right: 720, bottom: 720, left: 720 }
+            });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(converted);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function generateReport() {
-            let scoresOf5 = [], scoresOf4 = [], scoresOf1 = [], scoresOf2 = [], recommendationsFor3 = '';
+            let scoresOf5 = [], scoresOf4 = [], scoresOf1 = [], scoresOf2 = [], scoresFor3 = [];
+            
             for (let i = 1; i <= 11; i++) {
-                const score = parseInt(document.getElementById(`score-${i}`).textContent);
-                const title = document.querySelector(`#item-${i} h4`).textContent.split('(')[0].trim();
+                let score = parseInt(document.getElementById(`score-${i}`).textContent);
+                if (score === 0) { score = 1; } 
                 const content = reportContent[i];
                 const manualNotes = document.getElementById(`notes-${i}`).value.trim();
                 let description = content[score] || '';
                 if (manualNotes) { description += `، حيث لوحظ أن: ${manualNotes}`; }
-                const itemData = { title, keyword: content.keyword, description, recommendation: content.recommendation, recommendation_for_3: content.recommendation_for_3 };
+                
+                const itemData = { 
+                    title: content.title, 
+                    keyword: reportContent[i].keyword, 
+                    description, 
+                    recommendation: content.recommendation, 
+                    recommendation_for_3: content.recommendation_for_3 
+                };
+
                 if (score === 5) scoresOf5.push(itemData);
                 else if (score === 4) scoresOf4.push(itemData);
                 else if (score === 1) scoresOf1.push(itemData);
                 else if (score === 2) scoresOf2.push(itemData);
-                else if (score === 3) { recommendationsFor3 += `• ${title} (لتحسين الأداء):\n${content.recommendation_for_3}\n\n`; }
+                else if (score === 3) scoresFor3.push(itemData);
             }
             
-            let strengthsText = [...scoresOf5, ...scoresOf4].map(item => `• **${item.title}:** ${item.description}.`).join('\n\n');
-            let developmentText = [...scoresOf1, ...scoresOf2].map(item => `• **${item.title}:** ${item.description}.`).join('\n\n');
-            let developmentRecommendations = [...scoresOf1, ...scoresOf2].map(item => `• ${item.title}:\n${item.recommendation}`).join('\n\n');
+            const finalStrengths = [...scoresOf5, ...scoresOf4].slice(0, 4);
+            const finalDevelopment = [...scoresOf1, ...scoresOf2].slice(0, 4);
+            const finalRecsFor3 = scoresFor3.slice(0, 2);
+
+            let strengthsText = finalStrengths.map(item => `${item.keyword}: ${item.description}`).join('\n\n');
+            let developmentText = finalDevelopment.map(item => `${item.keyword}: ${item.description}`).join('\n\n');
             
-            let finalRecommendations = (developmentRecommendations + '\n\n' + recommendationsFor3).trim();
+            let recommendationsText = finalDevelopment.map(item => `• ${item.title}:\n${item.recommendation}`).join('\n\n');
+            let recommendationsFor3Text = finalRecsFor3.map(item => `• ${item.title} (لتحسين الأداء):\n${item.recommendation_for_3}`).join('\n\n');
+            
+            let finalRecommendations = (recommendationsText + '\n\n' + recommendationsFor3Text).trim();
+
             document.getElementById('strengthsContent').value = strengthsText.trim() || 'لم يتم تحديد نقاط قوة بعد.';
             document.getElementById('developmentContent').value = developmentText.trim() || 'لم يتم تحديد جوانب للتطوير بعد.';
             document.getElementById('recommendationsContent').value = finalRecommendations.trim() || 'لا توجد توصيات حالياً.';
+            
             const reportSection = document.getElementById('reportSection');
             reportSection.style.display = 'block';
             reportSection.scrollIntoView({ behavior: 'smooth' });
         }
+        
 
+        // AI FEATURES
+        async function generateAiReport() {
+             const genAIBtn = document.querySelector('.gemini-btn');
+            genAIBtn.disabled = true;
+            genAIBtn.textContent = '✨ جاري التوليد...';
+
+            try {
+                let evaluationData = [];
+                for (let i = 1; i <= 11; i++) {
+                    let score = parseInt(document.getElementById(`score-${i}`).textContent);
+                    if (score === 0) { score = 1; }
+                    const content = reportContent[i];
+                    const manualNotes = document.getElementById(`notes-${i}`).value.trim();
+                    evaluationData.push({
+                        item: content.title,
+                        keyword: reportContent[i].keyword,
+                        score: score,
+                        notes: manualNotes
+                    });
+                }
+
+                const promptText = `
+                    أنت خبير إشراف تربوي متخصص في تقييم معلمي التربية الرياضية في سلطنة عمان.
+                    مهمتك هي تحليل بيانات التقييم التالية وكتابة تقرير زيارة إشرافية احترافي وبنّاء.
+
+                    بيانات التقييم:
+                    ${JSON.stringify(evaluationData, null, 2)}
+
+                    اتبع القواعد التالية بدقة عند إنشاء التقرير:
+                    1.  **جوانب الإجادة:** اذكر أهم 4 نقاط قوة كحد أقصى، بناءً على البنود ذات التقييم الأعلى (5 أو 4). لا تذكر أي بند تقييمه 3 أو أقل هنا. ابدأ كل نقطة بالكلمة المفتاحية للبند متبوعة بنقطتين (مثال: خطط: ...).
+                    2.  **الجوانب التي تحتاج إلى تطوير:** اذكر أهم 4 نقاط ضعف كحد أقصى، بناءً على البنود ذات التقييم الأقل (1 أو 2). لا تذكر أي بند تقييمه 3 أو أعلى هنا. ابدأ كل نقطة بالكلمة المفتاحية للبند متبوعة بنقطتين.
+                    3.  **التوصيات:**
+                        - قدم توصيات عملية وقابلة للتنفيذ لمعالجة كل "جانب يحتاج إلى تطوير".
+                        - قدم توصيات محددة لتحسين الأداء في البنود التي حصلت على تقييم 3 (بحد أقصى توصيتين لهذه الفئة).
+                        - يجب أن تكون التوصيات إجرائية وواضحة.
+
+                    الرجاء تقديم الرد بتنسيق JSON.
+                `;
+
+                const apiKey = ""; // API key is handled by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: promptText }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "strengths": { "type": "STRING" },
+                                "development_areas": { "type": "STRING" },
+                                "recommendations": { "type": "STRING" }
+                            },
+                            required: ["strengths", "development_areas", "recommendations"]
+                        }
+                    }
+                };
+
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+
+                const result = await response.json();
+                const reportParts = result.candidates[0].content.parts[0].text;
+                const parsedReport = JSON.parse(reportParts);
+                
+                document.getElementById('strengthsContent').value = parsedReport.strengths || 'لم يتمكن الذكاء الاصطناعي من توليد جوانب الإجادة.';
+                document.getElementById('developmentContent').value = parsedReport.development_areas || 'لم يتمكن الذكاء الاصطناعي من توليد جوانب التطوير.';
+                document.getElementById('recommendationsContent').value = parsedReport.recommendations || 'لم يتمكن الذكاء الاصطناعي من توليد التوصيات.';
+
+                const reportSection = document.getElementById('reportSection');
+                reportSection.style.display = 'block';
+                reportSection.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error("Error generating AI report:", error);
+                alert("حدث خطأ أثناء توليد التقرير بالذكاء الاصطناعي. الرجاء المحاولة مرة أخرى.");
+            } finally {
+                genAIBtn.disabled = false;
+                genAIBtn.textContent = '✨ توليد تقرير ذكي';
+            }
+        }
+        
+        async function fetchWithExponentialBackoff(url, options, maxRetries = 5, initialDelay = 1000) {
+            let delay = initialDelay;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status !== 429) { 
+                        return response;
+                    }
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error; 
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; 
+            }
+            throw new Error("Max retries reached for API call.");
+        }
+        
+        function startDictation(textareaId, button) {
+            if (!recognition) {
+                alert('عذراً، متصفحك لا يدعم خاصية الإملاء الصوتي.');
+                return;
+            }
+            
+            const textarea = document.getElementById(textareaId);
+            button.classList.add('recording');
+            button.textContent = '🔴';
+
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                textarea.value += (textarea.value.length > 0 ? ' ' : '') + transcript;
+            };
+
+            recognition.onspeechend = function() {
+                recognition.stop();
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                alert(`حدث خطأ في التعرف على الصوت: ${event.error}`);
+            };
+
+            recognition.onend = function() {
+                button.classList.remove('recording');
+                button.textContent = '🎤';
+            };
+        }
+
+
+        // MODAL & RESET
         function showResetModal() {
             document.getElementById('reset-modal').style.display = 'flex';
         }
@@ -544,140 +1081,345 @@
         }
 
         function performReset() {
-            document.getElementById('evaluationForm').reset();
-            document.querySelectorAll('.info-grid input, .visitor-info input, .item-notes, .report-content-area').forEach(input => input.value = '');
-            document.querySelectorAll('.item-card').forEach(card => calculateScore(card.id));
-            document.getElementById('reportSection').style.display = 'none';
-            localStorage.removeItem('evaluationFormData');
+            clearForm();
             hideResetModal();
-            displayStatusMessage('تمت إعادة تعيين النموذج بنجاح.', 'green');
+            displayStatusMessage('تم مسح النموذج الحالي بنجاح.', 'green');
         }
-
-        function exportToWord() {
-            prepareOfficialPrint();
-            const contentContainer = document.createElement('div');
-            contentContainer.setAttribute('dir', 'rtl');
-            contentContainer.innerHTML = document.getElementById("printView").innerHTML;
-            
-            var content = `
-                <!DOCTYPE html>
-                <html lang="ar" dir="rtl">
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                    <style>
-                        body { font-family: 'Times New Roman', Times, serif; direction: rtl; }
-                        .print-container { padding: 1cm; }
-                        .print-logo-header { text-align: center; margin-bottom: 10px; }
-                        .print-logo-header .logo { width: 100px; height: auto; margin: 0 10px; }
-                        .print-header-text { text-align: center; font-size: 10px; color: #555; margin-bottom: 10px; }
-                        .print-title h2 { font-size: 1.5rem; background-color: #fde693; padding: 10px; border: 1px solid #000; margin: 0; text-align: center; }
-                        .print-info-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; border: none; }
-                        .print-info-table td { padding: 4px; vertical-align: bottom; text-align: right; }
-                        .print-info-table .label { font-weight: bold; width: 15%; }
-                        .print-info-table .value { border-bottom: 1px dotted #000; font-weight: normal; }
-                        .print-main-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; }
-                        .print-main-table th, .print-main-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
-                        .print-main-table th { font-weight: bold; background-color: #f2f2f2; }
-                        .print-main-table .category-cell { font-weight: bold; }
-                        .print-main-table .item-cell { text-align: right; }
-                        .merged-cell { white-space: pre-wrap; text-align: right; vertical-align: top; min-height: 150px; }
-                        .print-footer-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000; }
-                        .print-footer-table .label { font-weight: bold; width: 100px; }
-                        .print-footer-table .content { min-height: 60px; white-space: pre-wrap; text-align: right; vertical-align: top; }
-                        .signature-section { margin-top: 20px; font-weight: bold; text-align: right; }
-                        .signature-section .line { border-bottom: 1px dotted #000; display: inline-block; min-width: 200px; }
-                        .evaluation-standard { text-align: center; font-weight: bold; margin-top: 15px; }
-                    </style>
-                </head>
-                <body>${contentContainer.innerHTML}</body>
-                </html>
-            `;
-            
-            var converted = htmlDocx.asBlob(content, {
-                orientation: 'portrait',
-                margins: { top: 720, right: 720, bottom: 720, left: 720 }
+        
+        function clearForm() {
+            document.getElementById('evaluationForm').reset();
+             const schoolSelect = document.getElementById('school');
+            schoolSelect.selectedIndex = 0;
+            schoolSelect.dispatchEvent(new Event('change'));
+             document.querySelectorAll('.info-grid input, .item-notes, .report-content-area').forEach(input => {
+                 input.value = '';
             });
-            
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(converted);
-            link.download = `تقرير-زيارة-${document.getElementById('teacherName').value || 'معلم'}.docx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            evaluationItems.forEach(item => {
+                const scoreDisplay = document.getElementById(`score-${item.id}`);
+                if (scoreDisplay) {
+                    scoreDisplay.textContent = '0';
+                    updateScoreColor(scoreDisplay, 0);
+                }
+                updateSummary(item.id, 0);
+            });
+            document.getElementById('reportSection').style.display = 'none';
         }
 
+
+        // DATA PERSISTENCE & ARCHIVING
         function displayStatusMessage(message, color) {
             const statusElement = document.getElementById('status-message');
             statusElement.textContent = message;
             statusElement.style.color = color;
             statusElement.style.opacity = 1;
-            setTimeout(() => {
-                statusElement.style.opacity = 0;
-            }, 3000);
+            setTimeout(() => { statusElement.style.opacity = 0; }, 3000);
         }
+        
+        function savePermanentReport() {
+            const teacherName = getTeacherName();
+            const visitDate = document.getElementById('visitDate').value;
+            if (!teacherName || !visitDate) {
+                alert('الرجاء إدخال اسم المعلم وتاريخ الزيارة قبل الحفظ.');
+                return;
+            }
 
-        function saveData() {
-            const data = {};
-            document.querySelectorAll('input, textarea').forEach(el => {
+            // 1. Save Full Report Data
+            const reportKey = `visit_${teacherName}_${visitDate}`;
+            const reportData = {};
+            document.querySelectorAll('input, textarea, select').forEach(el => {
                 if (el.id) {
-                    if (el.type === 'checkbox') {
-                        data[el.id] = el.checked;
-                    } else {
-                        data[el.id] = el.value;
-                    }
+                    if (el.type === 'checkbox') reportData[el.id] = el.checked;
+                    else reportData[el.id] = el.value;
                 }
             });
-            localStorage.setItem('evaluationFormData', JSON.stringify(data));
-            displayStatusMessage('تم حفظ البيانات بنجاح!', 'green');
+             // Also save the scores as text content for consistency
+            evaluationItems.forEach(item => {
+                reportData[`score-${item.id}`] = document.getElementById(`score-${item.id}`).textContent;
+            });
+
+            localStorage.setItem(reportKey, JSON.stringify(reportData));
+
+            // 2. Save/Update Dashboard Data
+            const visitDataForDashboard = { date: visitDate, scores: {} };
+            for(let i = 1; i <= 11; i++) {
+                visitDataForDashboard.scores[`item-${i}`] = parseInt(document.getElementById(`score-${i}`).textContent) || 0;
+            }
+            const teacherArchiveKey = `teacher_archive_${teacherName}`;
+            let archive = JSON.parse(localStorage.getItem(teacherArchiveKey)) || [];
+            const existingVisitIndex = archive.findIndex(v => v.date === visitDate);
+
+            if (existingVisitIndex > -1) {
+                archive[existingVisitIndex] = visitDataForDashboard;
+            } else {
+                archive.push(visitDataForDashboard);
+            }
+            archive.sort((a, b) => new Date(a.date) - new Date(b.date));
+            localStorage.setItem(teacherArchiveKey, JSON.stringify(archive));
+
+            displayStatusMessage(`تم حفظ التقرير للمعلم: ${teacherName} بنجاح!`, '#3f51b5');
         }
 
-        function loadData() {
-            const data = JSON.parse(localStorage.getItem('evaluationFormData'));
+        function loadPermanentReport(reportKey) {
+            const data = JSON.parse(localStorage.getItem(reportKey));
+            if (data) {
+                clearForm(); // Clear the form before loading
+                Object.keys(data).forEach(key => {
+                    const el = document.getElementById(key);
+                    if (el) {
+                        if (el.tagName === 'DIV' && el.classList.contains('score')) {
+                            el.textContent = data[key];
+                        } else if (el.type === 'checkbox') {
+                             el.checked = data[key];
+                        } else {
+                            el.value = data[key];
+                        }
+                        if (el.tagName === 'SELECT') {
+                            el.dispatchEvent(new Event('change'));
+                        }
+                    }
+                });
+
+                // Recalculate and update all visual states
+                evaluationItems.forEach(item => {
+                    const score = parseInt(data[`score-${item.id}`] || 0);
+                    const scoreDisplay = document.getElementById(`score-${item.id}`);
+                    scoreDisplay.textContent = score;
+                    updateScoreColor(scoreDisplay, score);
+                    updateSummary(item.id, score);
+                });
+                
+                toggleView('form-view');
+                displayStatusMessage(`تم تحميل التقرير المحفوظ.`, '#007bff');
+            }
+        }
+
+        function deletePermanentReport(reportKey, teacherName, visitDate) {
+            if (!confirm(`هل أنت متأكد من حذف هذا التقرير للمعلم ${teacherName} بتاريخ ${visitDate}؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+                return;
+            }
+
+            // 1. Delete full report data
+            localStorage.removeItem(reportKey);
+
+            // 2. Delete from dashboard data
+            const teacherArchiveKey = `teacher_archive_${teacherName}`;
+            let archive = JSON.parse(localStorage.getItem(teacherArchiveKey)) || [];
+            const updatedArchive = archive.filter(visit => visit.date !== visitDate);
+            if (updatedArchive.length > 0) {
+                localStorage.setItem(teacherArchiveKey, JSON.stringify(updatedArchive));
+            } else {
+                localStorage.removeItem(teacherArchiveKey); // Clean up if no visits are left
+            }
+
+            renderSavedReports(); // Refresh the list
+            displayStatusMessage(`تم حذف التقرير بنجاح.`, 'red');
+        }
+
+
+        function saveVisitorData() {
+            const visitorData = {
+                name: document.getElementById('visitorName').value,
+                position: document.getElementById('visitorPosition').value
+            };
+            localStorage.setItem('visitorData', JSON.stringify(visitorData));
+        }
+
+        function loadVisitorData() {
+            const visitorData = JSON.parse(localStorage.getItem('visitorData'));
+            if(visitorData) {
+                document.getElementById('visitorName').value = visitorData.name || '';
+                document.getElementById('visitorPosition').value = visitorData.position || '';
+            }
+        }
+        
+        function saveTemplate() {
+            const templateName = prompt("الرجاء إدخال اسم للقالب:");
+            if (!templateName) return;
+
+            const data = {};
+            document.querySelectorAll('input, textarea, select').forEach(el => {
+                if (el.id) {
+                    if (el.type === 'checkbox') data[el.id] = el.checked;
+                    else data[el.id] = el.value;
+                }
+            });
+
+            let templates = JSON.parse(localStorage.getItem('evaluationTemplates')) || {};
+            templates[templateName] = data;
+            localStorage.setItem('evaluationTemplates', JSON.stringify(templates));
+            populateTemplateDropdown();
+            displayStatusMessage(`تم حفظ القالب "${templateName}" بنجاح.`, 'green');
+        }
+
+        function loadTemplate() {
+            const templateName = document.getElementById('template-select').value;
+            if (!templateName) return;
+
+            const templates = JSON.parse(localStorage.getItem('evaluationTemplates')) || {};
+            const data = templates[templateName];
+
             if (data) {
                 Object.keys(data).forEach(key => {
                     const el = document.getElementById(key);
                     if (el) {
-                        if (el.type === 'checkbox') {
-                            el.checked = data[key];
-                        } else {
-                            el.value = data[key];
-                        }
+                        if (el.type === 'checkbox') el.checked = data[key];
+                        else el.value = data[key];
+                        if (el.tagName === 'SELECT') el.dispatchEvent(new Event('change'));
                     }
                 });
-                document.querySelectorAll('.item-card').forEach(card => calculateScore(card.id));
-                displayStatusMessage('تم استرجاع البيانات المحفوظة.', '#007bff');
+                evaluationItems.forEach(item => calculateScore(`item-${item.id}`));
+                displayStatusMessage(`تم تحميل القالب "${templateName}".`, '#007bff');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const summaryBody = document.getElementById('summary-tbody');
-            const formContainer = document.getElementById('evaluationForm');
-            
-            const allItemCards = formContainer.querySelectorAll('.item-card');
-            allItemCards.forEach(card => {
-                const itemId = card.id;
-                const itemNumber = itemId.split('-')[1];
-                const title = card.querySelector('h4').textContent.split('(')[0].trim();
-                
-                const row = summaryBody.insertRow();
-                row.innerHTML = `<td>${title}</td><td id="summary-score-${itemNumber}">0</td>`;
+        function populateTemplateDropdown() {
+            const select = document.getElementById('template-select');
+            const templates = JSON.parse(localStorage.getItem('evaluationTemplates')) || {};
+            select.innerHTML = '<option value="">اختر قالبًا...</option>';
+            for (const name in templates) {
+                select.innerHTML += `<option value="${name}">${name}</option>`;
+            }
+        }
 
-                card.querySelectorAll('input[type="checkbox"]').forEach(box => {
-                    box.addEventListener('change', () => calculateScore(itemId));
+        // DASHBOARD & SAVED REPORTS
+        function renderSavedReports() {
+            const listContainer = document.getElementById('saved-reports-list');
+            const noReportsMessage = document.getElementById('no-saved-reports-message');
+            listContainer.innerHTML = '';
+            let reportsFound = false;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('visit_')) {
+                    reportsFound = true;
+                    const data = JSON.parse(localStorage.getItem(key));
+                    const parts = key.split('_');
+                    const teacherName = parts[1];
+                    const visitDate = parts[2];
+                    const schoolName = data.school === 'other' ? data['school-other'] : data.school;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'saved-report-card';
+                    card.innerHTML = `
+                        <div class="saved-report-info">
+                            <strong>المعلم:</strong> ${teacherName}<br>
+                            <strong>المدرسة:</strong> ${schoolName}<br>
+                            <strong>التاريخ:</strong> ${visitDate}
+                        </div>
+                        <div class="saved-report-actions">
+                            <button class="generate-btn" onclick="loadPermanentReport('${key}')">تحميل</button>
+                            <button class="reset-btn" onclick="deletePermanentReport('${key}', '${teacherName}', '${visitDate}')">حذف</button>
+                        </div>
+                    `;
+                    listContainer.appendChild(card);
+                }
+            }
+            
+            if (noReportsMessage) {
+                noReportsMessage.style.display = reportsFound ? 'none' : 'block';
+            }
+        }
+
+        function loadTeacherDashboard() {
+            const teacherName = document.getElementById('teacher-dashboard-name').value.trim();
+             if (!teacherName) {
+                alert('الرجاء إدخال اسم معلم.');
+                return;
+            }
+
+            const teacherArchiveKey = `teacher_archive_${teacherName}`;
+            const archive = JSON.parse(localStorage.getItem(teacherArchiveKey));
+            
+            const chartContainer = document.getElementById('chart-container');
+            const noDataMessage = document.getElementById('no-data-message');
+
+            if (!archive || archive.length === 0) {
+                chartContainer.style.display = 'none';
+                if(noDataMessage) noDataMessage.style.display = 'block';
+                 if (performanceChartInstance) {
+                    performanceChartInstance.destroy();
+                }
+                return;
+            }
+
+            chartContainer.style.display = 'block';
+            if(noDataMessage) noDataMessage.style.display = 'none';
+
+            const labels = archive.map(visit => visit.date);
+            const datasets = [];
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8D6E63', '#EC407A', '#7E57C2', '#26A69A', '#D4E157'];
+
+            evaluationItems.forEach((item, index) => {
+                 datasets.push({
+                    label: item.title,
+                    data: archive.map(visit => visit.scores[`item-${item.id}`] || 0),
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '33',
+                    fill: false,
+                    tension: 0.1
                 });
             });
 
-            // Modal event listeners
-            document.getElementById('confirm-reset-btn').addEventListener('click', performReset);
-            document.getElementById('cancel-reset-btn').addEventListener('click', hideResetModal);
-            document.getElementById('reset-modal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    hideResetModal();
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            if (performanceChartInstance) {
+                performanceChartInstance.destroy();
+            }
+            performanceChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: `تطور أداء المعلم: ${teacherName}`, font: { size: 18, family: 'Tajawal' } },
+                        legend: { position: 'top', labels: { font: { family: 'Tajawal' } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 }, title: { display: true, text: 'التقدير' } },
+                        x: { title: { display: true, text: 'تاريخ الزيارة' } }
+                    }
                 }
             });
+        }
+        
+        // --- Document Ready / Initial Setup ---
+        document.addEventListener('DOMContentLoaded', function() {
+            generateEvaluationForm();
 
-            loadData();
+            const summaryBody = document.getElementById('summary-tbody');
+            evaluationItems.forEach(item => {
+                const row = summaryBody.insertRow();
+                const titleCell = row.insertCell(0);
+                const scoreCell = row.insertCell(1);
+                titleCell.textContent = `${item.id}. ${item.title}`;
+                scoreCell.innerHTML = `<input type="number" id="summary-score-${item.id}" class="summary-score-input" min="0" max="5" value="0">`;
+                scoreCell.style.textAlign = "center";
+                
+                const scoreInput = document.getElementById(`summary-score-${item.id}`);
+                scoreInput.addEventListener('input', () => manuallyUpdateScore(item.id));
+            });
+
+            const schoolSelect = document.getElementById('school');
+            const schoolOtherInput = document.getElementById('school-other');
+            populateDropdown(schoolSelect, schoolsList, 'اختر المدرسة...');
+            schoolSelect.addEventListener('change', () => handleOtherOption(schoolSelect, schoolOtherInput));
+
+            populateTemplateDropdown();
+            loadVisitorData();
+            
+            document.getElementById('confirm-reset-btn').addEventListener('click', performReset);
+            document.getElementById('cancel-reset-btn').addEventListener('click', hideResetModal);
+            document.getElementById('reset-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'reset-modal') hideResetModal();
+            });
+
+            document.getElementById('visitorName').addEventListener('input', saveVisitorData);
+            document.getElementById('visitorPosition').addEventListener('input', saveVisitorData);
+
+            // Set initial view
+            toggleView('form-view');
         });
     </script>
 </body>
 </html>
+
