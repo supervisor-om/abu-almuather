@@ -127,9 +127,11 @@
         .template-controls select { flex-grow: 1; }
 
         /* --- Dashboard & Saved Reports Styles --- */
-        .dashboard-controls { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
-        .dashboard-controls input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Tajawal', sans-serif; font-size: 1rem;}
-        .dashboard-controls button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .dashboard-controls { display: flex; gap: 10px; margin-bottom: 20px; align-items: flex-end; flex-wrap: wrap; }
+        .dashboard-controls .control-group { flex-grow: 1; }
+        .dashboard-controls label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .dashboard-controls input, .dashboard-controls select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Tajawal', sans-serif; font-size: 1rem;}
+        .dashboard-controls button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; height: 45px; }
         #chart-container { margin-top: 20px; height: 450px; }
         #no-data-message, #no-saved-reports-message { text-align: center; color: #6c757d; font-size: 1.2rem; padding: 40px; }
         .saved-report-card {
@@ -257,10 +259,25 @@
         </div>
 
         <div id="dashboard-view">
-            <h2>لوحة متابعة أداء المعلم</h2>
-            <div class="dashboard-controls">
-                <input type="text" id="teacher-dashboard-name" placeholder="أدخل اسم المعلم لعرض بياناته...">
-                <button onclick="loadTeacherDashboard()">عرض الأداء</button>
+            <h2>لوحة المتابعة التحليلية</h2>
+             <div class="dashboard-controls">
+                <div class="control-group">
+                    <label for="teacher-dashboard-name">اسم المعلم:</label>
+                    <input type="text" id="teacher-dashboard-name" placeholder="أدخل اسم المعلم...">
+                </div>
+                <div class="control-group">
+                     <label for="chartTypeSelect">نوع التحليل:</label>
+                     <select id="chartTypeSelect">
+                        <option value="line">تطور الأداء عبر الزيارات (خطي)</option>
+                        <option value="radar">تحليل زيارة واحدة (راداري)</option>
+                        <option value="bar">متوسط الأداء العام (شريطي)</option>
+                    </select>
+                </div>
+                 <div class="control-group" id="visitDateGroup" style="display: none;">
+                    <label for="visitDateSelect">اختر الزيارة:</label>
+                    <select id="visitDateSelect"></select>
+                </div>
+                <button onclick="updateDashboardView()">عرض التحليل</button>
             </div>
             <div id="chart-container">
                 <canvas id="performanceChart"></canvas>
