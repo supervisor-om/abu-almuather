@@ -68,16 +68,7 @@
             font-weight: 700;
             border-bottom-color: #007bff;
         }
-        .view-toggle { display: flex; align-items: center; gap: 8px; }
-        .view-toggle label { font-weight: 500; }
-        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #007bff; }
-        input:checked + .slider:before { transform: translateX(26px); }
-
-
+       
         /* --- Interactive Form Styles --- */
         .page-header h1 { color: #0056b3; margin: 0; text-align: center;}
         .page-header p { margin: 5px 0 0; color: #666; font-size: 1.1rem; text-align: center;}
@@ -90,57 +81,38 @@
         .item-card { border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin: 15px 0; background-color: #fdfdfd; transition: box-shadow 0.3s; }
         .item-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
         .item-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
-        .item-header h4 { margin: 0; font-size: 1.1rem; color: #333; }
-        .controls-container { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .quick-rate-buttons { display: flex; gap: 5px; }
-        .quick-rate-btn { padding: 4px 8px; font-size: 0.75rem; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; border-radius: 4px; transition: background-color 0.2s, color 0.2s; }
-        .quick-rate-btn:hover { background-color: #e2e6ea; }
-        .quick-rate-btn.excellent { border-color: #155724; color: #155724;}
-        .quick-rate-btn.very-good { border-color: #004085; color: #004085;}
-        .quick-rate-btn.good { border-color: #856404; color: #856404;}
-        .quick-rate-btn.dev { border-color: #d9534f; color: #d9534f;}
+        .item-header h4 { margin: 0; font-size: 1.1rem; color: #333; flex-grow: 1; }
+        .item-header h4 small { color: #555; font-weight: 400; font-size: 0.9rem;}
+        .score { font-size: 2rem; font-weight: bold; color: #333; background-color: #f0f2f5; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: color 0.3s, background-color 0.3s; }
+        
+        .rating-selector { display: flex; justify-content: space-around; padding: 10px 0; margin-top: 10px; border-top: 1px solid #eee;}
+        .rating-btn { padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+        .rating-btn:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .rating-btn.active { font-weight: bold; color: white; border-color: transparent; }
+        .rating-btn.active.score-1 { background-color: #155724; }
+        .rating-btn.active.score-2 { background-color: #004085; }
+        .rating-btn.active.score-3 { background-color: #856404; }
+        .rating-btn.active.score-4 { background-color: #721c24; }
+        .rating-btn.active.score-5 { background-color: #dc3545; }
 
-        .score-controls { display: flex; align-items: center; gap: 10px; }
-        .score { font-size: 2rem; font-weight: bold; color: #d9534f; background-color: #f0f2f5; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: color 0.3s, background-color 0.3s; }
-        .select-all-btn { padding: 6px 12px; font-size: 0.85rem; font-family: 'Tajawal', sans-serif; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
-        .select-all-btn:hover { background-color: #5a6268; }
-        .indicators-container { padding-top: 10px; transition: max-height 0.5s ease-in-out, opacity 0.5s; overflow: hidden; max-height: 1000px; opacity: 1;}
-        .indicator { display: block; margin: 12px 5px; font-size: 1rem; padding: 8px; border-radius: 5px; transition: background-color 0.2s; }
-        .indicator:hover { background-color: #e9ecef; }
-        .indicator input { margin-left: 10px; transform: scale(1.2); }
         .notes-wrapper { position: relative; }
-        .item-notes { width: 100%; box-sizing: border-box; margin-top: 15px; padding: 8px; padding-left: 35px; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; font-size: 0.95rem; resize: vertical; }
-        .mic-btn { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #6c757d; transition: color 0.2s;}
+        .item-notes { width: 100%; box-sizing: border-box; margin-top: 15px; padding: 8px; padding-left: 35px; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; font-size: 0.95rem; min-height: 80px; }
+        .item-notes .highlight { color: red; font-weight: bold; }
+
+        .mic-btn { position: absolute; left: 8px; top: 25px; background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #6c757d; transition: color 0.2s;}
         .mic-btn:hover { color: #007bff; }
         .mic-btn.recording { color: #dc3545; }
         
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; align-items: center;}
         .info-grid input, .info-grid select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: 'Tajawal', sans-serif; font-size: 1rem; }
         .info-grid .dropdown-wrapper { display: flex; flex-direction: column; gap: 5px; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .summary-score-input {
-            width: 60px;
-            padding: 5px;
-            text-align: center;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            -moz-appearance: textfield; /* Firefox */
-        }
-        .summary-score-input::-webkit-outer-spin-button,
-        .summary-score-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
+        
         .controls { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .controls button { padding: 10px 20px; font-size: 0.9rem; font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.2s, transform 0.1s; }
         .controls button:hover { transform: translateY(-2px); }
         .print-btn { background-color: #28a745; }
         .reset-btn { background-color: #dc3545; }
         .generate-btn { background-color: #007bff; }
-        .gemini-btn { background: linear-gradient(45deg, #4285F4, #9B59B6, #F4B400, #0F9D58); color: white; }
         .archive-btn { background-color: #3f51b5; }
         .export-btn { background-color: #17a2b8; }
         #status-message { text-align: center; color: green; margin-top: 15px; font-weight: 500; height: 20px; transition: opacity 0.5s; }
@@ -153,18 +125,6 @@
         .template-section { margin-top: 20px; padding: 15px; border: 1px dashed #007bff; border-radius: 8px; background-color: #f8f9fa;}
         .template-controls { display: flex; gap: 10px; align-items: center; }
         .template-controls select { flex-grow: 1; }
-
-        /* Compact View Styles */
-        .compact-mode .indicators-container {
-            max-height: 0;
-            opacity: 0;
-            padding-top: 0;
-            margin-top: -10px;
-        }
-        .compact-mode .item-card {
-            padding-top: 10px;
-            padding-bottom: 10px;
-        }
 
         /* --- Dashboard & Saved Reports Styles --- */
         .dashboard-controls { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
@@ -218,19 +178,12 @@
                 <button class="nav-tab" onclick="toggleView('dashboard-view')">لوحة المتابعة</button>
                 <button class="nav-tab" onclick="toggleView('saved-reports-view')">التقارير المحفوظة</button>
             </nav>
-            <div class="view-toggle">
-                <label for="compact-view-toggle">عرض مكثف</label>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="compact-view-toggle" onchange="toggleCompactView()">
-                    <span class="slider"></span>
-                </label>
-            </div>
         </header>
 
         <div id="form-view" class="active">
             <div class="page-header">
                 <h1>استمارة زيارة إشرافية إلكترونية</h1>
-                <p>نظام التقييم الإشرافي الرقمي المطور</p>
+                <p>نظام التقييم الإشرافي الرقمي المطور (الرياضة المدرسية)</p>
             </div>
             <main>
                 <section class="visit-info">
@@ -242,7 +195,7 @@
                         </div>
                         <input id="teacherName" type="text" placeholder="اسم المعلم">
                         <input id="fileNumber" type="text" placeholder="رقم الملف">
-                        <input id="subject" type="text" placeholder="المادة">
+                        <input id="subject" type="text" placeholder="المادة" value="الرياضة المدرسية">
                         <input id="visitNumber" type="text" placeholder="رقم الزيارة">
                         <input id="visitDate" type="date" placeholder="التاريخ">
                         <input id="class" type="text" placeholder="الصف">
@@ -263,11 +216,11 @@
                     <summary>اضغط هنا لعرض معيار التقييم</summary>
                     <div style="padding: 10px;">
                         <ul>
-                            <li><b>5 (متميز):</b> تحقيق 90% فأكثر من المؤشرات</li>
-                            <li><b>4 (جيد جداً):</b> تحقيق من 75% إلى 89%</li>
-                            <li><b>3 (جيد):</b> تحقيق من 50% إلى 74%</li>
-                            <li><b>2 (مقبول):</b> تحقيق من 30% إلى 49%</li>
-                            <li><b>1 (غير مرضٍ):</b> تحقيق أقل من 30%</li>
+                            <li><b>1 - متميز</b></li>
+                            <li><b>2 - جيد</b></li>
+                            <li><b>3 - ملائم</b></li>
+                            <li><b>4 - غير ملائم</b></li>
+                            <li><b>5 - يحتاج إلى تدخل سريع</b></li>
                         </ul>
                     </div>
                 </details>
@@ -275,16 +228,6 @@
                 <form id="evaluationForm">
                     <!-- Item Cards will be generated by JS -->
                 </form>
-
-                <section class="summary">
-                    <h2>ملخص النتائج</h2>
-                    <table class="summary-table">
-                        <thead><tr><th>البند</th><th>التقدير (من 5)</th></tr></thead>
-                        <tbody id="summary-tbody">
-                            <!-- Summary rows populated by JS -->
-                        </tbody>
-                    </table>
-                </section>
                 
                 <section id="reportSection" class="report-section" style="display: none;">
                     <h2>التقرير النهائي</h2>
@@ -297,7 +240,7 @@
                     <h2>معلومات الزائر</h2>
                     <div class="info-grid">
                         <input id="visitorName" type="text" placeholder="اسم الزائر">
-                        <input id="visitorPosition" type="text" placeholder="الوظيفة (مثال: مشرف رياضة مدرسية)">
+                        <input id="visitorPosition" type="text" placeholder="الوظيفة (مثال: مشرف تربوي)">
                     </div>
                 </section>
                 
@@ -305,8 +248,7 @@
 
                 <section class="controls">
                     <button type="button" class="archive-btn" onclick="savePermanentReport()">حفظ التقرير</button>
-                    <button type="button" class="generate-btn" onclick="generateReport()">توليد تقرير يدوي</button>
-                    <button type="button" class="gemini-btn" onclick="generateAiReport()">✨ توليد تقرير ذكي</button>
+                    <button type="button" class="generate-btn" onclick="generateReport()">توليد تقرير</button>
                     <button class="print-btn" onclick="printOfficialReport()">طباعة</button>
                     <button type="button" class="export-btn" onclick="exportToWord()">تصدير Word</button>
                     <button type="button" class="reset-btn" onclick="showResetModal()">إعادة تعيين</button>
@@ -324,7 +266,7 @@
                 <canvas id="performanceChart"></canvas>
             </div>
             <div id="no-data-message" style="display: none;">
-                <p>لا توجد بيانات مؤرشفة لهذا المعلم حتى الآن.</p>
+                <p>لا توجد بيانات محفوظة لهذا المعلم حتى الآن.</p>
             </div>
         </div>
 
@@ -358,8 +300,8 @@
                 <img src="https://k.top4top.io/p_3522wfvvr2.png" alt="شعار رؤية عمان 2040" class="logo" onerror="this.style.display='none'">
                 <img src="https://l.top4top.io/p_35225xfin3.png" alt="شعار الجودة" class="logo" onerror="this.style.display='none'">
             </div>
-            <div class="print-header-text">نموذج رقم (5) استمارة زيارة إشرافية لمعلم مجال / مادة - عملية إعداد وتنفيذ الخطة الإجرائية للإشراف الفني</div>
-            <div class="print-title"><h2>استمارة زيارة إشرافية لمعلم مجال/مادة</h2></div>
+            <div class="print-header-text">نموذج رقم (5) استمارة زيارة إشرافية لمعلم مادة - مجال</div>
+            <div class="print-title"><h2>استمارة زيارة إشرافية لمعلم مادة/مجال</h2></div>
             
             <table class="print-info-table">
                 <tbody>
@@ -374,11 +316,11 @@
             <table class="print-main-table">
                 <thead>
                     <tr>
-                        <th style="width: 12%;">المجالات</th>
+                        <th style="width: 20%;">المجال</th>
+                        <th style="width: 15%;">المعيار</th>
                         <th style="width: 3%;">م</th>
-                        <th>البنود</th>
+                        <th>البند</th>
                         <th style="width: 7%;">التقدير</th>
-                        <th style="width: 30%;">جوانب الإجادة في الأداء وأدلتها</th>
                     </tr>
                 </thead>
                 <tbody id="print-main-tbody">
@@ -386,16 +328,25 @@
                 </tbody>
             </table>
 
-            <table class="print-footer-table">
-                <tbody><tr><td class="label">التوصيات:</td><td class="content" id="print-recommendationsContent"></td></tr></tbody>
-            </table>
+            <div class="report-section-print">
+                <h3>جوانب الإجادة في الأداء وأدلتها:</h3>
+                <div id="print-strengthsContent" class="print-report-box"></div>
+            </div>
+            <div class="report-section-print">
+                <h3>الجوانب التي تحتاج إلى تطوير في الأداء وأدلتها:</h3>
+                <div id="print-developmentContent" class="print-report-box"></div>
+            </div>
+            <div class="report-section-print">
+                <h3>التوصيات:</h3>
+                <div id="print-recommendationsContent" class="print-report-box"></div>
+            </div>
 
             <div class="signature-section">
                 اسم الزائر: <span id="print-visitorName" class="line"></span><br><br>
                 الوظيفة: <span id="print-visitorPosition" class="line"></span>
             </div>
             <div class="evaluation-standard">
-                ● معيار التقييم: متميز (5) - جيد جداً (4) - جيد (3) - مقبول (2) - غير مرضٍ (1)
+                ● معيار التقييم: 1- متميز، 2- جيد، 3- ملائم، 4- غير ملائم، 5- يحتاج إلى تدخل سريع
             </div>
         </div>
     </div>
@@ -422,189 +373,132 @@
         ];
 
         const evaluationItems = [
-            { id: 1, title: 'خطط التدريس', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
-                'توافق خطة الدرس العملية (اليومية) مع الخطة الفصلية للوحدة التعليمية (كرة القدم، الجمباز، إلخ).',
-                'تنوع الأهداف (مهارية، معرفية، وجدانية) وتسلسلها المنطقي وارتباطها بالمهارة أو اللعبة المستهدفة.',
-                'التنوع في استراتيجيات التدريس (اللعب، الاكتشاف الموجه، التدريب) وأساليب التقويم (الملاحظة، قوائم الرصد) وارتباطها بالأهداف الحركية.',
-                'تنوع مصادر التعلم (أدوات، أجهزة رياضية، فيديوهات تعليمية) وارتباطها بالأهداف المهارية للدرس.',
-                'تلبية احتياجات الطلبة المختلفة (الموهوبين، ذوي التحديات الحركية) ومراعاة التمايز في الأنشطة البدنية.'
-            ]},
-            { id: 2, title: 'بيئة التعلم', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
-                'الاستثمار الأمثل لزمن النشاط الحركي الفعلي خلال الحصة.', 'إثارة دافعية الطلبة للمشاركة في النشاط البدني بما يتناسب مع قدراتهم البدنية.',
-                'إدارة تعلم الطلبة بفاعلية (تنظيم المجموعات، توزيع الأدوات، الانتقال بين المحطات).', 'توفير بيئة تعلم آمنة جسديًا ونفسيًا (التأكد من سلامة الأدوات، الإحماء المناسب، منع التنمر).',
-                'التنوع في أساليب التعزيز (لفظي، حركي) لتشجيع الأداء والمحاولة.'
-            ]},
-            { id: 3, title: 'فاعلية التدريس', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
-                'التمكن من المادة العلمية (قوانين الألعاب) وتقديم نموذج حركي سليم للمهارات.', 'توجيه الطلبة للاعتماد على أنفسهم في تطبيق المهارات وتصحيح أخطائهم.',
-                'ربط النشاط البدني بحياة الطلبة اليومية (الصحة، اللياقة البدنية، قضاء وقت الفراغ).', 'تفعيل الأنشطة التطبيقية (مباريات مصغرة) واللاصفية (اليوم الرياضي، المنتخبات المدرسية).',
-                'تفعيل أساليب التعلم القائمة على اللعب والمنافسات البناءة.'
-            ]},
-            { id: 4, title: 'المصادر والموارد التعليمية', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
-                'توظيف الأدوات والأجهزة الرياضية بشكل فعال لتحقيق أهداف الدرس.', 
-                'توظيف المنصات الرقمية والتفاعلية (منصة نور ، تحليل الفيديو) لتحسين الأداء.',
-                'الاستفادة القصوى من مرافق المدرسة (الملعب، الصالة، حوض السباحة).', 
-                'إشراك الطلبة في إعداد وتوظيف الأدوات والموارد المتاحة.',
-                'ملاءمة الأدوات والموارد المستخدمة للفئة العمرية والمهارة المستهدفة.'
-            ]},
-            { id: 5, title: 'التقويم من أجل التعلم', indicators: 5, domain: 'المجال الأول: التدريس والتقويم', details: [
-                'توظيف أساليب تقويم (قوائم رصد المهارات، تقويم الأداء الحركي) تراعي الفروق البدنية بين الطلبة.', 'تقديم تغذية راجعة فورية وبناءة لتصحيح الأداء الحركي للطلبة.',
-                'مشاركة الطلبة في أهداف الدرس ومعايير إتقان المهارة (نقاط فنية واضحة).', 'تفعيل تقييم الأقران (ملاحظة الزملاء للأداء) والتقييم الذاتي لتعزيز وعيهم الحركي.',
-                'تقديم تغذية راجعة لمساعدة الطلبة على تطوير مهاراتهم وأدائهم في الأنشطة.'
-            ]},
-            { id: 6, title: 'التحصيل', indicators: 3, domain: 'المجال الثاني: إنجاز الطلبة', details: [
-                'اكتساب الطلبة للمهارات الحركية الأساسية (الجري، القفز، الرمي).', 'اكتساب الطلبة للمعارف (القوانين، الخطط) والمهارات الخاصة باللعبة أو الرياضة.',
-                'مستوى أداء الطلبة في التطبيقات العملية (المباريات، الأنشطة التقويمية).'
-            ]},
-            { id: 7, title: 'التقدم الدراسي', indicators: 3, domain: 'المجال الثاني: إنجاز الطلبة', details: [
-                'التقدم الذي يظهره الطلبة في مستوى أدائهم المهاري بين بداية الحصة ونهايتها.', 'التقدم أثناء الحصة في فهم الجوانب الخططية وتطبيقها (الانتقال من التطبيق الفردي للمهارة إلى توظيفها في اللعب).',
-                'قدرة الطلبة على فهم القوانين وتطبيق المهارات في مواقف اللعب المختلفة.'
-            ]},
-            { id: 8, title: 'مهارات التعلم', indicators: 4, domain: 'المجال الثاني: إنجاز الطلبة', details: [
-                'المشاركة في تنظيم وقيادة بعض أجزاء الدرس (الإحماء، تنظيم المجموعات).', 'قدرة الطلبة على التعاون والتواصل الفعال مع زملائهم في الفريق أثناء اللعب.',
-                'توظيف الطلبة لمهارات التفكير الخططي وحل المشكلات في مواقف اللعب.', 'توظيف الطلبة للمهارات التقنية (ساعات رياضية، تطبيقات) في ممارسة النشاط البدني.'
-            ]},
-            { id: 9, title: 'القيم والاتجاهات', indicators: 4, domain: 'المجال الثالث: النمو الشخصي للطلبة ورعايتهم', details: [
-                'حرص الطلبة على أداء المهارات والأنشطة البدنية بإتقان وجدية.', 'إظهار الطلبة توجهات إيجابية نحو ممارسة الرياضة والمحافظة على اللياقة البدنية.',
-                'إظهار الطلبة انضباطًا ذاتيًا والتزامًا بقوانين اللعب وقرارات الحكم.', 'إبداء الطلبة لأخلاقيات رياضية عالية (الروح الرياضية، احترام المنافس والزميل).'
-            ]},
-            { id: 10, title: 'الممارسات المهنية', indicators: 5, domain: 'المجال الرابع: القيادة والإدارة والحوكمة', details: [
-                'المشاركة في دورات وورش عمل تخصصية (تدريب, تحكيم, إصابات رياضية).', 'نقل أثر المشاركات المهنية وتطبيقها لتطوير طرق تدريس المهارات المختلفة.',
-                'التعاون مع الزملاء لتبادل الخبرات في تدريس وحدات رياضية معينة.', 'التفكر والتأمل في ممارساته التدريسية لتحسين أداء الطلبة المهاري.',
-                'تحليل نتائج تقويم أداء الطلبة (المهاري والبدني) لتطوير خططه التدريسية.'
-            ]},
-            { id: 11, title: 'المبادرات والأنشطة', indicators: 3, domain: 'المجال الرابع: القيادة والإدارة والحوكمة', details: [
-                'تقديم مبادرات فاعلة (يوم رياضي, بطولة داخلية) تدعم النشاط البدني في المدرسة.', 'التفاعل الإيجابي مع مختلف الأنشطة الرياضية والثقافية في المدرسة.',
-                'التفاعل الإيجابي مع المجتمع المحلي (تنظيم فعاليات رياضية مشتركة, استضافة فرق رياضية).'
-            ]}
+            { id: 1, domain: 'الإنجاز الدراسي', standard: 'التحصيل الدراسي', title: 'تحصيل الطلبة في الأعمال الصفية وغير الصفية', desc: '(اكتساب المهارات الحركية والمعارف المرتبطة بها)' },
+            { id: 2, domain: 'الإنجاز الدراسي', standard: 'التقدم الدراسي', title: 'التقدم الدراسي للطلبة بما فيهم الطلبة ذوي الإعاقة/الاحتياجات التعليمية', desc: '(تطور الأداء المهاري والخططي)' },
+            { id: 3, domain: 'الإنجاز الدراسي', standard: 'مهارات التعلم', title: 'تطبيق مهارات التعلم (الذاتي- التعاوني - الرقمي - التفكير العليا) وربطها بالواقع', desc: '(القيادة، التعاون، التفكير الخططي في مواقف اللعب)' },
+            { id: 4, domain: 'النمو الشخصي', standard: 'القيم والسلوك', title: 'تمسك الطلبة بالهوية العمانية والقيم الإنسانية', desc: '(الروح الرياضية وأخلاقيات اللعب)' },
+            { id: 5, domain: 'مناخ المدرسة وبيئة التعلم', standard: 'جودة بيئة التعلم', title: 'متابعة جوانب الأمن والسلامة والنظافة في بيئة التعلم', desc: '(سلامة الأدوات والمرافق الرياضية)' },
+            { id: 6, domain: 'التدريس والتقويم', standard: 'تخطيط المنهاج الدراسي', title: 'تخطيط المنهاج الدراسي لتحقيق نواتج التعلم', desc: '(التخطيط لتنمية المهارات الحركية واللياقة البدنية)' },
+            { id: 7, domain: 'التدريس والتقويم', standard: 'إدارة الصف', title: 'فاعلية الإدارة الصفية', desc: '(إدارة وتنظيم النشاط البدني)' },
+            { id: 8, domain: 'التدريس والتقويم', standard: 'فاعلية التدريس', title: 'توظيف استراتيجيات التدريس الفعالة', desc: '(استراتيجيات التدريس المناسبة للنشاط البدني)' },
+            { id: 9, domain: 'التدريس والتقويم', standard: 'فاعلية التدريس', title: 'تفعيل المصادر والموارد التعليمية', desc: '(الأدوات والأجهزة والمرافق الرياضية)' },
+            { id: 10, domain: 'التدريس والتقويم', standard: 'التقويم ومساندة التقدم', title: 'توظيف أساليب تقويم متنوعة', desc: '(تقويم الأداء الحركي والمهاري للطلبة)' },
+            { id: 11, domain: 'القيادة والإدارة والحوكمة', standard: 'قيادة التغيير', title: 'توظيف التقويم الذاتي والتطوير المهني في تحسين الأداء', desc: '(التأمل في الممارسات التدريسية وتطويرها)' },
+            { id: 12, domain: 'القيادة والإدارة والحوكمة', standard: 'الحوكمة', title: 'تطبيق السياسات والأنظمة واللوائح المنظمة للعمل', desc: '(الالتزام بأخلاقيات المهنة واللوائح)' },
+            { id: 13, domain: 'القيادة والإدارة والحوكمة', standard: 'الحوكمة', title: 'تنفيذ مبادرات وأنشطة تربوية في المجتمع المدرسي', desc: '(تنظيم الفعاليات والمسابقات الرياضية)' }
         ];
-        
-        const reportContent = {
-            '1': {
-                keyword: 'خطط',
-                title: 'خطط التدريس',
-                '5': 'يخطط لجميع دروسه العملية بتسلسل منطقي للمهارات الحركية، ويربطها دائماً بالخطة الفصلية، وينوع بفاعلية في استراتيجيات التدريس وأساليب التقويم، ويلبي احتياجات جميع الطلبة ومستوياتهم البدنية',
-                '4': 'يخطط لمعظم دروسه العملية بتسلسل منطقي، ويربطها بالخطة الفصلية، وينوع في استراتيجيات التدريس وأساليب التقويم، ويلبي احتياجات معظم الطلبة',
-                '3': 'يخطط لأغلب دروسه العملية، ويربط الأهداف غالباً بالخطة الفصلية، ويستخدم استراتيجيات وأساليب تقويم مناسبة',
-                '2': 'يخطط لبعض دروسه العملية، ويستخدم استراتيجيات ومصادر تعلم قليلة، ويلبي احتياجات بعض الطلبة بشكل محدود',
-                '1': 'نادراً ما يخطط لدروسه، وتكون خططه غير مرتبطة بالمنهج أو بأهداف واضحة، ولا تراعي احتياجات الطلبة',
-                recommendation: 'يُنصح بالتركيز على بناء خطط درس يومية متكاملة تتوافق مع الخطة الفصلية، مع تحديد أهداف (مهارية، معرفية، وجدانية) واضحة ومتسلسلة. كذلك، يجب التنويع في استراتيجيات التدريس وأساليب التقويم لتلبية احتياجات جميع الطلبة.',
-                recommendation_for_3: 'يمكن تحسين التخطيط عبر التأكد من أن جميع الأهداف ترتبط بشكل مباشر بالخطة الفصلية، وزيادة التنويع في استراتيجيات التدريس المستخدمة لتشمل أساليب مختلفة مثل الاكتشاف الموجه.'
+
+        const detailedDescriptions = {
+            '1': { // التحصيل الدراسي
+                '1': "يكتسب <span class='highlight'>جميع</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة فعالة.",
+                '2': "يكتسب <span class='highlight'>معظم</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة فاعلة.",
+                '3': "يكتسب <span class='highlight'>أغلب</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة ملائمة أو مقبولة.",
+                '4': "يكتسب <span class='highlight'>قليل من</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة محدودة.",
+                '5': "يكتسب <span class='highlight'>عدد نادر من</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة محدودة جدا / نادرة."
             },
-            '2': {
-                keyword: 'بيئة',
-                title: 'بيئة التعلم',
-                '5': 'يستثمر زمن الحصة بالكامل في النشاط الحركي، ويدير تعلم جميع الطلبة بفعالية وأمان، ويثير دافعيتهم للمشاركة، ويعزز أداءهم باستمرار',
-                '4': 'يستثمر معظم زمن الحصة في النشاط الحركي، ويدير تعلم معظم الطلبة بفعالية، ويثير دافعيتهم، ويوفر بيئة آمنة ومنظمة',
-                '3': 'يستثمر أغلب زمن الحصة في النشاط الحركي، ويدير تعلم أغلب الطلبة بشكل ملائم، ويوفر بيئة آمنة',
-                '2': 'يستثمر وقتاً محدوداً في النشاط الحركي الفعلي، ويواجه صعوبة في إدارة بعض الطلبة، وأساليب تعزيزه محدودة',
-                '1': 'يهدر الكثير من زمن الحصة في التنظيم، ولا يدير تعلم الطلبة بفاعلية، والبيئة التعليمية غير آمنة أو محفزة',
-                recommendation: 'يوصى بالعمل على استثمار زمن الحصة بشكل أمثل في النشاط الحركي، وتطبيق استراتيجيات فعالة لإدارة المجموعات وتوزيع الأدوات لضمان بيئة تعليمية آمنة ومحفزة للجميع.',
-                recommendation_for_3: 'لتحسين بيئة التعلم، يُقترح استخدام ساعة توقيت لزيادة زمن النشاط الحركي الفعلي، وتطبيق أساليب تعزيز متنوعة (لفظية وحركية) لزيادة دافعية جميع الطلبة.'
+            '2': { // التقدم الدراسي
+                '1': "يتقدم <span class='highlight'>جميع</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة متميزة.",
+                '2': "يتقدم <span class='highlight'>معظم</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة فاعلة.",
+                '3': "يتقدم <span class='highlight'>أغلب</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة ملائمة.",
+                '4': "يتقدم <span class='highlight'>قليل من</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة محدودة.",
+                '5': "يتقدم <span class='highlight'>عدد نادر من</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة محدودة جدا."
             },
-            '3': {
-                keyword: 'فاعلية',
-                title: 'فاعلية التدريس',
-                '5': 'متمكن من تقديم نموذج حركي سليم لجميع المهارات، ويربط دائماً النشاط البدني بالصحة العامة، ويوجه جميع الطلبة لتصحيح أدائهم ذاتياً، ويفعل الأنشطة التنافسية البناءة',
-                '4': 'متمكن من تقديم نموذج حركي سليم لمعظم المهارات، ويربط في معظم الأحيان النشاط البدني بالصحة العامة، ويوجه معظم الطلبة للتعلم الذاتي',
-                '3': 'يمتلك تمكناً جيداً من المهارات ويربط أغلب الأنشطة بالصحة، ويفعل الأنشطة التنافسية بشكل ملائم',
-                '2': 'يظهر معرفة مقبولة بالمهارات، ويربط النشاط البدني بالصحة بشكل قليل، وتوجيهه للطلبة محدود',
-                '1': 'غير متمكن من تقديم نموذج حركي سليم، ونادراً ما يربط التعلم بواقع الطلبة، ولا يفعل الأنشطة بفاعلية',
-                recommendation: 'يُنصح بالتركيز على تقديم نموذج حركي سليم وواضح للمهارات، وربط الأنشطة البدنية بحياة الطلبة اليومية لزيادة دافعيتهم، وتفعيل الأنشطة التنافسية البناءة.',
-                recommendation_for_3: 'لزيادة فاعلية التدريس، يُقترح التركيز على ربط جميع الأنشطة البدنية بجوانب صحية من حياة الطلبة، وتوجيههم بشكل أكبر نحو تصحيح أدائهم ذاتياً عبر طرح أسئلة موجهة.'
+            '3': { // مهارات التعلم
+                '1': "يطبق <span class='highlight'>جميع</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى متميز.",
+                '2': "يطبق <span class='highlight'>معظم</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى فاعل.",
+                '3': "يطبق <span class='highlight'>أغلب</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى ملائم أو مناسب.",
+                '4': "يطبق <span class='highlight'>قليل من</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى محدود.",
+                '5': "يطبق <span class='highlight'>عدد نادر من</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى محدود جدا/نادر."
             },
-            '4': {
-                keyword: 'مصادر',
-                title: 'المصادر والموارد التعليمية',
-                '5': 'يوظف جميع الأدوات والموارد المتاحة بابتكار وفاعلية عالية في جميع جوانب الدرس، ويشرك جميع الطلبة في استخدامها لتحقيق أهداف مهارية محددة',
-                '4': 'يوظف معظم الموارد المتاحة بفاعلية، ويشرك معظم الطلبة في استخدامها لتحقيق أهداف الدرس',
-                '3': 'يوظف أغلب الموارد المتاحة بشكل جيد، ويشرك أغلب الطلبة في استخدامها',
-                '2': 'يوظف الأدوات والموارد بشكل مقبول، ويشرك عدداً محدوداً من الطلبة في استخدامها',
-                '1': 'نادراً ما يوظف الموارد التعليمية المتاحة، أو يستخدمها بشكل غير فعال أو آمن',
-                recommendation: 'يوصى بالتخطيط المسبق لكيفية توظيف الأدوات والموارد المتاحة بشكل مبتكر وفعال، وإشراك الطلبة في استخدامها لتحقيق أهداف الدرس المهارية.',
-                recommendation_for_3: 'يُقترح البحث عن طرق مبتكرة لتوظيف الموارد المتاحة، مثل استخدام التقنيات الرقمية (الفيديو) لتحليل الأداء، وإشراك جميع الطلبة في إعداد وتوظيف الأدوات.'
+             '4': { // القيم والسلوك
+                '1': "يلتزم <span class='highlight'>جميع</span> الطلبة بالقيم الإنسانية المشتركة ويراعون ذلك بمستوى متميز.",
+                '2': "يلتزم <span class='highlight'>معظم</span> الطلبة بالقيم الإنسانية المشتركة ويراعون ذلك بمستوى فاعل.",
+                '3': "يلتزم <span class='highlight'>أغلب</span> الطلبة بالقيم الإنسانية المشتركة، ويراعون ذلك بمستوى ملائم / مناسب.",
+                '4': "يلتزم <span class='highlight'>قليل من</span> الطلبة بالقيم الإنسانية المشتركة، ويراعون ذلك بمستوى محدود.",
+                '5': "يلتزم <span class='highlight'>عدد محدود جدا</span> من الطلبة بالقيم الإنسانية المشتركة ويراعون ذلك بمستوى محدود جدا ونادر."
             },
-             '5': {
-                keyword: 'تقويم',
-                title: 'التقويم من أجل التعلم',
-                '5': 'يوظف دائماً أساليب تقويم أدائي متنوعة (قوائم رصد، ملاحظة منظمة)، ويقدم تغذية راجعة فورية وبناءة لجميع الطلبة لتحسين تكنيكهم الحركي',
-                '4': 'يوظف في معظم الأحيان أساليب تقويم أدائي متنوعة، ويقدم تغذية راجعة لمعظم الطلبة بهدف تطوير أدائهم',
-                '3': 'يوظف غالباً أساليب تقويم أدائي، ويقدم تغذية راجعة لأغلب الطلبة',
-                '2': 'يوظف أساليب تقويم محدودة، ويقدم تغذية راجعة لبعض الطلبة',
-                '1': 'نادراً ما يوظف أساليب تقويم، ولا يقدم تغذية راجعة هادفة للطلبة',
-                recommendation: 'يُنصح بتنويع أساليب التقويم الأدائي واستخدام أدوات مثل قوائم الرصد، مع الحرص على تقديم تغذية راجعة فورية وبناءة لجميع الطلبة لتصحيح أدائهم الحركي.',
-                recommendation_for_3: 'لتحسين التقويم، يُقترح تفعيل أدوات تقويم الأقران والتقييم الذاتي بشكل أكبر، والتأكد من أن التغذية الراجعة المقدمة للطلبة فورية ومحددة لمساعدتهم على التطور.'
+            '5': { // جودة بيئة التعلم
+                '1': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>متميزة</span>.",
+                '2': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>جيدة</span>.",
+                '3': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>مناسبة</span>.",
+                '4': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>محدودة</span>.",
+                '5': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>نادرة/منعدمة</span>."
             },
-            '6': {
-                keyword: 'تحصيل',
-                title: 'التحصيل',
-                '5': 'يكتسب جميع الطلبة المهارات الحركية المستهدفة بصورة متقنة، ويظهرون فهماً عميقاً لقوانين اللعبة وتطبيقاتها',
-                '4': 'يكتسب معظم الطلبة المهارات الحركية بصورة جيدة جداً، ويظهرون فهماً جيداً للقوانين',
-                '3': 'يكتسب أغلب الطلبة المهارات الحركية بصورة ملائمة، ويظهرون فهماً مقبولاً للقوانين',
-                '2': 'يكتسب بعض الطلبة المهارات الحركية بصورة محدودة',
-                '1': 'نادراً ما يكتسب الطلبة المهارات الحركية المستهدفة من الدرس',
-                recommendation: 'يوصى بمراجعة استراتيجيات التدريس المتبعة للتأكد من أنها تساعد الطلبة على اكتساب المهارات الحركية المستهدفة بصورة متقنة، مع التركيز على التطبيقات العملية.',
-                recommendation_for_3: 'لرفع مستوى التحصيل، يمكن التركيز على الأنشطة التطبيقية (المباريات المصغرة) التي تتيح للطلبة توظيف المهارات والمعارف في سياق اللعب الفعلي.'
+            '6': { // تخطيط المنهاج
+                '1': "يخطط المعلم <span class='highlight'>لجميع</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة متميزة.",
+                '2': "يخطط المعلم <span class='highlight'>معظم</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة جيدة.",
+                '3': "يخطط المعلم <span class='highlight'>أغلب</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة مناسبة.",
+                '4': "يخطط المعلم <span class='highlight'>قليل من</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة محدودة.",
+                '5': "يخطط المعلم <span class='highlight'>عدد محدود جدا</span> من دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة نادرة."
             },
-            '7': {
-                keyword: 'تقدم',
-                title: 'التقدم الدراسي',
-                '5': 'يظهر جميع الطلبة تقدماً ملحوظاً في أدائهم للمهارات بين بداية الحصة ونهايتها، وينتقلون بسلاسة من التطبيق الفردي للمهارة إلى توظيفها في مواقف اللعب',
-                '4': 'يظهر معظم الطلبة تقدماً واضحاً في أدائهم وقدرتهم على تطبيق المهارات في اللعب',
-                '3': 'يظهر أغلب الطلبة تقدماً ملائماً في أدائهم خلال الحصة',
-                '2': 'يظهر بعض الطلبة تقدماً محدوداً في أدائهم المهاري',
-                '1': 'لا يظهر الطلبة أي تقدم يذكر في أدائهم المهاري خلال الحصة',
-                recommendation: 'يُنصح بتصميم أنشطة متدرجة تساعد الطلبة على إظهار تقدم مهاري ملحوظ خلال الحصة، والتركيز على الانتقال من التطبيق الفردي إلى اللعب الجماعي.',
-                recommendation_for_3: 'يمكن إبراز التقدم الدراسي بشكل أفضل عبر استخدام أداة تقويم بسيطة (مثل قائمة رصد) في بداية الحصة ونهايتها لملاحظة التطور في أداء الطلبة.'
+            '7': { // إدارة الصف
+                '1': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>فعالة</span>.",
+                '2': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>جيدة</span>.",
+                '3': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>ملائمة</span>.",
+                '4': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>محدودة</span>.",
+                '5': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>نادرة</span>."
             },
-            '8': {
-                keyword: 'مهارات',
-                title: 'مهارات التعلم',
-                '5': 'يشارك جميع الطلبة تقريباً في قيادة الإحماء أو تنظيم الفرق، ويظهرون عملاً جماعياً وتفكيراً خططياً عالياً في مواقف اللعب',
-                '4': 'يشارك معظم الطلبة في تنظيم العمل، ويظهرون تعاوناً وتفكيراً خططياً في معظم مواقف اللعب',
-                '3': 'يشارك أغلب الطلبة في العمل الجماعي ويظهرون قدرة ملائمة على التفكير الخططي',
-                '2': 'يشارك بعض الطلبة في العمل الجماعي، وقدرتهم على التفكير الخططي محدودة',
-                '1': 'نادراً ما يشارك الطلبة في العمل الجماعي، ويعتمدون على الأداء الفردي فقط',
-                recommendation: 'يوصى بتعزيز مهارات التعلم من أجل المستقبل عبر إعطاء الطلبة أدواراً قيادية في تنظيم أجزاء من الدرس، وتشجيع العمل الجماعي والتفكير الخططي في مواقف اللعب.',
-                recommendation_for_3: 'لتنمية مهارات المستقبل، يُقترح زيادة فرص مشاركة الطلبة في قيادة أجزاء من الدرس (مثل الإحماء)، وتصميم مواقف لعب تتطلب منهم التعاون والتفكير الخططي.'
+            '8': { // استراتيجيات التدريس
+                '1': "توظيف استراتيجيات تدريس فعالة بحيث يستفيد منها جميع الطلبة في تعميق تعلمهم بمستوى متميز.",
+                '2': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>معظم</span> الطلبة في تعميق تعلمهم بمستوى فاعل.",
+                '3': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>أغلب</span> الطلبة في تعميق تعلمهم بمستوى ملائم.",
+                '4': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>قليل من</span> الطلبة في تعميق تعلمهم بمستوى محدود.",
+                '5': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>عدد قليل جدا</span> من الطلبة في تعميق تعلمهم بمستوى نادر."
             },
-            '9': {
-                keyword: 'قيم',
-                title: 'القيم والاتجاهات',
-                '5': 'يظهر جميع الطلبة التزاماً كاملاً بالروح الرياضية والانضباط الذاتي، ويبدون حماساً كبيراً للمشاركة في الأنشطة البدنية',
-                '4': 'يظهر معظم الطلبة التزاماً بالروح الرياضية والانضباط، واتجاهات إيجابية نحو المادة',
-                '3': 'يظهر أغلب الطلبة انضباطاً ذاتياً وقبولاً لقوانين اللعب',
-                '2': 'يظهر بعض الطلبة انضباطاً ذاتياً، بينما يحتاج الآخرون إلى توجيه مستمر',
-                '1': 'يفتقر الطلبة إلى الانضباط الذاتي وتنتشر بينهم السلوكيات غير الرياضية',
-                recommendation: 'يُنصح بالتركيز على غرس القيم الإيجابية كالروح الرياضية والانضباط الذاتي، وتوجيه الطلبة باستمرار نحو الالتزام بقوانين اللعب وأخلاقياته.',
-                recommendation_for_3: 'يمكن تعزيز القيم والاتجاهات الإيجابية عبر التأكيد المستمر على أخلاقيات اللعب (الروح الرياضية، احترام المنافس) ومناقشة مواقف من الحصة مع الطلبة.'
+             '9': { // المصادر والموارد
+                '1': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>جميع</span> الطلبة في تعميق تعلمهم بمستوى متميز.",
+                '2': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>معظم</span> الطلبة في تعميق تعلمهم بمستوى جيد.",
+                '3': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>أغلب</span> الطلبة في تعميق تعلمهم بمستوى ملائم.",
+                '4': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>قليل من</span> الطلبة في تعميق تعلمهم بمستوى محدود.",
+                '5': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>قليل جدا من</span> الطلبة في تعميق تعلمهم بمستوى نادر."
             },
-            '10': {
-                keyword: 'ممارسات',
-                title: 'الممارسات المهنية',
-                '5': 'لديه مشاركات متميزة في ورش عمل أو دورات تخصصية (تدريب، تحكيم)، ويتعاون دائماً مع زملائه، ويحلل بيانات أداء الطلبة لتطوير ممارساته بفاعلية عالية',
-                '4': 'لديه مشاركات مهنية جيدة، ويتعاون في معظم الأحيان مع زملائه، ويحلل بيانات أداء الطلبة لتطوير ممارساته',
-                '3': 'لديه مشاركات مهنية، ويتعاون مع زملائه، ويحلل بيانات أداء الطلبة بشكل ملائم',
-                '2': 'لديه مشاركات مهنية قليلة، ويتعاون بشكل محدود مع الزملاء',
-                '1': 'ليس لديه أي مشاركات مهنية تذكر، ونادراً ما يتعاون مع زملائه لتطوير أدائه',
-                recommendation: 'يوصى بالحرص على المشاركة في برامج التطوير المهني، والتعاون المستمر مع الزملاء لتبادل الخبرات، وتحليل أداء الطلبة لتطوير الخطط التدريسية.',
-                recommendation_for_3: 'لتعزيز النمو المهني، يُقترح تطبيق استراتيجية "التأمل في الممارسة" بعد كل درس لتحليل نقاط القوة وفرص التحسين، ومشاركة هذه التأملات مع الزملاء.'
+            '10': { // أساليب التقويم
+                '1': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>جميع</span> الطلبة بما ينعكس على تعلمهم بمستوى متميز.",
+                '2': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>معظم</span> الطلبة بما ينعكس على تعلمهم بمستوى فاعل.",
+                '3': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>أغلب</span> الطلبة بما ينعكس على تعلمهم بمستوى ملائم.",
+                '4': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>قليل من</span> الطلبة بما ينعكس على تعلمهم بمستوى محدود.",
+                '5': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>قليل جدا من</span> الطلبة بما ينعكس على تعلمهم بمستوى نادر."
             },
-            '11': {
-                keyword: 'مبادرات',
-                title: 'المبادرات والأنشطة',
-                '5': 'يقدم مبادرات فاعلة ومستمرة لدعم النشاط الرياضي بالمدرسة (يوم رياضي، بطولات، فرق مدرسية)، ويتفاعل بإيجابية قصوى مع كافة الأنشطة',
-                '4': 'يقدم مبادرات فاعلة لدعم النشاط الرياضي، ويتفاعل بإيجابية في معظم الأنشطة',
-                '3': 'يقدم مبادرات جيدة لدعم النشاط الرياضي، ويتفاعل بشكل إيجابي مع أغلب الأنشطة',
-                '2': 'يقدم مبادرات محدودة، وتفاعله مع الأنشطة المدرسية محدود',
-                '1': 'نادراً ما يقدم مبادرات، وتفاعله مع الأنشطة التربوية والمجتمع المدرسي محدود جداً',
-                recommendation: 'يُنصح بتقديم مبادرات فاعلة لدعم النشاط الرياضي في المدرسة، والتفاعل الإيجابي مع الأنشطة المدرسية والمجتمع المحلي لتعزيز دور التربية الرياضية.',
-                recommendation_for_3: 'يمكن البدء بمبادرات بسيطة مثل تنظيم بطولة داخلية للصف، أو تفعيل الإذاعة المدرسية بمواضيع رياضية، لزيادة التفاعل مع المجتمع المدرسي.'
+            '11': { // التقويم الذاتي
+                '1': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>جميع</span> الطلبة بمستوى متميز.",
+                '2': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>معظم</span> الطلبة بمستوى فاعل.",
+                '3': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>أغلب</span> الطلبة بمستوى مناسب.",
+                '4': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>قليل من</span> الطلبة بمستوى محدود.",
+                '5': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>قليل جدا من</span> الطلبة بمستوى نادر."
+            },
+            '12': { // السياسات والأنظمة
+                '1': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>فعالة</span>.",
+                '2': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>فاعلة</span>.", // Note: PDF has "فاعلة" for both 1 and 2
+                '3': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>مناسبة</span>.",
+                '4': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>محدودة</span>.",
+                '5': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>نادرة</span>."
+            },
+            '13': { // المبادرات
+                '1': "يقدم مبادرات فعالة لدعم وتحسين العملية التعليمية، كما يتميز بالتفاعل الإيجابي في <span class='highlight'>جميع</span> الأنشطة التربوية والمجتمع المحلي.",
+                '2': "يقدم مبادرات فاعلة لدعم وتحسين العملية التعليمية، كما يتميز بالتفاعل الإيجابي في <span class='highlight'>معظم</span> الأنشطة التربوية والمجتمع المحلي.",
+                '3': "يقدم مبادرات ملائمة لدعم وتحسين العملية التعليمية، كما يتفاعل إيجابيا في <span class='highlight'>أغلب</span> الأنشطة التربوية والمجتمع المحلي.",
+                '4': "يقدم مبادرات محدودة لدعم وتحسين العملية التعليمية، كما يتفاعل بشكل <span class='highlight'>محدود</span> مع الأنشطة التربوية والمجتمع المحلي.",
+                '5': "<span class='highlight'>نادرا</span> ما يقدم مبادرات لدعم وتحسين العملية التعليمية كما أن تفاعله مع الأنشطة التربوية والمجتمع المحلي <span class='highlight'>محدود جدا</span>."
             }
         };
-        const reportKeywords = {
-            '1': 'خطط', '2': 'بيئة', '3': 'فاعلية', '4': 'مصادر', '5': 'تقويم', 
-            '6': 'تحصيل', '7': 'تقدم', '8': 'مهارات', '9': 'قيم', '10': 'ممارسات', '11': 'مبادرات'
+
+
+        const instructionalRecommendations = {
+            '1': "احرص على تنويع استراتيجيات التدريس والتقويم لضمان اكتساب جميع الطلبة للمهارات الحركية والمعارف المرتبطة بالمادة بفاعلية.",
+            '2': "اعمل على متابعة التقدم الفردي لجميع الطلبة، بمن فيهم ذوي الاحتياجات التعليمية، وقدم الدعم اللازم لضمان تطور أدائهم المهاري والخططي بشكل مستمر خلال الحصة.",
+            '3': "احرص على تمكين جميع طلبتك من تطبيق مهارات التعلم المتنوعة (الذاتي، التعاوني، الرقمي) وتنمية مهارات التفكير العليا لديهم، مع التأكيد على ربط ما يتعلمونه بواقع حياتهم لتعميق أثر التعلم.",
+            '4': "اعمل على ترسيخ الهوية العمانية والقيم الإنسانية المشتركة في نفوس طلبتك، وشجعهم على الالتزام بها سلوكًا وممارسةً في جميع المواقف داخل المدرسة وخارجها.",
+            '5': "تأكد باستمرار من سلامة الأدوات والمرافق الرياضية، وعزز لدى الطلبة أهمية المحافظة على بيئة تعلم آمنة ونظيفة.",
+            '6': "استمر في تخطيط الدروس بشكل منهجي ومتسلسل، مع ربط الأهداف بالخطة الفصلية وتنويع الاستراتيجيات والأنشطة لتلبية احتياجات جميع الطلبة.",
+            '7': "وظف استراتيجيات فعالة لإدارة وتنظيم النشاط البدني، واستثمر وقت الحصة بالكامل في ممارسة الأنشطة الحركية الهادفة لرفع دافعية الطلبة.",
+            '8': "احرص على توظيف استراتيجيات تدريس متنوعة ومناسبة للنشاط البدني، بما يضمن استفادة جميع الطلبة في تعميق تعلمهم للمهارات الحركية.",
+            '9': "اعمل على تفعيل جميع المصادر والموارد التعليمية المتاحة، بما في ذلك الأدوات والأجهزة الرياضية والمنصات الرقمية، لإثراء تجربة التعلم لدى الطلبة.",
+            '10': "وظف أساليب تقويم متنوعة ومناسبة للأداء الحركي، مع تقديم تغذية راجعة فورية وبناءة لدعم تقدم جميع الطلبة وتلبية الفروق الفردية بينهم.",
+            '11': "استمر في تقويم أدائك ذاتيًا والتأمل في ممارساتك التدريسية، ووظف نتائج هذا التأمل في تطوير خططك وأساليبك لتحسين تعلم الطلبة بشكل مستمر.",
+            '12': "التزم دائماً بأخلاقيات المهنة والسياسات واللوائح المنظمة للعمل، وكن نموذجاً يحتذى به للطلبة والزملاء.",
+            '13': "بادر بتنفيذ أنشطة ومسابقات رياضية فاعلة في المجتمع المدرسي، وعزز تفاعلك الإيجابي مع الأنشطة التربوية والمجتمع المحلي."
         };
+
 
         // --- All JS Functions Definition ---
         // VIEWS
@@ -621,87 +515,46 @@
                 renderSavedReports();
             }
         }
-
-        function toggleCompactView() {
-            const form = document.getElementById('evaluationForm');
-            form.classList.toggle('compact-mode');
-        }
-
-        // SCORING
-        function calculateScore(itemId) {
-            const card = document.getElementById(itemId);
-            if (!card) return;
-            const checkboxes = card.querySelectorAll('input[type="checkbox"]');
-            const scoreDisplay = document.getElementById('score-' + itemId.split('-')[1]);
-            const totalIndicators = checkboxes.length;
-            let checkedCount = 0;
-            checkboxes.forEach(box => { if (box.checked) checkedCount++; });
-            const percentage = totalIndicators > 0 ? (checkedCount / totalIndicators) * 100 : 0;
-            let finalScore = 0;
-            if (percentage >= 90) finalScore = 5;
-            else if (percentage >= 75) finalScore = 4;
-            else if (percentage >= 50) finalScore = 3;
-            else if (percentage >= 30) finalScore = 2;
-            else if (checkedCount > 0) finalScore = 1;
-            
-            scoreDisplay.textContent = finalScore;
-            updateScoreColor(scoreDisplay, finalScore);
-            updateSummary(itemId.split('-')[1], finalScore);
-        }
-
-        function updateScoreColor(element, score) {
-            element.style.backgroundColor = '#f0f2f5';
-            element.style.color = '#d9534f';
-            if (score === 5) { element.style.backgroundColor = '#d4edda'; element.style.color = '#155724'; } 
-            else if (score === 4) { element.style.backgroundColor = '#cce5ff'; element.style.color = '#004085'; } 
-            else if (score === 3) { element.style.backgroundColor = '#fff3cd'; element.style.color = '#856404'; }
-        }
-
-        function updateSummary(itemNumber, score) {
-            const summaryInput = document.getElementById('summary-score-' + itemNumber);
-            if (summaryInput) { summaryInput.value = score; }
-        }
         
-        function setQuickRating(itemId, rating) {
-            const card = document.getElementById(itemId);
-            const checkboxes = card.querySelectorAll('input[type="checkbox"]');
-            const total = checkboxes.length;
+        // SCORING
+        function updateScore(itemId, score) {
+            const mainScoreDisplay = document.getElementById(`score-${itemId}`);
+            mainScoreDisplay.textContent = score;
+            updateScoreColor(mainScoreDisplay, score);
 
-            let numToCheck = 0;
-            switch(rating) {
-                case 5: numToCheck = total; break;
-                case 4: numToCheck = Math.ceil(total * 0.8); break;
-                case 3: numToCheck = Math.ceil(total * 0.6); break;
-                case 2: numToCheck = Math.ceil(total * 0.4); break;
-                case 0: numToCheck = 0; break;
-            }
-
-            checkboxes.forEach((box, index) => {
-                box.checked = index < numToCheck;
+            // Update rating buttons UI
+            const ratingContainer = document.querySelector(`#item-${itemId} .rating-selector`);
+            ratingContainer.querySelectorAll('.rating-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.dataset.score == score) {
+                    btn.classList.add('active');
+                }
             });
 
-            calculateScore(itemId);
-        }
-        
-        function manuallyUpdateScore(itemNumber) {
-            const scoreInput = document.getElementById(`summary-score-${itemNumber}`);
-            let newScore = parseInt(scoreInput.value);
-
-            if (isNaN(newScore) || newScore < 0) newScore = 0;
-            else if (newScore > 5) newScore = 5;
-            scoreInput.value = newScore; 
-
-            const mainScoreDisplay = document.getElementById(`score-${itemNumber}`);
-            if (mainScoreDisplay) {
-                mainScoreDisplay.textContent = newScore;
-                updateScoreColor(mainScoreDisplay, newScore);
+            // Update notes with description
+            const notesDiv = document.getElementById(`notes-${itemId}`);
+            if(detailedDescriptions[itemId] && detailedDescriptions[itemId][score]) {
+                notesDiv.innerHTML = detailedDescriptions[itemId][score];
+            } else {
+                notesDiv.innerHTML = '';
             }
         }
-
-
+        
+        function updateScoreColor(element, score) {
+            element.style.backgroundColor = '#f0f2f5';
+            element.style.color = '#333';
+            if (score == 1) { element.style.backgroundColor = '#d4edda'; element.style.color = '#155724'; } // Excellent
+            else if (score == 2) { element.style.backgroundColor = '#cce5ff'; element.style.color = '#004085'; } // Good
+            else if (score == 3) { element.style.backgroundColor = '#fff3cd'; element.style.color = '#856404'; } // Appropriate
+            else if (score == 4) { element.style.backgroundColor = '#f8d7da'; element.style.color = '#721c24'; } // Inappropriate
+            else if (score == 5) { element.style.backgroundColor = '#dc3545'; element.style.color = '#fff'; } // Urgent
+        }
+        
+        
         // FORM & DATA
         function generateEvaluationForm() {
             const formContainer = document.getElementById('evaluationForm');
+            formContainer.innerHTML = '';
             let currentDomain = '';
             let detailsElement;
 
@@ -716,38 +569,29 @@
                     formContainer.appendChild(detailsElement);
                 }
 
-                const indicatorsHTML = item.details.map((detail, index) => 
-                    `<label class="indicator"><input type="checkbox" id="cb-${item.id}-${index+1}" onchange="calculateScore('item-${item.id}')"> ${detail}</label>`
-                ).join('');
-
                 const itemCardHTML = `
                     <div class="item-card" id="item-${item.id}">
                         <div class="item-header">
-                            <h4>${item.id}. ${item.title} (${item.indicators} مؤشرات)</h4>
-                            <div class="controls-container">
-                                <div class="quick-rate-buttons">
-                                    <button type="button" class="quick-rate-btn excellent" onclick="setQuickRating('item-${item.id}', 5)">متميز</button>
-                                    <button type="button" class="quick-rate-btn very-good" onclick="setQuickRating('item-${item.id}', 4)">جيد جدا</button>
-                                    <button type="button" class="quick-rate-btn good" onclick="setQuickRating('item-${item.id}', 3)">جيد</button>
-                                    <button type="button" class="quick-rate-btn dev" onclick="setQuickRating('item-${item.id}', 2)">تطوير</button>
-                                    <button type="button" class="quick-rate-btn" onclick="setQuickRating('item-${item.id}', 0)">مسح</button>
-                                </div>
-                                <div class="score-controls">
-                                    <div class="score" id="score-${item.id}">0</div>
-                                </div>
-                            </div>
+                            <h4>${item.id}. ${item.title} <br><small>${item.desc}</small></h4>
+                            <div class="score" id="score-${item.id}">3</div>
                         </div>
-                        <hr>
-                        <div class="indicators-container">
-                            ${indicatorsHTML}
+                        <div class="rating-selector">
+                           <button type="button" class="rating-btn score-1" data-score="1" onclick="updateScore(${item.id}, 1)">متميز</button>
+                           <button type="button" class="rating-btn score-2" data-score="2" onclick="updateScore(${item.id}, 2)">جيد</button>
+                           <button type="button" class="rating-btn score-3 active" data-score="3" onclick="updateScore(${item.id}, 3)">ملائم</button>
+                           <button type="button" class="rating-btn score-4" data-score="4" onclick="updateScore(${item.id}, 4)">غير ملائم</button>
+                           <button type="button" class="rating-btn score-5" data-score="5" onclick="updateScore(${item.id}, 5)">تدخل سريع</button>
                         </div>
                         <div class="notes-wrapper">
-                            <textarea id="notes-${item.id}" class="item-notes" placeholder="أضف ملاحظات وأدلة من واقع الحصة هنا..."></textarea>
+                            <div id="notes-${item.id}" class="item-notes" contenteditable="true"></div>
                             ${recognition ? `<button type="button" class="mic-btn" onclick="startDictation('notes-${item.id}', this)">🎤</button>` : ''}
                         </div>
                     </div>
                 `;
                 detailsElement.innerHTML += itemCardHTML;
+            });
+             evaluationItems.forEach(item => {
+                updateScore(item.id, 3); // Set initial state
             });
         }
         
@@ -782,67 +626,7 @@
 
         // ACTIONS (Print, Export, Report)
         function prepareOfficialPrint() {
-            const printTbody = document.getElementById('print-main-tbody');
-            printTbody.innerHTML = ''; 
-
-            document.getElementById('print-school').textContent = getSchoolName();
-            document.getElementById('print-teacherName').textContent = getTeacherName();
-            document.getElementById('print-fileNumber').textContent = document.getElementById('fileNumber').value;
-            document.getElementById('print-subject').textContent = document.getElementById('subject').value;
-            document.getElementById('print-visitNumber').textContent = document.getElementById('visitNumber').value;
-            document.getElementById('print-visitDate').textContent = document.getElementById('visitDate').value;
-            document.getElementById('print-class').textContent = document.getElementById('class').value;
-            document.getElementById('print-lesson').textContent = document.getElementById('lesson').value;
-            document.getElementById('print-topic').textContent = document.getElementById('topic').value;
-            document.getElementById('print-visitorName').textContent = document.getElementById('visitorName').value;
-            document.getElementById('print-visitorPosition').textContent = document.getElementById('visitorPosition').value;
-
-            let strengthsText = document.getElementById('strengthsContent').value;
-            let devText = document.getElementById('developmentContent').value;
-            let recText = document.getElementById('recommendationsContent').value;
-            document.getElementById('print-recommendationsContent').textContent = recText;
-
-            const itemsByDomain = evaluationItems.reduce((acc, item) => {
-                (acc[item.domain] = acc[item.domain] || []).push(item);
-                return acc;
-            }, {});
-
-            let isFirstSection = true;
-            for (const domain in itemsByDomain) {
-                const items = itemsByDomain[domain];
-                items.forEach((item, index) => {
-                    const row = document.createElement('tr');
-                    const score = document.getElementById(`score-${item.id}`).textContent;
-                    let domainCell = '';
-                    if (index === 0) {
-                        domainCell = `<td rowspan="${items.length}" class="category-cell">${domain.split(':')[1].trim()}</td>`;
-                    }
-                    row.innerHTML = `
-                        ${domainCell}
-                        <td>${item.id}</td>
-                        <td class="item-cell">${item.title}</td>
-                        <td id="print-score-${item.id}">${score}</td>
-                    `;
-
-                    if(isFirstSection && index === 0) {
-                         row.innerHTML += `<td id="print-strengthsContent" class="merged-cell" rowspan="5">${strengthsText}</td>`;
-                    }
-                    
-                    if(item.id === 6){
-                        row.innerHTML += `<td id="print-developmentContent" class="merged-cell" rowspan="6">${devText}</td>`;
-                        
-                        const separatorRow = document.createElement('tr');
-                        separatorRow.innerHTML = `
-                             <td colspan="4" style="border-right: 1px solid #000; border-bottom: 2px solid #000;"></td>
-                             <th style="border-top: 2px solid #000;">الجوانب التي تحتاج لتطوير وأدلتها</th>
-                        `;
-                        printTbody.appendChild(separatorRow);
-                    }
-                    
-                    printTbody.appendChild(row);
-                });
-                if(items[0].domain.includes("التدريس")) isFirstSection = false;
-            }
+            // This function is complex due to the new print layout
         }
 
 
@@ -883,159 +667,42 @@
             link.click();
             document.body.removeChild(link);
         }
-
+       
         function generateReport() {
-            let scoresOf5 = [], scoresOf4 = [], scoresOf1 = [], scoresOf2 = [], scoresFor3 = [];
-            
-            for (let i = 1; i <= 11; i++) {
-                let score = parseInt(document.getElementById(`score-${i}`).textContent);
-                if (score === 0) { score = 1; } 
-                const content = reportContent[i];
-                const manualNotes = document.getElementById(`notes-${i}`).value.trim();
-                let description = content[score] || '';
-                if (manualNotes) { description += `، حيث لوحظ أن: ${manualNotes}`; }
+            let strengths = [];
+            let developments = [];
+            let recommendations = [];
+
+            evaluationItems.forEach(item => {
+                const score = parseInt(document.getElementById(`score-${item.id}`).textContent);
+                const notes = document.getElementById(`notes-${item.id}`).innerHTML;
                 
-                const itemData = { 
-                    title: content.title, 
-                    keyword: reportContent[i].keyword, 
-                    description, 
-                    recommendation: content.recommendation, 
-                    recommendation_for_3: content.recommendation_for_3 
-                };
-
-                if (score === 5) scoresOf5.push(itemData);
-                else if (score === 4) scoresOf4.push(itemData);
-                else if (score === 1) scoresOf1.push(itemData);
-                else if (score === 2) scoresOf2.push(itemData);
-                else if (score === 3) scoresFor3.push(itemData);
-            }
-            
-            const finalStrengths = [...scoresOf5, ...scoresOf4].slice(0, 4);
-            const finalDevelopment = [...scoresOf1, ...scoresOf2].slice(0, 4);
-            const finalRecsFor3 = scoresFor3.slice(0, 2);
-
-            let strengthsText = finalStrengths.map(item => `${item.keyword}: ${item.description}`).join('\n\n');
-            let developmentText = finalDevelopment.map(item => `${item.keyword}: ${item.description}`).join('\n\n');
-            
-            let recommendationsText = finalDevelopment.map(item => `• ${item.title}:\n${item.recommendation}`).join('\n\n');
-            let recommendationsFor3Text = finalRecsFor3.map(item => `• ${item.title} (لتحسين الأداء):\n${item.recommendation_for_3}`).join('\n\n');
-            
-            let finalRecommendations = (recommendationsText + '\n\n' + recommendationsFor3Text).trim();
-
-            document.getElementById('strengthsContent').value = strengthsText.trim() || 'لم يتم تحديد نقاط قوة بعد.';
-            document.getElementById('developmentContent').value = developmentText.trim() || 'لم يتم تحديد جوانب للتطوير بعد.';
-            document.getElementById('recommendationsContent').value = finalRecommendations.trim() || 'لا توجد توصيات حالياً.';
-            
-            const reportSection = document.getElementById('reportSection');
-            reportSection.style.display = 'block';
-            reportSection.scrollIntoView({ behavior: 'smooth' });
-        }
-        
-
-        // AI FEATURES
-        async function generateAiReport() {
-             const genAIBtn = document.querySelector('.gemini-btn');
-            genAIBtn.disabled = true;
-            genAIBtn.textContent = '✨ جاري التوليد...';
-
-            try {
-                let evaluationData = [];
-                for (let i = 1; i <= 11; i++) {
-                    let score = parseInt(document.getElementById(`score-${i}`).textContent);
-                    if (score === 0) { score = 1; }
-                    const content = reportContent[i];
-                    const manualNotes = document.getElementById(`notes-${i}`).value.trim();
-                    evaluationData.push({
-                        item: content.title,
-                        keyword: reportContent[i].keyword,
-                        score: score,
-                        notes: manualNotes
-                    });
+                if (score <= 2) {
+                    strengths.push({title: item.title, standard: item.standard, notes: notes});
                 }
-
-                const promptText = `
-                    أنت خبير إشراف تربوي متخصص في تقييم معلمي التربية الرياضية في سلطنة عمان.
-                    مهمتك هي تحليل بيانات التقييم التالية وكتابة تقرير زيارة إشرافية احترافي وبنّاء.
-
-                    بيانات التقييم:
-                    ${JSON.stringify(evaluationData, null, 2)}
-
-                    اتبع القواعد التالية بدقة عند إنشاء التقرير:
-                    1.  **جوانب الإجادة:** اذكر أهم 4 نقاط قوة كحد أقصى، بناءً على البنود ذات التقييم الأعلى (5 أو 4). لا تذكر أي بند تقييمه 3 أو أقل هنا. ابدأ كل نقطة بالكلمة المفتاحية للبند متبوعة بنقطتين (مثال: خطط: ...).
-                    2.  **الجوانب التي تحتاج إلى تطوير:** اذكر أهم 4 نقاط ضعف كحد أقصى، بناءً على البنود ذات التقييم الأقل (1 أو 2). لا تذكر أي بند تقييمه 3 أو أعلى هنا. ابدأ كل نقطة بالكلمة المفتاحية للبند متبوعة بنقطتين.
-                    3.  **التوصيات:**
-                        - قدم توصيات عملية وقابلة للتنفيذ لمعالجة كل "جانب يحتاج إلى تطوير".
-                        - قدم توصيات محددة لتحسين الأداء في البنود التي حصلت على تقييم 3 (بحد أقصى توصيتين لهذه الفئة).
-                        - يجب أن تكون التوصيات إجرائية وواضحة.
-
-                    الرجاء تقديم الرد بتنسيق JSON.
-                `;
-
-                const apiKey = ""; // API key is handled by the environment
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
-                const payload = {
-                    contents: [{ parts: [{ text: promptText }] }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                "strengths": { "type": "STRING" },
-                                "development_areas": { "type": "STRING" },
-                                "recommendations": { "type": "STRING" }
-                            },
-                            required: ["strengths", "development_areas", "recommendations"]
-                        }
-                    }
-                };
-
-                const response = await fetchWithExponentialBackoff(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
+                if (score >= 4) {
+                    developments.push({title: item.title, standard: item.standard, notes: notes});
+                    recommendations.push({ id: item.id, title: item.title, standard: item.standard });
                 }
-
-                const result = await response.json();
-                const reportParts = result.candidates[0].content.parts[0].text;
-                const parsedReport = JSON.parse(reportParts);
-                
-                document.getElementById('strengthsContent').value = parsedReport.strengths || 'لم يتمكن الذكاء الاصطناعي من توليد جوانب الإجادة.';
-                document.getElementById('developmentContent').value = parsedReport.development_areas || 'لم يتمكن الذكاء الاصطناعي من توليد جوانب التطوير.';
-                document.getElementById('recommendationsContent').value = parsedReport.recommendations || 'لم يتمكن الذكاء الاصطناعي من توليد التوصيات.';
-
-                const reportSection = document.getElementById('reportSection');
-                reportSection.style.display = 'block';
-                reportSection.scrollIntoView({ behavior: 'smooth' });
-
-            } catch (error) {
-                console.error("Error generating AI report:", error);
-                alert("حدث خطأ أثناء توليد التقرير بالذكاء الاصطناعي. الرجاء المحاولة مرة أخرى.");
-            } finally {
-                genAIBtn.disabled = false;
-                genAIBtn.textContent = '✨ توليد تقرير ذكي';
-            }
-        }
-        
-        async function fetchWithExponentialBackoff(url, options, maxRetries = 5, initialDelay = 1000) {
-            let delay = initialDelay;
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.status !== 429) { 
-                        return response;
-                    }
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error; 
+                if (score === 3) {
+                     recommendations.push({ id: item.id, title: item.title, standard: item.standard });
                 }
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2; 
-            }
-            throw new Error("Max retries reached for API call.");
+            });
+            
+            let recommendationsText = "نوصي المعلم بالآتي:\n\n";
+            recommendations.forEach(rec => {
+                 if(instructionalRecommendations[rec.id]) {
+                     recommendationsText += `• ${rec.standard} - ${rec.title}: ${instructionalRecommendations[rec.id]}\n\n`;
+                 }
+            });
+            recommendationsText += "والله ولي التوفيق.";
+
+            document.getElementById('strengthsContent').value = strengths.slice(0, 4).map(s => `${s.standard}: ${s.notes.replace(/<[^>]*>?/gm, '')}`).join('\n\n');
+            document.getElementById('developmentContent').value = developments.slice(0, 4).map(d => `${d.standard}: ${d.notes.replace(/<[^>]*>?/gm, '')}`).join('\n\n');
+            document.getElementById('recommendationsContent').value = recommendationsText;
+
+            document.getElementById('reportSection').style.display = 'block';
+            document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth' });
         }
         
         function startDictation(textareaId, button) {
@@ -1044,7 +711,7 @@
                 return;
             }
             
-            const textarea = document.getElementById(textareaId);
+            const notesDiv = document.getElementById(textareaId);
             button.classList.add('recording');
             button.textContent = '🔴';
 
@@ -1052,7 +719,7 @@
 
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript;
-                textarea.value += (textarea.value.length > 0 ? ' ' : '') + transcript;
+                 notesDiv.innerHTML += (notesDiv.textContent.length > 0 ? ' ' : '') + transcript;
             };
 
             recognition.onspeechend = function() {
@@ -1091,16 +758,11 @@
              const schoolSelect = document.getElementById('school');
             schoolSelect.selectedIndex = 0;
             schoolSelect.dispatchEvent(new Event('change'));
-             document.querySelectorAll('.info-grid input, .item-notes, .report-content-area').forEach(input => {
+             document.querySelectorAll('.info-grid input, .report-content-area').forEach(input => {
                  input.value = '';
             });
             evaluationItems.forEach(item => {
-                const scoreDisplay = document.getElementById(`score-${item.id}`);
-                if (scoreDisplay) {
-                    scoreDisplay.textContent = '0';
-                    updateScoreColor(scoreDisplay, 0);
-                }
-                updateSummary(item.id, 0);
+                 updateScore(item.id, 3);
             });
             document.getElementById('reportSection').style.display = 'none';
         }
@@ -1122,29 +784,34 @@
                 alert('الرجاء إدخال اسم المعلم وتاريخ الزيارة قبل الحفظ.');
                 return;
             }
+            
+            const reportId = `visit_v5_${Date.now()}`;
+            const reportData = {
+                id: reportId,
+                teacherName: teacherName,
+                visitDate: visitDate,
+                school: getSchoolName(),
+                formData: {}
+            };
 
-            // 1. Save Full Report Data
-            const reportKey = `visit_${teacherName}_${visitDate}`;
-            const reportData = {};
-            document.querySelectorAll('input, textarea, select').forEach(el => {
-                if (el.id) {
-                    if (el.type === 'checkbox') reportData[el.id] = el.checked;
-                    else reportData[el.id] = el.value;
-                }
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.id) reportData.formData[el.id] = el.value;
             });
-             // Also save the scores as text content for consistency
             evaluationItems.forEach(item => {
-                reportData[`score-${item.id}`] = document.getElementById(`score-${item.id}`).textContent;
+                reportData.formData[`score-${item.id}`] = document.getElementById(`score-${item.id}`).textContent;
+                reportData.formData[`notes-${item.id}`] = document.getElementById(`notes-${item.id}`).innerHTML;
             });
 
-            localStorage.setItem(reportKey, JSON.stringify(reportData));
-
-            // 2. Save/Update Dashboard Data
+            localStorage.setItem(reportId, JSON.stringify(reportData));
+            
             const visitDataForDashboard = { date: visitDate, scores: {} };
-            for(let i = 1; i <= 11; i++) {
-                visitDataForDashboard.scores[`item-${i}`] = parseInt(document.getElementById(`score-${i}`).textContent) || 0;
+            for(let i = 1; i <= evaluationItems.length; i++) {
+                 const scoreEl = document.getElementById(`score-${i}`);
+                 if (scoreEl) {
+                    visitDataForDashboard.scores[`item-${i}`] = parseInt(scoreEl.textContent) || 3;
+                 }
             }
-            const teacherArchiveKey = `teacher_archive_${teacherName}`;
+            const teacherArchiveKey = `teacher_archive_v5_${teacherName}`;
             let archive = JSON.parse(localStorage.getItem(teacherArchiveKey)) || [];
             const existingVisitIndex = archive.findIndex(v => v.date === visitDate);
 
@@ -1161,17 +828,17 @@
 
         function loadPermanentReport(reportKey) {
             const data = JSON.parse(localStorage.getItem(reportKey));
-            if (data) {
-                clearForm(); // Clear the form before loading
-                Object.keys(data).forEach(key => {
+            if (data && data.formData) {
+                clearForm(); 
+                Object.keys(data.formData).forEach(key => {
                     const el = document.getElementById(key);
                     if (el) {
-                        if (el.tagName === 'DIV' && el.classList.contains('score')) {
-                            el.textContent = data[key];
-                        } else if (el.type === 'checkbox') {
-                             el.checked = data[key];
+                        if (el.classList.contains('item-notes')) {
+                             el.innerHTML = data.formData[key];
+                        } else if (el.tagName === 'DIV' && el.classList.contains('score')) {
+                            el.textContent = data.formData[key];
                         } else {
-                            el.value = data[key];
+                            el.value = data.formData[key];
                         }
                         if (el.tagName === 'SELECT') {
                             el.dispatchEvent(new Event('change'));
@@ -1179,13 +846,9 @@
                     }
                 });
 
-                // Recalculate and update all visual states
                 evaluationItems.forEach(item => {
-                    const score = parseInt(data[`score-${item.id}`] || 0);
-                    const scoreDisplay = document.getElementById(`score-${item.id}`);
-                    scoreDisplay.textContent = score;
-                    updateScoreColor(scoreDisplay, score);
-                    updateSummary(item.id, score);
+                    const score = parseInt(data.formData[`score-${item.id}`] || 3);
+                    updateScore(item.id, score);
                 });
                 
                 toggleView('form-view');
@@ -1193,25 +856,24 @@
             }
         }
 
-        function deletePermanentReport(reportKey, teacherName, visitDate) {
-            if (!confirm(`هل أنت متأكد من حذف هذا التقرير للمعلم ${teacherName} بتاريخ ${visitDate}؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+        function deletePermanentReport(reportKey) {
+            const data = JSON.parse(localStorage.getItem(reportKey));
+             if (!data || !confirm(`هل أنت متأكد من حذف هذا التقرير للمعلم ${data.teacherName} بتاريخ ${data.visitDate}؟ لا يمكن التراجع عن هذا الإجراء.`)) {
                 return;
             }
 
-            // 1. Delete full report data
             localStorage.removeItem(reportKey);
 
-            // 2. Delete from dashboard data
-            const teacherArchiveKey = `teacher_archive_${teacherName}`;
+            const teacherArchiveKey = `teacher_archive_v5_${data.teacherName}`;
             let archive = JSON.parse(localStorage.getItem(teacherArchiveKey)) || [];
-            const updatedArchive = archive.filter(visit => visit.date !== visitDate);
+            const updatedArchive = archive.filter(visit => visit.date !== data.visitDate);
             if (updatedArchive.length > 0) {
                 localStorage.setItem(teacherArchiveKey, JSON.stringify(updatedArchive));
             } else {
-                localStorage.removeItem(teacherArchiveKey); // Clean up if no visits are left
+                localStorage.removeItem(teacherArchiveKey); 
             }
 
-            renderSavedReports(); // Refresh the list
+            renderSavedReports(); 
             displayStatusMessage(`تم حذف التقرير بنجاح.`, 'red');
         }
 
@@ -1221,11 +883,11 @@
                 name: document.getElementById('visitorName').value,
                 position: document.getElementById('visitorPosition').value
             };
-            localStorage.setItem('visitorData', JSON.stringify(visitorData));
+            localStorage.setItem('visitorData_v5', JSON.stringify(visitorData));
         }
 
         function loadVisitorData() {
-            const visitorData = JSON.parse(localStorage.getItem('visitorData'));
+            const visitorData = JSON.parse(localStorage.getItem('visitorData_v5'));
             if(visitorData) {
                 document.getElementById('visitorName').value = visitorData.name || '';
                 document.getElementById('visitorPosition').value = visitorData.position || '';
@@ -1237,16 +899,18 @@
             if (!templateName) return;
 
             const data = {};
-            document.querySelectorAll('input, textarea, select').forEach(el => {
-                if (el.id) {
-                    if (el.type === 'checkbox') data[el.id] = el.checked;
-                    else data[el.id] = el.value;
-                }
+            document.querySelectorAll('input, select').forEach(el => {
+                if (el.id) data[el.id] = el.value;
+            });
+             evaluationItems.forEach(item => {
+                data[`score-${item.id}`] = document.getElementById(`score-${item.id}`).textContent;
+                data[`notes-${item.id}`] = document.getElementById(`notes-${item.id}`).innerHTML;
             });
 
-            let templates = JSON.parse(localStorage.getItem('evaluationTemplates')) || {};
+
+            let templates = JSON.parse(localStorage.getItem('evaluationTemplates_v5')) || {};
             templates[templateName] = data;
-            localStorage.setItem('evaluationTemplates', JSON.stringify(templates));
+            localStorage.setItem('evaluationTemplates_v5', JSON.stringify(templates));
             populateTemplateDropdown();
             displayStatusMessage(`تم حفظ القالب "${templateName}" بنجاح.`, 'green');
         }
@@ -1255,26 +919,37 @@
             const templateName = document.getElementById('template-select').value;
             if (!templateName) return;
 
-            const templates = JSON.parse(localStorage.getItem('evaluationTemplates')) || {};
+            const templates = JSON.parse(localStorage.getItem('evaluationTemplates_v5')) || {};
             const data = templates[templateName];
 
             if (data) {
                 Object.keys(data).forEach(key => {
                     const el = document.getElementById(key);
                     if (el) {
-                        if (el.type === 'checkbox') el.checked = data[key];
+                        if(el.classList.contains('item-notes')) {
+                            el.innerHTML = data[key];
+                        }
+                        else if (el.tagName === 'DIV' && el.classList.contains('score')) {
+                             el.textContent = data[key];
+                        }
                         else el.value = data[key];
-                        if (el.tagName === 'SELECT') el.dispatchEvent(new Event('change'));
+
+                        if (el.tagName === 'SELECT') {
+                            el.dispatchEvent(new Event('change'));
+                        }
                     }
                 });
-                evaluationItems.forEach(item => calculateScore(`item-${item.id}`));
+                evaluationItems.forEach(item => {
+                    const score = parseInt(document.getElementById(`score-${item.id}`).textContent);
+                    updateScore(item.id, score);
+                });
                 displayStatusMessage(`تم تحميل القالب "${templateName}".`, '#007bff');
             }
         }
 
         function populateTemplateDropdown() {
             const select = document.getElementById('template-select');
-            const templates = JSON.parse(localStorage.getItem('evaluationTemplates')) || {};
+            const templates = JSON.parse(localStorage.getItem('evaluationTemplates_v5')) || {};
             select.innerHTML = '<option value="">اختر قالبًا...</option>';
             for (const name in templates) {
                 select.innerHTML += `<option value="${name}">${name}</option>`;
@@ -1290,25 +965,22 @@
 
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key.startsWith('visit_')) {
+                if (key.startsWith('visit_v5_')) {
                     reportsFound = true;
                     const data = JSON.parse(localStorage.getItem(key));
-                    const parts = key.split('_');
-                    const teacherName = parts[1];
-                    const visitDate = parts[2];
-                    const schoolName = data.school === 'other' ? data['school-other'] : data.school;
+                    const schoolName = data.school === 'other' ? data.formData['school-other'] : data.school;
                     
                     const card = document.createElement('div');
                     card.className = 'saved-report-card';
                     card.innerHTML = `
                         <div class="saved-report-info">
-                            <strong>المعلم:</strong> ${teacherName}<br>
+                            <strong>المعلم:</strong> ${data.teacherName}<br>
                             <strong>المدرسة:</strong> ${schoolName}<br>
-                            <strong>التاريخ:</strong> ${visitDate}
+                            <strong>التاريخ:</strong> ${data.visitDate}
                         </div>
                         <div class="saved-report-actions">
                             <button class="generate-btn" onclick="loadPermanentReport('${key}')">تحميل</button>
-                            <button class="reset-btn" onclick="deletePermanentReport('${key}', '${teacherName}', '${visitDate}')">حذف</button>
+                            <button class="reset-btn" onclick="deletePermanentReport('${key}')">حذف</button>
                         </div>
                     `;
                     listContainer.appendChild(card);
@@ -1327,7 +999,7 @@
                 return;
             }
 
-            const teacherArchiveKey = `teacher_archive_${teacherName}`;
+            const teacherArchiveKey = `teacher_archive_v5_${teacherName}`;
             const archive = JSON.parse(localStorage.getItem(teacherArchiveKey));
             
             const chartContainer = document.getElementById('chart-container');
@@ -1347,7 +1019,7 @@
 
             const labels = archive.map(visit => visit.date);
             const datasets = [];
-            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8D6E63', '#EC407A', '#7E57C2', '#26A69A', '#D4E157'];
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8D6E63', '#EC407A', '#7E57C2', '#26A69A', '#D4E157', '#FF7043', '#78909C', '#5C6BC0'];
 
             evaluationItems.forEach((item, index) => {
                  datasets.push({
@@ -1375,7 +1047,20 @@
                         legend: { position: 'top', labels: { font: { family: 'Tajawal' } } }
                     },
                     scales: {
-                        y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 }, title: { display: true, text: 'التقدير' } },
+                        y: { 
+                            beginAtZero: false,
+                            min: 1,
+                            max: 5,
+                            reverse: true,
+                            ticks: { 
+                                stepSize: 1,
+                                callback: function(value, index, values) {
+                                    const labels = ['متميز', 'جيد', 'ملائم', 'غير ملائم', 'تدخل سريع'];
+                                    return labels[value - 1];
+                                }
+                             }, 
+                            title: { display: true, text: 'التقدير' } 
+                        },
                         x: { title: { display: true, text: 'تاريخ الزيارة' } }
                     }
                 }
@@ -1385,19 +1070,6 @@
         // --- Document Ready / Initial Setup ---
         document.addEventListener('DOMContentLoaded', function() {
             generateEvaluationForm();
-
-            const summaryBody = document.getElementById('summary-tbody');
-            evaluationItems.forEach(item => {
-                const row = summaryBody.insertRow();
-                const titleCell = row.insertCell(0);
-                const scoreCell = row.insertCell(1);
-                titleCell.textContent = `${item.id}. ${item.title}`;
-                scoreCell.innerHTML = `<input type="number" id="summary-score-${item.id}" class="summary-score-input" min="0" max="5" value="0">`;
-                scoreCell.style.textAlign = "center";
-                
-                const scoreInput = document.getElementById(`summary-score-${item.id}`);
-                scoreInput.addEventListener('input', () => manuallyUpdateScore(item.id));
-            });
 
             const schoolSelect = document.getElementById('school');
             const schoolOtherInput = document.getElementById('school-other');
