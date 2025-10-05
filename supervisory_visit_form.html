@@ -169,6 +169,32 @@
             body { background-color: #fff; padding: 0; margin: 0; font-family: 'Times New Roman', Times, serif; }
             .main-container, .modal-overlay { display: none; }
             .print-view { display: block; }
+             .print-main-table, .print-info-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+            .print-main-table th, .print-main-table td, .print-info-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
+            .print-main-table th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .print-info-table .label { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; width: 15%; }
+            .item-cell { text-align: right !important; }
+            .category-cell { font-weight: bold; }
+             .report-section-print {
+                margin-top: 20px;
+                border: 2px solid #000;
+                padding: 10px;
+                page-break-inside: avoid;
+            }
+            .report-section-print h3 {
+                margin: 0 0 10px 0;
+                font-size: 1.2rem;
+                background-color: #f2f2f2 !important;
+                padding: 5px;
+                text-align: center;
+                -webkit-print-color-adjust: exact; color-adjust: exact;
+                border-bottom: 1px solid #000;
+            }
+            .print-report-box {
+                white-space: pre-wrap;
+                text-align: right;
+                min-height: 80px;
+            }
         }
     </style>
 </head>
@@ -643,7 +669,67 @@
 
         // ACTIONS (Print, Export, Report)
         function prepareOfficialPrint() {
-            // This function is complex due to the new print layout
+            const printTbody = document.getElementById('print-main-tbody');
+            printTbody.innerHTML = ''; 
+
+            document.getElementById('print-school').textContent = getSchoolName();
+            document.getElementById('print-teacherName').textContent = getTeacherName();
+            document.getElementById('print-fileNumber').textContent = document.getElementById('fileNumber').value;
+            document.getElementById('print-subject').textContent = document.getElementById('subject').value;
+            document.getElementById('print-visitNumber').textContent = document.getElementById('visitNumber').value;
+            document.getElementById('print-visitDate').textContent = document.getElementById('visitDate').value;
+            document.getElementById('print-class').textContent = document.getElementById('class').value;
+            document.getElementById('print-lesson').textContent = document.getElementById('lesson').value;
+            document.getElementById('print-topic').textContent = document.getElementById('topic').value;
+            document.getElementById('print-visitorName').textContent = document.getElementById('visitorName').value;
+            document.getElementById('print-visitorPosition').textContent = document.getElementById('visitorPosition').value;
+
+            document.getElementById('print-strengthsContent').innerText = document.getElementById('strengthsContent').value;
+            document.getElementById('print-developmentContent').innerText = document.getElementById('developmentContent').value;
+            document.getElementById('print-recommendationsContent').innerText = document.getElementById('recommendationsContent').value;
+
+             // Group items by domain and then by standard
+            const groupedItems = evaluationItems.reduce((acc, item) => {
+                acc[item.domain] = acc[item.domain] || {};
+                (acc[item.domain][item.standard] = acc[item.domain][item.standard] || []).push(item);
+                return acc;
+            }, {});
+
+            let isFirstRow = true;
+            for (const domain in groupedItems) {
+                const standards = groupedItems[domain];
+                const domainItemCount = Object.values(standards).flat().length;
+                let isFirstStandardInDomain = true;
+                
+                for(const standard in standards) {
+                    const items = standards[standard];
+                    const standardItemCount = items.length;
+                    
+                    items.forEach((item, itemIndex) => {
+                        const row = document.createElement('tr');
+                        const score = document.getElementById(`score-${item.id}`).textContent;
+                        
+                        let domainCell = '';
+                        let standardCell = '';
+
+                        if(isFirstStandardInDomain && isFirstRow) {
+                             domainCell = `<td rowspan="${domainItemCount}" class="category-cell">${domain}</td>`;
+                             isFirstRow = false;
+                        } else if (itemIndex === 0 && isFirstStandardInDomain) {
+                            domainCell = `<td rowspan="${domainItemCount}" class="category-cell">${domain}</td>`;
+                        }
+                        
+                         if (itemIndex === 0) {
+                            standardCell = `<td rowspan="${standardItemCount}" class="category-cell">${standard}</td>`;
+                        }
+
+                        row.innerHTML = `${domainCell}${standardCell}<td>${item.id}</td><td class="item-cell">${item.title}</td><td>${score}</td>`;
+                        printTbody.appendChild(row);
+                    });
+                     isFirstStandardInDomain = false;
+                }
+                isFirstRow = true; // Reset for next domain
+            }
         }
 
 
@@ -906,8 +992,11 @@
         function loadVisitorData() {
             const visitorData = JSON.parse(localStorage.getItem('visitorData_v5'));
             if(visitorData) {
-                document.getElementById('visitorName').value = visitorData.name || '';
-                document.getElementById('visitorPosition').value = visitorData.position || '';
+                document.getElementById('visitorName').value = visitorData.name || 'أسعد بن محفوظ الخصيبي';
+                document.getElementById('visitorPosition').value = visitorData.position || 'مشرف رياضة مدرسية';
+            } else {
+                 document.getElementById('visitorName').value = 'أسعد بن محفوظ الخصيبي';
+                 document.getElementById('visitorPosition').value = 'مشرف رياضة مدرسية';
             }
         }
         
@@ -1021,6 +1110,7 @@
             
             const chartContainer = document.getElementById('chart-container');
             const noDataMessage = document.getElementById('no-data-message');
+            const visitDateGroup = document.getElementById('visitDateGroup');
 
             if (!archive || archive.length === 0) {
                 chartContainer.style.display = 'none';
@@ -1028,60 +1118,85 @@
                  if (performanceChartInstance) {
                     performanceChartInstance.destroy();
                 }
+                visitDateGroup.style.display = 'none';
                 return;
             }
 
             chartContainer.style.display = 'block';
             if(noDataMessage) noDataMessage.style.display = 'none';
 
-            const labels = archive.map(visit => visit.date);
-            const datasets = [];
+            // Populate visit dates for radar chart
+            const visitDateSelect = document.getElementById('visitDateSelect');
+            visitDateSelect.innerHTML = '';
+            archive.forEach(visit => {
+                visitDateSelect.innerHTML += `<option value="${visit.date}">${visit.date}</option>`;
+            });
+
+            updateDashboardView();
+        }
+
+        function updateDashboardView() {
+            const chartType = document.getElementById('chartTypeSelect').value;
+            const visitDateGroup = document.getElementById('visitDateGroup');
+            visitDateGroup.style.display = chartType === 'radar' ? 'block' : 'none';
+
+            if (performanceChartInstance) {
+                performanceChartInstance.destroy();
+            }
+
+            const teacherName = document.getElementById('teacher-dashboard-name').value.trim();
+            if (!teacherName) return;
+
+            const teacherArchiveKey = `teacher_archive_v5_${teacherName}`;
+            const archive = JSON.parse(localStorage.getItem(teacherArchiveKey));
+            if (!archive || archive.length === 0) return;
+
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            const labels = evaluationItems.map(item => item.title);
             const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8D6E63', '#EC407A', '#7E57C2', '#26A69A', '#D4E157', '#FF7043', '#78909C', '#5C6BC0'];
 
-            evaluationItems.forEach((item, index) => {
-                 datasets.push({
+            let chartConfig;
+
+            if (chartType === 'line') {
+                const datasets = evaluationItems.map((item, index) => ({
                     label: item.title,
                     data: archive.map(visit => visit.scores[`item-${item.id}`] || 0),
                     borderColor: colors[index % colors.length],
                     backgroundColor: colors[index % colors.length] + '33',
                     fill: false,
                     tension: 0.1
+                }));
+                 chartConfig = { type: 'line', data: { labels: archive.map(v => v.date), datasets }, options: { /* ... options for line ... */ } };
+            } else if (chartType === 'radar') {
+                 const selectedDate = document.getElementById('visitDateSelect').value;
+                 const visitData = archive.find(v => v.date === selectedDate);
+                 const data = visitData ? evaluationItems.map(item => visitData.scores[`item-${item.id}`] || 0) : [];
+                 chartConfig = { type: 'radar', data: { labels, datasets: [{ label: `أداء زيارة ${selectedDate}`, data, backgroundColor: 'rgba(54, 162, 235, 0.2)', borderColor: 'rgb(54, 162, 235)', pointBackgroundColor: 'rgb(54, 162, 235)' }] }, options: { /* ... options for radar ... */ } };
+            } else if (chartType === 'bar') {
+                const avgScores = evaluationItems.map(item => {
+                    const scores = archive.map(visit => visit.scores[`item-${item.id}`] || 0);
+                    const sum = scores.reduce((a, b) => a + b, 0);
+                    return sum / scores.length || 0;
                 });
-            });
-
-            const ctx = document.getElementById('performanceChart').getContext('2d');
-            if (performanceChartInstance) {
-                performanceChartInstance.destroy();
+                chartConfig = { type: 'bar', data: { labels, datasets: [{ label: 'متوسط الأداء العام', data: avgScores, backgroundColor: colors }] }, options: { /* ... options for bar ... */ } };
             }
-            performanceChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: { display: true, text: `تطور أداء المعلم: ${teacherName}`, font: { size: 18, family: 'Tajawal' } },
-                        legend: { position: 'top', labels: { font: { family: 'Tajawal' } } }
-                    },
-                    scales: {
-                        y: { 
-                            beginAtZero: false,
-                            min: 1,
-                            max: 5,
-                            reverse: true,
-                            ticks: { 
-                                stepSize: 1,
-                                callback: function(value, index, values) {
-                                    const labels = ['متميز', 'جيد', 'ملائم', 'غير ملائم', 'تدخل سريع'];
-                                    return labels[value - 1];
-                                }
-                             }, 
-                            title: { display: true, text: 'التقدير' } 
-                        },
-                        x: { title: { display: true, text: 'تاريخ الزيارة' } }
-                    }
+
+            // Common options
+            chartConfig.options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: `تحليل أداء المعلم: ${teacherName}`, font: { size: 18, family: 'Tajawal' } },
+                    legend: { display: chartType !== 'bar', position: 'top', labels: { font: { family: 'Tajawal' } } }
+                },
+                scales: {
+                    y: { reverse: true, min: 1, max: 5, ticks: { stepSize: 1, callback: (v) => ['متميز', 'جيد', 'ملائم', 'غير ملائم', 'تدخل سريع'][v-1] } },
+                    r: { reverse: true, min: 1, max: 5, ticks: { stepSize: 1, backdropColor: 'transparent', callback: (v) => ['متميز', 'جيد', 'ملائم', 'غير ملائم', ''][v-1] } }
                 }
-            });
+            };
+
+
+            performanceChartInstance = new Chart(ctx, chartConfig);
         }
         
         // --- Document Ready / Initial Setup ---
@@ -1104,6 +1219,10 @@
 
             document.getElementById('visitorName').addEventListener('input', saveVisitorData);
             document.getElementById('visitorPosition').addEventListener('input', saveVisitorData);
+            document.getElementById('teacher-dashboard-name').addEventListener('change', loadTeacherDashboard);
+            document.getElementById('chartTypeSelect').addEventListener('change', updateDashboardView);
+             document.getElementById('visitDateSelect').addEventListener('change', updateDashboardView);
+
 
             // Set initial view
             toggleView('form-view');
