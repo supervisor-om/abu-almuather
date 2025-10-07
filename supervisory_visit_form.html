@@ -1,1233 +1,1240 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام التقييم الإشرافي الرقمي المطور</title>
-    
-    <!-- Chart.js for Dashboard -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Script for Word Export Functionality -->
-    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
-
+    <title>تقرير زيارة مدرسية</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- Google Fonts --- */
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-
-        /* --- Global Styles --- */
-        body { 
-            font-family: 'Tajawal', sans-serif; 
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5;
-            color: #333;
+        /* Custom styles to use the Cairo font */
+        body {
+            font-family: 'Cairo', sans-serif;
         }
-
-        /* --- Main Container & Views --- */
-        .main-container {
-            max-width: 900px;
-            margin: auto;
-            background-color: #ffffff;
-            padding: 25px 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        #form-view, #dashboard-view, #saved-reports-view { display: none; }
-        #form-view.active, #dashboard-view.active, #saved-reports-view.active { display: block; }
-
-
-        /* --- Navigation & Header --- */
-        .top-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .nav-tabs {
-            display: flex;
-            border-bottom: 2px solid #dee2e6;
-            flex-grow: 1;
-        }
-        .nav-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: none;
-            background-color: transparent;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: #6c757d;
-            border-bottom: 3px solid transparent;
-            transition: color 0.2s, border-bottom-color 0.2s;
-        }
-        .nav-tab:hover { color: #0056b3; }
-        .nav-tab.active {
-            color: #0056b3;
-            font-weight: 700;
-            border-bottom-color: #007bff;
-        }
-       
-        /* --- Interactive Form Styles --- */
-        .page-header h1 { color: #0056b3; margin: 0; text-align: center;}
-        .page-header p { margin: 5px 0 0; color: #666; font-size: 1.1rem; text-align: center;}
-        h2 { color: #0056b3; border-right: 4px solid #007bff; padding-right: 10px; margin-top: 30px; }
-        details { border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 15px; margin-bottom: 20px; background-color: #fafafa; }
-        summary { cursor: pointer; font-weight: 700; font-size: 1.2rem; color: #0056b3; list-style: none; display: flex; align-items: center; }
-        summary::-webkit-details-marker { display: none; }
-        summary::before { content: '◀'; margin-left: 10px; font-size: 0.8em; transition: transform 0.2s; }
-        details[open] > summary::before { transform: rotate(90deg); }
-        .item-card { border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin: 15px 0; background-color: #fdfdfd; transition: box-shadow 0.3s; }
-        .item-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-        .item-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
-        .item-header h4 { margin: 0; font-size: 1.1rem; color: #333; flex-grow: 1; }
-        .item-header h4 small { color: #555; font-weight: 400; font-size: 0.9rem;}
-        .score { font-size: 2rem; font-weight: bold; color: #333; background-color: #f0f2f5; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: color 0.3s, background-color 0.3s; }
-        
-        .rating-selector { display: flex; justify-content: space-around; padding: 10px 0; margin-top: 10px; border-top: 1px solid #eee;}
-        .rating-btn { padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; background-color: #f8f9fa; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
-        .rating-btn:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .rating-btn.active { font-weight: bold; color: white; border-color: transparent; }
-        .rating-btn.active.score-1 { background-color: #155724; }
-        .rating-btn.active.score-2 { background-color: #004085; }
-        .rating-btn.active.score-3 { background-color: #856404; }
-        .rating-btn.active.score-4 { background-color: #721c24; }
-        .rating-btn.active.score-5 { background-color: #dc3545; }
-
-        .notes-wrapper { position: relative; }
-        .item-notes { width: 100%; box-sizing: border-box; margin-top: 15px; padding: 8px; padding-left: 35px; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; font-size: 0.95rem; min-height: 80px; }
-        .item-notes .highlight { color: red; font-weight: bold; }
-
-        .mic-btn { position: absolute; left: 8px; top: 25px; background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #6c757d; transition: color 0.2s;}
-        .mic-btn:hover { color: #007bff; }
-        .mic-btn.recording { color: #dc3545; }
-        
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; align-items: center;}
-        .info-grid input, .info-grid select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: 'Tajawal', sans-serif; font-size: 1rem; }
-        .info-grid .dropdown-wrapper { display: flex; flex-direction: column; gap: 5px; }
-        
-        .controls { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .controls button { padding: 10px 20px; font-size: 0.9rem; font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.2s, transform 0.1s; }
-        .controls button:hover { transform: translateY(-2px); }
-        .print-btn { background-color: #28a745; }
-        .reset-btn { background-color: #dc3545; }
-        .generate-btn { background-color: #007bff; }
-        .archive-btn { background-color: #3f51b5; }
-        .export-btn { background-color: #17a2b8; }
-        #status-message { text-align: center; color: green; margin-top: 15px; font-weight: 500; height: 20px; transition: opacity 0.5s; }
-        .report-section { margin-top: 40px; border-top: 2px solid #007bff; padding-top: 20px; }
-        .report-box h3 { color: #0056b3; margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        .report-content-area { width: 100%; box-sizing: border-box; border: 1px solid #dee2e6; border-radius: 4px; background-color: #f8f9fa; font-family: inherit; font-size: 1rem; line-height: 1.7; resize: vertical; min-height: 120px; padding: 8px; margin-top: 10px; }
-        .visitor-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
-
-        /* Template Section Styles */
-        .template-section { margin-top: 20px; padding: 15px; border: 1px dashed #007bff; border-radius: 8px; background-color: #f8f9fa;}
-        .template-controls { display: flex; gap: 10px; align-items: center; }
-        .template-controls select { flex-grow: 1; }
-
-        /* --- Dashboard & Saved Reports Styles --- */
-        .dashboard-controls { display: flex; gap: 10px; margin-bottom: 20px; align-items: flex-end; flex-wrap: wrap; }
-        .dashboard-controls .control-group { flex-grow: 1; }
-        .dashboard-controls label { display: block; margin-bottom: 5px; font-weight: 500; }
-        .dashboard-controls input, .dashboard-controls select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Tajawal', sans-serif; font-size: 1rem;}
-        .dashboard-controls button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; height: 45px; }
-        #chart-container { margin-top: 20px; height: 450px; }
-        #no-data-message, #no-saved-reports-message { text-align: center; color: #6c757d; font-size: 1.2rem; padding: 40px; }
-        .saved-report-card {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .saved-report-info { font-size: 1.1rem; }
-        .saved-report-info strong { color: #0056b3; }
-        .saved-report-actions button {
-            padding: 8px 12px;
-            margin-right: 5px;
-        }
-
-
-        /* --- Custom Modal Styles --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 90%; }
-        .modal-buttons { display: flex; justify-content: center; gap: 15px; }
-        .modal-buttons button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: 700; }
-        #confirm-reset-btn { background-color: #dc3545; color: white; }
-        #cancel-reset-btn { background-color: #6c757d; color: white; }
-
-        /* --- Print-Only Styles --- */
-        .print-view { display: none; }
-
         @media print {
-            body { background-color: #fff; padding: 0; margin: 0; font-family: 'Times New Roman', Times, serif; }
-            .main-container, .modal-overlay { display: none; }
-            .print-view { display: block; }
-             .print-main-table, .print-info-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-            .print-main-table th, .print-main-table td, .print-info-table td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; }
-            .print-main-table th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-            .print-info-table .label { font-weight: bold; background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; width: 15%; }
-            .item-cell { text-align: right !important; }
-            .category-cell { font-weight: bold; }
-             .report-section-print {
-                margin-top: 20px;
-                border: 2px solid #000;
-                padding: 10px;
-                page-break-inside: avoid;
+            .no-print { display: none !important; }
+            body * {
+                visibility: hidden;
             }
-            .report-section-print h3 {
-                margin: 0 0 10px 0;
-                font-size: 1.2rem;
-                background-color: #f2f2f2 !important;
-                padding: 5px;
-                text-align: center;
-                -webkit-print-color-adjust: exact; color-adjust: exact;
-                border-bottom: 1px solid #000;
+            #reportPreviewContainer, #reportPreviewContainer * {
+                visibility: visible;
             }
-            .print-report-box {
-                white-space: pre-wrap;
-                text-align: right;
-                min-height: 80px;
+            #reportPreviewContainer {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none;
+                border: none;
             }
+        }
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
         }
     </style>
 </head>
-<body>
-    <div class="main-container">
-        <header class="top-header">
-            <nav class="nav-tabs">
-                <button class="nav-tab active" onclick="toggleView('form-view')">نموذج التقييم</button>
-                <button class="nav-tab" onclick="toggleView('dashboard-view')">لوحة المتابعة</button>
-                <button class="nav-tab" onclick="toggleView('saved-reports-view')">التقارير المحفوظة</button>
-            </nav>
+<body class="bg-gray-100">
+
+    <!-- Dashboard View -->
+    <div id="dashboardView" class="container mx-auto max-w-4xl p-6 md:p-8 my-10 bg-white rounded-2xl shadow-lg hidden">
+        <header class="flex justify-between items-center mb-8 border-b pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">سجل التقارير</h1>
+                <p class="text-gray-500 mt-2">عرض وإدارة جميع تقارير الزيارات المحفوظة</p>
+            </div>
+            <button id="addNewReportBtn" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-3 whitespace-nowrap transition-colors">
+                + تقرير جديد
+            </button>
+        </header>
+        <div id="reportsListContainer">
+            <!-- Reports list will be dynamically populated here -->
+        </div>
+    </div>
+
+
+    <!-- Form View -->
+    <div id="formView" class="container mx-auto max-w-4xl p-6 md:p-8 my-10 bg-white rounded-2xl shadow-lg hidden no-print">
+        <header class="text-center mb-8">
+            <h1 id="formTitle" class="text-3xl font-bold text-gray-800">إنشاء تقرير زيارة إشرافية</h1>
+            <p class="text-gray-500 mt-2">نموذج لتوثيق الزيارات الإشرافية للمعلمين</p>
         </header>
 
-        <div id="form-view" class="active">
-            <div class="page-header">
-                <h1>استمارة زيارة إشرافية إلكترونية</h1>
-                <p>نظام التقييم الإشرافي الرقمي المطور (الرياضة المدرسية)</p>
-            </div>
-            <main>
-                <section class="visit-info">
-                    <h2>معلومات الزيارة</h2>
-                    <div class="info-grid">
-                        <div class="dropdown-wrapper">
-                            <select id="school"></select>
-                            <input id="school-other" type="text" placeholder="أو أدخل اسم المدرسة يدويًا" style="display: none; margin-top: 5px;">
-                        </div>
-                        <input id="teacherName" type="text" placeholder="اسم المعلم">
-                        <input id="fileNumber" type="text" placeholder="رقم الملف">
-                        <input id="subject" type="text" placeholder="المادة" value="الرياضة المدرسية">
-                        <input id="visitNumber" type="text" placeholder="رقم الزيارة">
-                        <input id="visitDate" type="date" placeholder="التاريخ">
-                        <input id="class" type="text" placeholder="الصف">
-                        <input id="lesson" type="text" placeholder="الحصة">
-                        <input id="topic" type="text" placeholder="الموضوع">
+        <form id="reportForm" class="space-y-8">
+             <input type="hidden" id="reportId" value="">
+
+            <!-- School and Date Section -->
+            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
+                <legend class="text-lg font-semibold text-gray-700 px-2">معلومات أساسية</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <label for="schoolName" class="block mb-2 text-sm font-medium text-gray-900">اسم المدرسة</label>
+                        <select id="schoolName" name="schoolName" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                            <option value="" selected disabled>اختر المدرسة</option>
+                            <option value="أبو القاسم الزهراوي">أبو القاسم الزهراوي</option>
+                            <option value="أبو أيوب الحضرمي">أبو أيوب الحضرمي</option>
+                            <option value="أبو تمام">أبو تمام</option>
+                            <option value="أحمد بن النعمان">أحمد بن النعمان</option>
+                            <option value="الشيخ سالم السيابي">الشيخ سالم السيابي</option>
+                            <option value="الشيخ سعيد الكندي مسائي">الشيخ سعيد الكندي مسائي</option>
+                            <option value="الشيخ ناصر الخروصي">الشيخ ناصر الخروصي</option>
+                            <option value="جنادة الازدى (موسى سابقا)">جنادة الازدى (موسى سابقا)</option>
+                            <option value="حفص بن راشد">حفص بن راشد</option>
+                            <option value="خريس الحبوس">خريس الحبوس</option>
+                            <option value="سهيل بن عمرو العامري">سهيل بن عمرو العامري</option>
+                            <option value="كعب بن زيد">كعب بن زيد</option>
+                            <option value="يزيد الطائي">يزيد الطائي</option>
+                            <option value="اجيال الثقافة">اجيال الثقافة</option>
+                            <option value="اجيال الفردوس - الحيل">اجيال الفردوس - الحيل</option>
+                            <option value="البيان">البيان</option>
+                            <option value="الجيل المبدع">الجيل المبدع</option>
+                            <option value="الريادة">الريادة</option>
+                            <option value="السراج">السراج</option>
+                            <option value="الصفوة المعبيلة">الصفوة المعبيلة</option>
+                            <option value="المجد">المجد</option>
+                            <option value="انس بن مالك (المنار سابقا)">انس بن مالك (المنار سابقا)</option>
+                            <option value="جيفر بن الجلندي">جيفر بن الجلندي</option>
+                            <option value="ضياء المستقبل">ضياء المستقبل</option>
+                            <option value="مشاعل مسقط سور الحديد">مشاعل مسقط سور الحديد</option>
+                            <option value="منابع التفوق">منابع التفوق</option>
+                        </select>
                     </div>
-                </section>
-
-                <section class="template-section">
-                     <div class="template-controls">
-                        <select id="template-select" class="info-grid-input"></select>
-                        <button onclick="loadTemplate()" class="generate-btn" style="padding: 8px 12px; font-size: 0.9rem;">تحميل قالب</button>
-                        <button onclick="saveTemplate()" class="save-btn" style="padding: 8px 12px; font-size: 0.9rem;">حفظ كقالب</button>
+                    <div>
+                        <label for="visitDate" class="block mb-2 text-sm font-medium text-gray-900">تاريخ الزيارة</label>
+                        <input type="date" id="visitDate" name="visitDate" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                     </div>
-                </section>
-                
-                <details>
-                    <summary>اضغط هنا لعرض معيار التقييم</summary>
-                    <div style="padding: 10px;">
-                        <ul>
-                            <li><b>1 - متميز</b></li>
-                            <li><b>2 - جيد</b></li>
-                            <li><b>3 - ملائم</b></li>
-                            <li><b>4 - غير ملائم</b></li>
-                            <li><b>5 - يحتاج إلى تدخل سريع</b></li>
-                        </ul>
-                    </div>
-                </details>
-
-                <form id="evaluationForm">
-                    <!-- Item Cards will be generated by JS -->
-                </form>
-                
-                <section id="reportSection" class="report-section" style="display: none;">
-                    <h2>التقرير النهائي</h2>
-                    <div class="report-box"><h3>جوانب الإجادة</h3><textarea id="strengthsContent" class="report-content-area" placeholder="..."></textarea></div>
-                    <div class="report-box"><h3>الجوانب التي تحتاج إلى تطوير</h3><textarea id="developmentContent" class="report-content-area" placeholder="..."></textarea></div>
-                    <div class="report-box"><h3>التوصيات</h3><textarea id="recommendationsContent" class="report-content-area" placeholder="..."></textarea></div>
-                </section>
-
-                <section class="visitor-info">
-                    <h2>معلومات الزائر</h2>
-                    <div class="info-grid">
-                        <input id="visitorName" type="text" placeholder="اسم الزائر">
-                        <input id="visitorPosition" type="text" placeholder="الوظيفة (مثال: مشرف تربوي)">
-                    </div>
-                </section>
-                
-                <p id="status-message"></p>
-
-                <section class="controls">
-                    <button type="button" class="archive-btn" onclick="savePermanentReport()">حفظ التقرير</button>
-                    <button type="button" class="generate-btn" onclick="generateReport()">توليد تقرير</button>
-                    <button class="print-btn" onclick="printOfficialReport()">طباعة</button>
-                    <button type="button" class="export-btn" onclick="exportToWord()">تصدير Word</button>
-                    <button type="button" class="reset-btn" onclick="showResetModal()">إعادة تعيين</button>
-                </section>
-            </main>
-        </div>
-
-        <div id="dashboard-view">
-            <h2>لوحة المتابعة التحليلية</h2>
-             <div class="dashboard-controls">
-                <div class="control-group">
-                    <label for="teacher-dashboard-name">اسم المعلم:</label>
-                    <input type="text" id="teacher-dashboard-name" placeholder="أدخل اسم المعلم...">
                 </div>
-                <div class="control-group">
-                     <label for="chartTypeSelect">نوع التحليل:</label>
-                     <select id="chartTypeSelect">
-                        <option value="line">تطور الأداء عبر الزيارات (خطي)</option>
-                        <option value="radar">تحليل زيارة واحدة (راداري)</option>
-                        <option value="bar">متوسط الأداء العام (شريطي)</option>
+            </fieldset>
+            
+            <!-- Visit Type Section -->
+            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
+                <legend class="text-lg font-semibold text-gray-700 px-2">نوع الزيارة</legend>
+                <div class="flex items-center gap-4 mt-2">
+                    <select id="visitTypeSelect" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <!-- Options will be dynamically generated by JS -->
                     </select>
+                    <button type="button" id="manageVisitTypesBtn" class="p-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border hover:bg-gray-200 transition-colors whitespace-nowrap">
+                        ⚙️ إدارة الأنواع
+                    </button>
                 </div>
-                 <div class="control-group" id="visitDateGroup" style="display: none;">
-                    <label for="visitDateSelect">اختر الزيارة:</label>
-                    <select id="visitDateSelect"></select>
-                </div>
-                <button onclick="updateDashboardView()">عرض التحليل</button>
-            </div>
-            <div id="chart-container">
-                <canvas id="performanceChart"></canvas>
-            </div>
-            <div id="no-data-message" style="display: none;">
-                <p>لا توجد بيانات محفوظة لهذا المعلم حتى الآن.</p>
-            </div>
-        </div>
+            </fieldset>
 
-        <div id="saved-reports-view">
-            <h2>التقارير المحفوظة</h2>
-            <p>هنا يمكنك عرض وتحميل التقارير التي تم حفظها بشكل دائم.</p>
-            <div id="saved-reports-list">
-                <!-- Reports will be injected here -->
+            <!-- Visit Objectives Section -->
+            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
+                <div class="flex justify-between items-center mb-4">
+                     <legend class="text-lg font-semibold text-gray-700 px-2">أهداف الزيارة</legend>
+                     <button type="button" id="selectAllObjectivesBtn" class="text-sm font-medium text-blue-600 hover:underline">اختيار الكل</button>
+                </div>
+                <div id="objectivesContainer" class="space-y-4">
+                    <!-- Checkboxes will be dynamically generated by JS -->
+                </div>
+            </fieldset>
+
+            <!-- Visitor's Opinion Section -->
+            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
+                <legend class="text-lg font-semibold text-gray-700 px-2">رأي الزائر</legend>
+                 <p class="text-sm text-gray-500 mb-4">اكتب ملاحظاتك لكل هدف من الأهداف المحددة أعلاه.</p>
+                <div id="opinionsContainer" class="space-y-6">
+                    <!-- Opinion textareas will be generated here -->
+                </div>
+            </fieldset>
+
+            <!-- Recommendations Section -->
+            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
+                <legend class="text-lg font-semibold text-gray-700 px-2">التوصيات</legend>
+                <div class="mt-4">
+                    <div class="flex items-center justify-between mb-2 gap-4 flex-wrap">
+                        <label for="recommendations" class="block text-sm font-medium text-gray-900 sr-only">التوصيات</label>
+                        <div class="flex gap-4">
+                             <button type="button" id="generate-recommendations-btn" class="flex items-center text-sm text-blue-600 font-semibold hover:text-blue-800 transition-colors">
+                                📋 توليد التوصيات
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="recommendations" name="recommendations" rows="5" class="block p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="اكتب التوصيات والملاحظات النهائية هنا أو استخدم زر التوليد التلقائي..."></textarea>
+                </div>
+            </fieldset>
+
+            <!-- Attachments Section -->
+            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
+                <legend class="text-lg font-semibold text-gray-700 px-2">المرفقات</legend>
+                <div class="mt-4">
+                    <label for="attachmentsInput" class="block mb-2 text-sm font-medium text-gray-900">اختر ملفات (صور، مستندات...)</label>
+                    <input type="file" id="attachmentsInput" multiple class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                    <div id="attachmentsList" class="mt-4 space-y-2">
+                        <!-- Attached files will be listed here -->
+                    </div>
+                </div>
+            </fieldset>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-end pt-4 gap-4">
+                 <button type="button" id="backToDashboardBtn" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm w-full sm:w-auto px-8 py-3 text-center transition-colors">إلغاء</button>
+                <button type="button" id="prepareReportBtn" class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm w-full sm:w-auto px-8 py-3 text-center transition-colors">معاينة التقرير</button>
+                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-8 py-3 text-center transition-colors">حفظ التقرير</button>
             </div>
-            <div id="no-saved-reports-message" style="display: none;">
-                <p>لا توجد تقارير محفوظة حتى الآن.</p>
-            </div>
-        </div>
+
+        </form>
+    </div>
+
+    <!-- Report Preview Section -->
+    <div id="reportPreviewContainer" class="container mx-auto max-w-4xl p-6 md:p-8 my-10 bg-white rounded-2xl shadow-lg hidden">
+         <div id="reportContent" class="prose max-w-none">
+            <!-- Generated report will be injected here -->
+         </div>
+         <div class="flex justify-end pt-6 mt-6 border-t no-print gap-4 flex-wrap">
+            <button id="backToBtn" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-8 py-3 text-center transition-colors">رجوع</button>
+            <button id="copyAllBtn" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-8 py-3 text-center transition-colors">نسخ الكل</button>
+            <button onclick="window.print()" class="text-white bg-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-8 py-3 text-center transition-colors">طباعة</button>
+         </div>
     </div>
     
-    <!-- Modals and Print View -->
-    <div id="reset-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>تأكيد إعادة التعيين</h3>
-            <p>هل أنت متأكد من رغبتك في إعادة تعيين كافة الحقول؟ سيتم فقدان جميع البيانات المدخلة.</p>
-            <div class="modal-buttons">
-                <button id="confirm-reset-btn" onclick="performReset()">تأكيد</button>
-                <button id="cancel-reset-btn" onclick="hideResetModal()">إلغاء</button>
+    <!-- Modals (Unchanged) -->
+    <div id="manageTypesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 modal-backdrop">
+        <div class="relative top-1/2 -translate-y-1/2 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white modal-content">
+            <div class="flex justify-between items-center border-b pb-3">
+                 <h3 class="text-lg leading-6 font-medium text-gray-900">إدارة أنواع الزيارات</h3>
+                 <button id="closeManageModalBtn" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                 </button>
+            </div>
+            <div class="mt-4">
+                <div id="visitTypesList" class="space-y-2 max-h-60 overflow-y-auto pr-2"></div>
+                <div class="mt-6 pt-4 border-t">
+                    <button id="addNewTypeBtn" class="w-full text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center">إضافة نوع زيارة جديد</button>
+                </div>
             </div>
         </div>
     </div>
-    <div class="print-view" id="printView">
-        <div class="print-container">
-             <div class="print-logo-header">
-                <img src="https://j.top4top.io/p_35222ql0t1.png" alt="شعار وزارة التربية" class="logo" onerror="this.style.display='none'">
-                <img src="https://k.top4top.io/p_3522wfvvr2.png" alt="شعار رؤية عمان 2040" class="logo" onerror="this.style.display='none'">
-                <img src="https://l.top4top.io/p_35225xfin3.png" alt="شعار الجودة" class="logo" onerror="this.style.display='none'">
-            </div>
-            <div class="print-header-text">نموذج رقم (5) استمارة زيارة إشرافية لمعلم مادة - مجال</div>
-            <div class="print-title"><h2>استمارة زيارة إشرافية لمعلم مادة/مجال</h2></div>
-            
-            <table class="print-info-table">
-                <tbody>
-                    <tr><td class="label">اسم المعلم:</td><td class="value" id="print-teacherName"></td><td class="label">المدرسة:</td><td class="value" id="print-school"></td></tr>
-                    <tr><td class="label">المادة/المجال:</td><td class="value" id="print-subject"></td><td class="label">رقم الملف:</td><td class="value" id="print-fileNumber"></td></tr>
-                    <tr><td class="label">التاريخ:</td><td class="value" id="print-visitDate"></td><td class="label">رقم الزيارة:</td><td class="value" id="print-visitNumber"></td></tr>
-                    <tr><td class="label">الحصة:</td><td class="value" id="print-lesson"></td><td class="label">الصف:</td><td class="value" id="print-class"></td></tr>
-                    <tr><td class="label">الموضوع:</td><td colspan="3" class="value" id="print-topic"></td></tr>
-                </tbody>
-            </table>
-            
-            <table class="print-main-table">
-                <thead>
-                    <tr>
-                        <th style="width: 20%;">المجال</th>
-                        <th style="width: 15%;">المعيار</th>
-                        <th style="width: 3%;">م</th>
-                        <th>البند</th>
-                        <th style="width: 7%;">التقدير</th>
-                    </tr>
-                </thead>
-                <tbody id="print-main-tbody">
-                    <!-- Rows generated by script -->
-                </tbody>
-            </table>
-
-            <div class="report-section-print">
-                <h3>جوانب الإجادة في الأداء وأدلتها:</h3>
-                <div id="print-strengthsContent" class="print-report-box"></div>
-            </div>
-            <div class="report-section-print">
-                <h3>الجوانب التي تحتاج إلى تطوير في الأداء وأدلتها:</h3>
-                <div id="print-developmentContent" class="print-report-box"></div>
-            </div>
-            <div class="report-section-print">
-                <h3>التوصيات:</h3>
-                <div id="print-recommendationsContent" class="print-report-box"></div>
-            </div>
-
-            <div class="signature-section">
-                اسم الزائر: <span id="print-visitorName" class="line"></span><br><br>
-                الوظيفة: <span id="print-visitorPosition" class="line"></span>
-            </div>
-            <div class="evaluation-standard">
-                ● معيار التقييم: 1- متميز، 2- جيد، 3- ملائم، 4- غير ملائم، 5- يحتاج إلى تدخل سريع
-            </div>
+    <div id="addEditTypeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 modal-backdrop">
+        <div class="relative top-1/2 -translate-y-1/2 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white modal-content">
+            <h3 id="addEditModalTitle" class="text-lg leading-6 font-medium text-gray-900 mb-4"></h3>
+            <form id="addEditTypeForm">
+                <input type="hidden" id="editTypeKey" value="">
+                <div>
+                    <label for="typeName" class="block mb-2 text-sm font-medium text-gray-900">اسم نوع الزيارة</label>
+                    <input type="text" id="typeName" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                </div>
+                <div class="mt-4">
+                    <label for="typeObjectives" class="block mb-2 text-sm font-medium text-gray-900">الأهداف (كل هدف في سطر)</label>
+                    <textarea id="typeObjectives" rows="8" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" required></textarea>
+                </div>
+                <div class="items-center px-4 py-3 gap-3 flex justify-end mt-4 border-t pt-4">
+                    <button id="saveTypeBtn" type="submit" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-green-700">حفظ</button>
+                    <button id="cancelEditBtn" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-auto shadow-sm hover:bg-gray-300">إلغاء</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // --- Globals & Constants ---
-        let performanceChartInstance;
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
-        if (recognition) {
-            recognition.continuous = false;
-            recognition.lang = 'ar-SA';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-        }
+        document.addEventListener('DOMContentLoaded', function () {
 
-        const schoolsList = [
-            "أبو القاسم الزهراوي", "أبو أيوب الحضرمي", "أبو تمام", "أحمد بن النعمان", 
-            "الشيخ سالم السيابي", "الشيخ سعيد الكندي مساني", "الشيخ ناصر الخروصي", 
-            "جنادة الازدي", "حفص بن راشد", "خريس الحبوس", "سهيل بن عمرو العامري", 
-            "كعب بن زيد", "يزيد الطائي", "أجيال الثقافة", "أجيال الفردوس – الحيل", 
-            "البيان", "الجيل المبدع", "الريادة", "الصفوة -المعبيلة", "المجد", 
-            "جيفر بن الجلندى", "السراج", "ضياء المستقبل", "مشاعل مسقط سور ال حديد"
-        ];
+            // --- STORAGE KEYS ---
+            const TYPES_STORAGE_KEY = 'visitTypesData';
+            const REPORTS_STORAGE_KEY = 'savedReportsData';
 
-        const evaluationItems = [
-            { id: 1, domain: 'الإنجاز الدراسي', standard: 'التحصيل الدراسي', title: 'تحصيل الطلبة في الأعمال الصفية وغير الصفية', desc: '(اكتساب المهارات الحركية والمعارف المرتبطة بها)' },
-            { id: 2, domain: 'الإنجاز الدراسي', standard: 'التقدم الدراسي', title: 'التقدم الدراسي للطلبة بما فيهم الطلبة ذوي الإعاقة/الاحتياجات التعليمية', desc: '(تطور الأداء المهاري والخططي)' },
-            { id: 3, domain: 'الإنجاز الدراسي', standard: 'مهارات التعلم', title: 'تطبيق مهارات التعلم (الذاتي- التعاوني - الرقمي - التفكير العليا) وربطها بالواقع', desc: '(القيادة، التعاون، التفكير الخططي في مواقف اللعب)' },
-            { id: 4, domain: 'النمو الشخصي', standard: 'القيم والسلوك', title: 'تمسك الطلبة بالهوية العمانية والقيم الإنسانية', desc: '(الروح الرياضية وأخلاقيات اللعب)' },
-            { id: 5, domain: 'مناخ المدرسة وبيئة التعلم', standard: 'جودة بيئة التعلم', title: 'متابعة جوانب الأمن والسلامة والنظافة في بيئة التعلم', desc: '(سلامة الأدوات والمرافق الرياضية)' },
-            { id: 6, domain: 'التدريس والتقويم', standard: 'تخطيط المنهاج الدراسي', title: 'تخطيط المنهاج الدراسي لتحقيق نواتج التعلم', desc: '(التخطيط لتنمية المهارات الحركية واللياقة البدنية)' },
-            { id: 7, domain: 'التدريس والتقويم', standard: 'إدارة الصف', title: 'فاعلية الإدارة الصفية', desc: '(إدارة وتنظيم النشاط البدني)' },
-            { id: 8, domain: 'التدريس والتقويم', standard: 'فاعلية التدريس', title: 'توظيف استراتيجيات التدريس الفعالة', desc: '(استراتيجيات التدريس المناسبة للنشاط البدني)' },
-            { id: 9, domain: 'التدريس والتقويم', standard: 'فاعلية التدريس', title: 'تفعيل المصادر والموارد التعليمية', desc: '(الأدوات والأجهزة والمرافق الرياضية)' },
-            { id: 10, domain: 'التدريس والتقويم', standard: 'التقويم ومساندة التقدم', title: 'توظيف أساليب تقويم متنوعة', desc: '(تقويم الأداء الحركي والمهاري للطلبة)' },
-            { id: 11, domain: 'القيادة والإدارة والحوكمة', standard: 'قيادة التغيير', title: 'توظيف التقويم الذاتي والتطوير المهني في تحسين الأداء', desc: '(التأمل في الممارسات التدريسية وتطويرها)' },
-            { id: 12, domain: 'القيادة والإدارة والحوكمة', standard: 'الحوكمة', title: 'تطبيق السياسات والأنظمة واللوائح المنظمة للعمل', desc: '(الالتزام بأخلاقيات المهنة واللوائح)' },
-            { id: 13, domain: 'القيادة والإدارة والحوكمة', standard: 'الحوكمة', title: 'تنفيذ مبادرات وأنشطة تربوية في المجتمع المدرسي', desc: '(تنظيم الفعاليات والمسابقات الرياضية)' }
-        ];
-
-        const detailedDescriptions = {
-            '1': { // التحصيل الدراسي
-                '1': "يكتسب <span class='highlight'>جميع</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة فعالة.",
-                '2': "يكتسب <span class='highlight'>معظم</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة فاعلة.",
-                '3': "يكتسب <span class='highlight'>أغلب</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة ملائمة أو مقبولة.",
-                '4': "يكتسب <span class='highlight'>قليل من</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة محدودة.",
-                '5': "يكتسب <span class='highlight'>عدد نادر من</span> الطلبة المهارات الأساسية والمعارف والمفاهيم في ضوء أهداف الدرس بصورة محدودة جدا / نادرة."
-            },
-            '2': { // التقدم الدراسي
-                '1': "يتقدم <span class='highlight'>جميع</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة متميزة.",
-                '2': "يتقدم <span class='highlight'>معظم</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة فاعلة.",
-                '3': "يتقدم <span class='highlight'>أغلب</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة ملائمة.",
-                '4': "يتقدم <span class='highlight'>قليل من</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة محدودة.",
-                '5': "يتقدم <span class='highlight'>عدد نادر من</span> الطلبة دراسيا أثناء الحصة بما فيهم الطلبة ذوى الإعاقة/الاحتياجات التعليمية بصورة محدودة جدا."
-            },
-            '3': { // مهارات التعلم
-                '1': "يطبق <span class='highlight'>جميع</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى متميز.",
-                '2': "يطبق <span class='highlight'>معظم</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى فاعل.",
-                '3': "يطبق <span class='highlight'>أغلب</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى ملائم أو مناسب.",
-                '4': "يطبق <span class='highlight'>قليل من</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى محدود.",
-                '5': "يطبق <span class='highlight'>عدد نادر من</span> الطلبة مهارات التعلم الذاتي والتعاوني والرقمي ومهارات التفكير العليا بمستوى محدود جدا/نادر."
-            },
-             '4': { // القيم والسلوك
-                '1': "يلتزم <span class='highlight'>جميع</span> الطلبة بالقيم الإنسانية المشتركة ويراعون ذلك بمستوى متميز.",
-                '2': "يلتزم <span class='highlight'>معظم</span> الطلبة بالقيم الإنسانية المشتركة ويراعون ذلك بمستوى فاعل.",
-                '3': "يلتزم <span class='highlight'>أغلب</span> الطلبة بالقيم الإنسانية المشتركة، ويراعون ذلك بمستوى ملائم / مناسب.",
-                '4': "يلتزم <span class='highlight'>قليل من</span> الطلبة بالقيم الإنسانية المشتركة، ويراعون ذلك بمستوى محدود.",
-                '5': "يلتزم <span class='highlight'>عدد محدود جدا</span> من الطلبة بالقيم الإنسانية المشتركة ويراعون ذلك بمستوى محدود جدا ونادر."
-            },
-            '5': { // جودة بيئة التعلم
-                '1': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>متميزة</span>.",
-                '2': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>جيدة</span>.",
-                '3': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>مناسبة</span>.",
-                '4': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>محدودة</span>.",
-                '5': "يتابع المعلم جوانب الأمن والسلامة والنظافة في بيئة التعلم بصورة <span class='highlight'>نادرة/منعدمة</span>."
-            },
-            '6': { // تخطيط المنهاج
-                '1': "يخطط المعلم <span class='highlight'>لجميع</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة متميزة.",
-                '2': "يخطط المعلم <span class='highlight'>معظم</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة جيدة.",
-                '3': "يخطط المعلم <span class='highlight'>أغلب</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة مناسبة.",
-                '4': "يخطط المعلم <span class='highlight'>قليل من</span> دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة محدودة.",
-                '5': "يخطط المعلم <span class='highlight'>عدد محدود جدا</span> من دروسه متسلسلا في تنوع الأهداف مرتبطا بالخطة الفصلية ومحققا لنواتج التعلم بصورة نادرة."
-            },
-            '7': { // إدارة الصف
-                '1': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>فعالة</span>.",
-                '2': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>جيدة</span>.",
-                '3': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>ملائمة</span>.",
-                '4': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>محدودة</span>.",
-                '5': "يقوم المعلم بإدارة زمن التعلم، وسلوك طلبته ويثير دافعيتهم للتعلم بصورة <span class='highlight'>نادرة</span>."
-            },
-            '8': { // استراتيجيات التدريس
-                '1': "توظيف استراتيجيات تدريس فعالة بحيث يستفيد منها جميع الطلبة في تعميق تعلمهم بمستوى متميز.",
-                '2': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>معظم</span> الطلبة في تعميق تعلمهم بمستوى فاعل.",
-                '3': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>أغلب</span> الطلبة في تعميق تعلمهم بمستوى ملائم.",
-                '4': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>قليل من</span> الطلبة في تعميق تعلمهم بمستوى محدود.",
-                '5': "يوظف المعلم استراتيجيات تدريس فعالة بحيث يستفيد منها <span class='highlight'>عدد قليل جدا</span> من الطلبة في تعميق تعلمهم بمستوى نادر."
-            },
-             '9': { // المصادر والموارد
-                '1': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>جميع</span> الطلبة في تعميق تعلمهم بمستوى متميز.",
-                '2': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>معظم</span> الطلبة في تعميق تعلمهم بمستوى جيد.",
-                '3': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>أغلب</span> الطلبة في تعميق تعلمهم بمستوى ملائم.",
-                '4': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>قليل من</span> الطلبة في تعميق تعلمهم بمستوى محدود.",
-                '5': "يفعل المعلم التقنيات الرقمية والمنصات والسبورات التفاعلية والذكاء الاصطناعي بحيث يستفيد منها <span class='highlight'>قليل جدا من</span> الطلبة في تعميق تعلمهم بمستوى نادر."
-            },
-            '10': { // أساليب التقويم
-                '1': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>جميع</span> الطلبة بما ينعكس على تعلمهم بمستوى متميز.",
-                '2': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>معظم</span> الطلبة بما ينعكس على تعلمهم بمستوى فاعل.",
-                '3': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>أغلب</span> الطلبة بما ينعكس على تعلمهم بمستوى ملائم.",
-                '4': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>قليل من</span> الطلبة بما ينعكس على تعلمهم بمستوى محدود.",
-                '5': "يوظف المعلم أساليب تقويم متنوعة؛ يراعى التمايز بين <span class='highlight'>قليل جدا من</span> الطلبة بما ينعكس على تعلمهم بمستوى نادر."
-            },
-            '11': { // التقويم الذاتي
-                '1': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>جميع</span> الطلبة بمستوى متميز.",
-                '2': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>معظم</span> الطلبة بمستوى فاعل.",
-                '3': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>أغلب</span> الطلبة بمستوى مناسب.",
-                '4': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>قليل من</span> الطلبة بمستوى محدود.",
-                '5': "يجري المعلم تقويما لأدائه ذاتيا ويوظفه في تحسين تعلم <span class='highlight'>قليل جدا من</span> الطلبة بمستوى نادر."
-            },
-            '12': { // السياسات والأنظمة
-                '1': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>فعالة</span>.",
-                '2': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>فاعلة</span>.", // Note: PDF has "فاعلة" for both 1 and 2
-                '3': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>مناسبة</span>.",
-                '4': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>محدودة</span>.",
-                '5': "يطبق السياسات والأنظمة واللوائح المنظمة للعمل بصورة <span class='highlight'>نادرة</span>."
-            },
-            '13': { // المبادرات
-                '1': "يقدم مبادرات فعالة لدعم وتحسين العملية التعليمية، كما يتميز بالتفاعل الإيجابي في <span class='highlight'>جميع</span> الأنشطة التربوية والمجتمع المحلي.",
-                '2': "يقدم مبادرات فاعلة لدعم وتحسين العملية التعليمية، كما يتميز بالتفاعل الإيجابي في <span class='highlight'>معظم</span> الأنشطة التربوية والمجتمع المحلي.",
-                '3': "يقدم مبادرات ملائمة لدعم وتحسين العملية التعليمية، كما يتفاعل إيجابيا في <span class='highlight'>أغلب</span> الأنشطة التربوية والمجتمع المحلي.",
-                '4': "يقدم مبادرات محدودة لدعم وتحسين العملية التعليمية، كما يتفاعل بشكل <span class='highlight'>محدود</span> مع الأنشطة التربوية والمجتمع المحلي.",
-                '5': "<span class='highlight'>نادرا</span> ما يقدم مبادرات لدعم وتحسين العملية التعليمية كما أن تفاعله مع الأنشطة التربوية والمجتمع المحلي <span class='highlight'>محدود جدا</span>."
-            }
-        };
-
-
-        const instructionalRecommendations = {
-            '1': "احرص على تنويع استراتيجيات التدريس والتقويم لضمان اكتساب جميع الطلبة للمهارات الحركية والمعارف المرتبطة بالمادة بفاعلية.",
-            '2': "اعمل على متابعة التقدم الفردي لجميع الطلبة، بمن فيهم ذوي الاحتياجات التعليمية، وقدم الدعم اللازم لضمان تطور أدائهم المهاري والخططي بشكل مستمر خلال الحصة.",
-            '3': "احرص على تمكين جميع طلبتك من تطبيق مهارات التعلم المتنوعة (الذاتي، التعاوني، الرقمي) وتنمية مهارات التفكير العليا لديهم، مع التأكيد على ربط ما يتعلمونه بواقع حياتهم لتعميق أثر التعلم.",
-            '4': "اعمل على ترسيخ الهوية العمانية والقيم الإنسانية المشتركة في نفوس طلبتك، وشجعهم على الالتزام بها سلوكًا وممارسةً في جميع المواقف داخل المدرسة وخارجها.",
-            '5': "تأكد باستمرار من سلامة الأدوات والمرافق الرياضية، وعزز لدى الطلبة أهمية المحافظة على بيئة تعلم آمنة ونظيفة.",
-            '6': "استمر في تخطيط الدروس بشكل منهجي ومتسلسل، مع ربط الأهداف بالخطة الفصلية وتنويع الاستراتيجيات والأنشطة لتلبية احتياجات جميع الطلبة.",
-            '7': "وظف استراتيجيات فعالة لإدارة وتنظيم النشاط البدني، واستثمر وقت الحصة بالكامل في ممارسة الأنشطة الحركية الهادفة لرفع دافعية الطلبة.",
-            '8': "احرص على توظيف استراتيجيات تدريس متنوعة ومناسبة للنشاط البدني، بما يضمن استفادة جميع الطلبة في تعميق تعلمهم للمهارات الحركية.",
-            '9': "اعمل على تفعيل جميع المصادر والموارد التعليمية المتاحة، بما في ذلك الأدوات والأجهزة الرياضية والمنصات الرقمية، لإثراء تجربة التعلم لدى الطلبة.",
-            '10': "وظف أساليب تقويم متنوعة ومناسبة للأداء الحركي، مع تقديم تغذية راجعة فورية وبناءة لدعم تقدم جميع الطلبة وتلبية الفروق الفردية بينهم.",
-            '11': "استمر في تقويم أدائك ذاتيًا والتأمل في ممارساتك التدريسية، ووظف نتائج هذا التأمل في تطوير خططك وأساليبك لتحسين تعلم الطلبة بشكل مستمر.",
-            '12': "التزم دائماً بأخلاقيات المهنة والسياسات واللوائح المنظمة للعمل، وكن نموذجاً يحتذى به للطلبة والزملاء.",
-            '13': "بادر بتنفيذ أنشطة ومسابقات رياضية فاعلة في المجتمع المدرسي، وعزز تفاعلك الإيجابي مع الأنشطة التربوية والمجتمع المحلي."
-        };
-
-
-        // --- All JS Functions Definition ---
-        // VIEWS
-        function toggleView(viewId) {
-            document.querySelectorAll('#form-view, #dashboard-view, #saved-reports-view').forEach(view => {
-                view.classList.remove('active');
-            });
-            document.getElementById(viewId).classList.add('active');
-
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelector(`.nav-tab[onclick="toggleView('${viewId}')"]`).classList.add('active');
-
-            if (viewId === 'saved-reports-view') {
-                renderSavedReports();
-            }
-        }
-        
-        // SCORING
-        function updateScore(itemId, score) {
-            const mainScoreDisplay = document.getElementById(`score-${itemId}`);
-            mainScoreDisplay.textContent = score;
-            updateScoreColor(mainScoreDisplay, score);
-
-            // Update rating buttons UI
-            const ratingContainer = document.querySelector(`#item-${itemId} .rating-selector`);
-            ratingContainer.querySelectorAll('.rating-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if(btn.dataset.score == score) {
-                    btn.classList.add('active');
-                }
-            });
-
-            // Update notes with description
-            const notesDiv = document.getElementById(`notes-${itemId}`);
-            if(detailedDescriptions[itemId] && detailedDescriptions[itemId][score]) {
-                notesDiv.innerHTML = detailedDescriptions[itemId][score];
-            } else {
-                notesDiv.innerHTML = '';
-            }
-        }
-        
-        function updateScoreColor(element, score) {
-            element.style.backgroundColor = '#f0f2f5';
-            element.style.color = '#333';
-            if (score == 1) { element.style.backgroundColor = '#d4edda'; element.style.color = '#155724'; } // Excellent
-            else if (score == 2) { element.style.backgroundColor = '#cce5ff'; element.style.color = '#004085'; } // Good
-            else if (score == 3) { element.style.backgroundColor = '#fff3cd'; element.style.color = '#856404'; } // Appropriate
-            else if (score == 4) { element.style.backgroundColor = '#f8d7da'; element.style.color = '#721c24'; } // Inappropriate
-            else if (score == 5) { element.style.backgroundColor = '#dc3545'; element.style.color = '#fff'; } // Urgent
-        }
-        
-        
-        // FORM & DATA
-        function generateEvaluationForm() {
-            const formContainer = document.getElementById('evaluationForm');
-            formContainer.innerHTML = '';
-            let currentDomain = '';
-            let detailsElement;
-
-            evaluationItems.forEach(item => {
-                if(item.domain !== currentDomain) {
-                    currentDomain = item.domain;
-                    detailsElement = document.createElement('details');
-                    detailsElement.open = true;
-                    const summary = document.createElement('summary');
-                    summary.textContent = currentDomain;
-                    detailsElement.appendChild(summary);
-                    formContainer.appendChild(detailsElement);
-                }
-
-                const itemCardHTML = `
-                    <div class="item-card" id="item-${item.id}">
-                        <div class="item-header">
-                            <h4>${item.id}. ${item.title} <br><small>${item.desc}</small></h4>
-                            <div class="score" id="score-${item.id}">3</div>
-                        </div>
-                        <div class="rating-selector">
-                           <button type="button" class="rating-btn score-1" data-score="1" onclick="updateScore(${item.id}, 1)">متميز</button>
-                           <button type="button" class="rating-btn score-2" data-score="2" onclick="updateScore(${item.id}, 2)">جيد</button>
-                           <button type="button" class="rating-btn score-3 active" data-score="3" onclick="updateScore(${item.id}, 3)">ملائم</button>
-                           <button type="button" class="rating-btn score-4" data-score="4" onclick="updateScore(${item.id}, 4)">غير ملائم</button>
-                           <button type="button" class="rating-btn score-5" data-score="5" onclick="updateScore(${item.id}, 5)">تدخل سريع</button>
-                        </div>
-                        <div class="notes-wrapper">
-                            <div id="notes-${item.id}" class="item-notes" contenteditable="true"></div>
-                            ${recognition ? `<button type="button" class="mic-btn" onclick="startDictation('notes-${item.id}', this)">🎤</button>` : ''}
-                        </div>
-                    </div>
-                `;
-                detailsElement.innerHTML += itemCardHTML;
-            });
-             evaluationItems.forEach(item => {
-                updateScore(item.id, 3); // Set initial state
-            });
-        }
-        
-        function getSchoolName() {
-            const schoolSelect = document.getElementById('school');
-            return schoolSelect.value === 'other' ? document.getElementById('school-other').value.trim() : schoolSelect.value;
-        }
-
-        function getTeacherName() {
-            return document.getElementById('teacherName').value.trim();
-        }
-        
-        function populateDropdown(selectElement, dataArray, placeholderText) {
-            selectElement.innerHTML = `<option value="">${placeholderText}</option>`;
-            dataArray.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-                selectElement.appendChild(option);
-            });
-            selectElement.innerHTML += `<option value="other">أخرى...</option>`;
-        }
-        
-        function handleOtherOption(selectElement, otherInputElement) {
-            if (selectElement.value === 'other') {
-                otherInputElement.style.display = 'block';
-            } else {
-                otherInputElement.style.display = 'none';
-                otherInputElement.value = '';
-            }
-        }
-
-        // ACTIONS (Print, Export, Report)
-        function prepareOfficialPrint() {
-            const printTbody = document.getElementById('print-main-tbody');
-            printTbody.innerHTML = ''; 
-
-            document.getElementById('print-school').textContent = getSchoolName();
-            document.getElementById('print-teacherName').textContent = getTeacherName();
-            document.getElementById('print-fileNumber').textContent = document.getElementById('fileNumber').value;
-            document.getElementById('print-subject').textContent = document.getElementById('subject').value;
-            document.getElementById('print-visitNumber').textContent = document.getElementById('visitNumber').value;
-            document.getElementById('print-visitDate').textContent = document.getElementById('visitDate').value;
-            document.getElementById('print-class').textContent = document.getElementById('class').value;
-            document.getElementById('print-lesson').textContent = document.getElementById('lesson').value;
-            document.getElementById('print-topic').textContent = document.getElementById('topic').value;
-            document.getElementById('print-visitorName').textContent = document.getElementById('visitorName').value;
-            document.getElementById('print-visitorPosition').textContent = document.getElementById('visitorPosition').value;
-
-            document.getElementById('print-strengthsContent').innerText = document.getElementById('strengthsContent').value;
-            document.getElementById('print-developmentContent').innerText = document.getElementById('developmentContent').value;
-            document.getElementById('print-recommendationsContent').innerText = document.getElementById('recommendationsContent').value;
-
-             // Group items by domain and then by standard
-            const groupedItems = evaluationItems.reduce((acc, item) => {
-                acc[item.domain] = acc[item.domain] || {};
-                (acc[item.domain][item.standard] = acc[item.domain][item.standard] || []).push(item);
-                return acc;
-            }, {});
-
-            let isFirstRow = true;
-            for (const domain in groupedItems) {
-                const standards = groupedItems[domain];
-                const domainItemCount = Object.values(standards).flat().length;
-                let isFirstStandardInDomain = true;
-                
-                for(const standard in standards) {
-                    const items = standards[standard];
-                    const standardItemCount = items.length;
-                    
-                    items.forEach((item, itemIndex) => {
-                        const row = document.createElement('tr');
-                        const score = document.getElementById(`score-${item.id}`).textContent;
-                        
-                        let domainCell = '';
-                        let standardCell = '';
-
-                        if(isFirstStandardInDomain && isFirstRow) {
-                             domainCell = `<td rowspan="${domainItemCount}" class="category-cell">${domain}</td>`;
-                             isFirstRow = false;
-                        } else if (itemIndex === 0 && isFirstStandardInDomain) {
-                            domainCell = `<td rowspan="${domainItemCount}" class="category-cell">${domain}</td>`;
-                        }
-                        
-                         if (itemIndex === 0) {
-                            standardCell = `<td rowspan="${standardItemCount}" class="category-cell">${standard}</td>`;
-                        }
-
-                        row.innerHTML = `${domainCell}${standardCell}<td>${item.id}</td><td class="item-cell">${item.title}</td><td>${score}</td>`;
-                        printTbody.appendChild(row);
-                    });
-                     isFirstStandardInDomain = false;
-                }
-                isFirstRow = true; // Reset for next domain
-            }
-        }
-
-
-        function printOfficialReport() {
-            prepareOfficialPrint();
-            window.print();
-        }
-        
-        function exportToWord() {
-            prepareOfficialPrint();
-            const visitNumber = document.getElementById('visitNumber').value.trim() || 'زيارة';
-            const schoolName = getSchoolName() || 'مدرسة';
-            const teacherName = getTeacherName() || 'معلم';
-            const fileName = `${visitNumber} - ${schoolName} - ${teacherName}.docx`;
-
-            const content = `
-                <!DOCTYPE html>
-                <html lang="ar" dir="rtl">
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                    <style>
-                        body { font-family: 'Times New Roman', Times, serif; direction: rtl; }
-                        /* Add all print styles here */
-                    </style>
-                </head>
-                <body>${document.getElementById("printView").innerHTML}</body>
-                </html>
-            `;
-            const converted = htmlDocx.asBlob(content, {
-                orientation: 'portrait',
-                margins: { top: 720, right: 720, bottom: 720, left: 720 }
-            });
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(converted);
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-       
-        function generateReport() {
-            let strengths = [];
-            let developments = [];
-            let recommendations = [];
-
-            evaluationItems.forEach(item => {
-                const score = parseInt(document.getElementById(`score-${item.id}`).textContent);
-                const notes = document.getElementById(`notes-${item.id}`).innerHTML;
-                
-                if (score <= 2) {
-                    strengths.push({title: item.title, standard: item.standard, notes: notes});
-                }
-                if (score >= 4) {
-                    developments.push({title: item.title, standard: item.standard, notes: notes});
-                    recommendations.push({ id: item.id, title: item.title, standard: item.standard });
-                }
-                if (score === 3) {
-                     recommendations.push({ id: item.id, title: item.title, standard: item.standard });
-                }
-            });
-            
-            let recommendationsText = "نوصي المعلم بالآتي:\n\n";
-            recommendations.forEach(rec => {
-                 if(instructionalRecommendations[rec.id]) {
-                     recommendationsText += `• ${rec.standard} - ${rec.title}: ${instructionalRecommendations[rec.id]}\n\n`;
-                 }
-            });
-            recommendationsText += "والله ولي التوفيق.";
-
-            document.getElementById('strengthsContent').value = strengths.slice(0, 4).map(s => `${s.standard}: ${s.notes.replace(/<[^>]*>?/gm, '')}`).join('\n\n');
-            document.getElementById('developmentContent').value = developments.slice(0, 4).map(d => `${d.standard}: ${d.notes.replace(/<[^>]*>?/gm, '')}`).join('\n\n');
-            document.getElementById('recommendationsContent').value = recommendationsText;
-
-            document.getElementById('reportSection').style.display = 'block';
-            document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function startDictation(textareaId, button) {
-            if (!recognition) {
-                alert('عذراً، متصفحك لا يدعم خاصية الإملاء الصوتي.');
-                return;
-            }
-            
-            const notesDiv = document.getElementById(textareaId);
-            button.classList.add('recording');
-            button.textContent = '🔴';
-
-            recognition.start();
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                 notesDiv.innerHTML += (notesDiv.textContent.length > 0 ? ' ' : '') + transcript;
+            // --- DATABASE ---
+            const schoolTeacherData = {
+                "أبو القاسم الزهراوي": { teachers: ["أيوب سلطان ناصر الوردي", "يحيى عبدالله اليوسفي"], gender: "male" },
+                "أبو أيوب الحضرمي": { teachers: ["عبدالله بن سعيد بن عامر الفائدي"], gender: "male" },
+                "أبو تمام": { teachers: ["هاشم راشد سيف الهاشمي", "المعتصم بن عبدالله بن علي الفظيطي", "سعيد محمد المخيني"], gender: "male" },
+                "أحمد بن النعمان": { teachers: ["طارق يوسف يسند", "سليمان بن سالم بن مبارك الرزيقي", "عمر بن سعيد بن عبيد الشنجي"], gender: "male" },
+                "الشيخ سالم السيابي": { teachers: ["إبراهيم بن ناصر بن خميس البوسعيدي", "فهد محمد سعيد الخربوشي"], gender: "male" },
+                "الشيخ سعيد الكندي مسائي": { teachers: ["محمد سعيد محاد العمري", "راشد بن سالم بن خلفان المشيفري"], gender: "male" },
+                "الشيخ ناصر الخروصي": { teachers: ["عدنان حسين محاد تبوك"], gender: "male" },
+                "جنادة الازدى (موسى سابقا)": { teachers: ["إبراهيم بن محمد بن حمود الراسبي", "محمد ثاني خلفان الصلطي", "منصور بن محمد بن جمعه", "اسامة بن سليمان الدهماني", "محمود حمد خلفان المحروقي"], gender: "male" },
+                "حفص بن راشد": { teachers: ["سعود بن سيف بن ناصر الراسبي", "سليمان بن سيف بن سالم الوهيبي", "حميد بن حمد بن هديب السابعي", "عبدالحميد بن محمد بن عبدالرسول الزدجالي", "محمد بن احمد بن خالد الخضوري"], gender: "male" },
+                "خريس الحبوس": { teachers: ["عبدالله فرج الحجري"], gender: "male" },
+                "سهيل بن عمرو العامري": { teachers: ["راشد بن سالم بن خالد الرشيدي", "عمار بن علي بن صالح الحمادي", "محمد قاسم حمدان الناصري"], gender: "male" },
+                "كعب بن زيد": { teachers: ["أحمد بن سليمان بن سالم الحسني", "يوسف بن عبدالله بن سيف اليوسفي"], gender: "male" },
+                "يزيد الطائي": { teachers: [], gender: "male" },
+                "البيان": { teachers: ["جيهان علي محمد احمد يوسف"], gender: "female" },
+                "الجيل المبدع": { teachers: ["علياء عاطف سيد محمد"], gender: "female" },
+                "الريادة": { teachers: ["اسماء سعد سعد ابراهيم سعد", "Hossam mohammed Zayid"], gender: "mixed" },
+                "السراج": { teachers: ["عزاء بنت محمد بن حمود المالكي"], gender: "female" },
+                "الصفوة المعبيلة": { teachers: ["رحمة محمد محمد شلقامي"], gender: "female" },
+                "المجد": { teachers: ["آيه رضا عبد الفتاح العليمي حلاوه"], gender: "female" },
+                "انس بن مالك (المنار سابقا)": { teachers: ["اسراء محمد حسين"], gender: "female" },
+                "ضياء المستقبل": { teachers: ["علاء احمد وزيري"], gender: "female" },
+                "مشاعل مسقط سور الحديد": { teachers: ["دينا اشرف حبيب"], gender: "female" },
+                "منابع التفوق": { teachers: ["مها محمود السيد"], gender: "female" },
+                "اجيال الثقافة": { teachers: [], gender: "female" },
+                "اجيال الفردوس - الحيل": { teachers: [], gender: "female" },
+                "جيفر بن الجلندي": { teachers: [], gender: "male" }
             };
 
-            recognition.onspeechend = function() {
-                recognition.stop();
+            const defaultVisitTypesData = {
+                 'custom_exploratory': {
+                    name: 'زيارة استطلاعية',
+                    objectives_list: [
+                        "مقابلة مديرة المدرسة معلمةالرياضة المدرسية.",
+                        "حضور الطابور المدرسي.",
+                        "تحديث قاعدة بيانات المعلمة.",
+                        "متابعة موافقات التعيين.",
+                        "متابعة توفر الأدلة وكتاب الطالب وتحديثها.",
+                        "متابعة توزيع الجدول ونصاب الحصص للمعلمة.",
+                        "متابعة الملاعب وتخطيطها والأدوات الرياضية.",
+                        "متابعة النشرات ووثائق التقويم ومناقشة مستجداتها.",
+                        "متابعة المنهاج وسجلات المعلمة.",
+                        "حضور حصة للمعلمة والمداولة الاشرافية."
+                    ],
+                    completedOpinions: [
+                        "تم مقابلة الفاضلة مديرة المدرسة ومعلمة الرياضة المدرسية.",
+                        "تم حضور الطابور المدرسي وكان الهتاف بصوت عالي والانصراف منظم ومراسم رفع العلم صحيحة.",
+                        "تم تحديث قاعدة بيانات المعلمة عبر الرابط.",
+                        "تم متابعة موافقات التعيين والمعلمة على اقامة المدرسة.",
+                        "تم متابعة توفر الأدلة وتحديثها وكانت محدثة.",
+                        "تم متابعة توزيع الجدول المدرسي وكان متوافقًا مع الأنظمة.",
+                        "تم متابعة الملاعب وتخطيطها والأدوات الرياضية وكانت متوفرة.",
+                        "تم متابعة النشرات ووثائق التقويم ومناقشة مستجداتها.",
+                        "تم متابعة المنهاج وسجلات المعلمة وكانت مكتملة وتم اعتماد خطط المعلمة الفصلية.",
+                        "تم حضور موقف صفي للمعلمة وكان الأداء جيد جدا."
+                    ],
+                    incompleteOpinions: [
+                        "تم مقابلة الفاضلة مديرة المدرسة وبغياب معلمة الرياضة المدرسية.",
+                        "تم حضور الطابور المدرسي وكان الهتاف بصوت منخفض والانصراف غير منظم وتلاحظ اخطاء في مراسم رفع العلم وتم توجيه المعلم المسؤول عن الكشافة بتدريب الكشافة على المراسم الصحيحة.",
+                        "قاعدة بيانات المعلمة بحاجة إلى تحديث، وتم التنبيه على ضرورة استكمالها عبر الرابط.",
+                        "", // Placeholder for dropdown
+                        "تم متابعة توفر الأدلة وتحديثها وكانت محدثة بصيغة (PDF).",
+                        "تم متابعة توزيع الجدول المدرسي وتلاحظ وجود حصص موزعة في الجدول السابعة والثامنة وكذلك تفريغ المعلمة يوم الثلاثاء بدون عذر مقبول وتم توجيه ادارة المدرسة بتعديل ذلك والابتعاد عن الحصص الأخيرة.",
+                        "تم متابعة الملاعب وتخطيطها والأدوات الرياضية وتلاحظ عدم وجود أدوات رياضية في المدرسة وتم توجيه إدارة المدرسة بتوفير الأدوات وتجديد تخطيط الملعب.",
+                        "تم متابعة النشرات ووثائق التقويم ومناقشة مستجداتها ولوحظ عدم وصول النشرات الى المعلمين وتم ارسال النشرات والوثائق مرة اخرى الى المعلمين عبر الوتساب.",
+                        "تم متابعة المنهاج وسجلات المعلمة وكانت غير مكتملة، وتم توجيه المعلمة لاستكمالها.",
+                        "تعذر حضور حصة مع المعلمة."
+                    ],
+                    recommendations: [
+                        "متابعة التزام الهيئة التدريسية بالحضور.",
+                        "متابعة تدريب الكشافة على مراسم رفع العلم الصحيحة وتحسين تنظيم انصراف الطلبة.",
+                        "التأكيد على تحديث قاعدة بيانات المعلمة بشكل دوري.",
+                        "ضرورة الإسراع في استكمال موافقات التعيين الرسمية.",
+                        "التواصل مع الجهات المعنية لتوفير الكتب المدرسية الناقصة.",
+                        "تغيير جدول المعلمة ليكون لديها حصة رياضة كل يوم، وتوزيع الحصص بحيث يتم الابتعاد عن الحصة السابعة والثامنة.",
+                        "توفير الأدوات الرياضية حسب الكشف المرفق ونخص بالذكر (جهاز الوثب العالي مع المرتبة الخاصة به، الصندوق المقسم، المقعد السويدي، مرمى لكرة اليد عدد (2)، قوائم للسلة عدد (2)، شبك لكرة الطائرة) بالإضافة لباقي الأدوات في الكشف، وتجديد تخطيط الملعب.",
+                        "التأكيد على وصول جميع النشرات والوثائق للمعلمين وتوثيق استلامهم لها.",
+                        "متابعة استكمال سجلات المعلمة (التحضير+الزي والملاحظة+الخطة).",
+                        "التنسيق المسبق مع المعلمة لحضور حصة دراسية."
+                    ]
+                },
+                'supervisory_october': {
+                    name: 'زيارة اشرافية (أكتوبر)',
+                    objectives_list: [
+                        "الالتقاء بالفاضلة مديرة المدرسة ومعلمةالرياضة المدرسية.",
+                        "حضور الطابور المدرسي.",
+                        "متابعة تنفيذ خطة المنهاج والاطلاع على سجلات المتابعة (الزي والمشاركة).",
+                        "حضور موقف صفي مع المعلمة والمداولة الاشرافية.",
+                        "شرح اليه تنفيذ الحصة كتطبيقات تنافسية.",
+                        "حث المعلمة على الاطلاع على زياراته الاشرافية والحرص على الالتزام بتنفيذ النشرات الخاصة بالمادة.",
+                        "متابعة تنفيذ التوصيات السابقة."
+                    ],
+                    completedOpinions: [
+                        "تم الالتقاء بالفاضلة مديرة المدرسة ومعلمة الرياضة المدرسية.",
+                        "تم حضور الطابور المدرسي وكان منظماً.",
+                        "تم متابعة تنفيذ خطة المنهاج وسجلات المتابعة وكانت مكتملة.",
+                        "تم حضور موقف صفي مع المعلمة وكانت المداولة مثمرة.",
+                        "تم شرح اليه تنفيذ الحصة كتطبيقات تنافسية.",
+                        "تم حث المعلمة على الاطلاع على الزيارات الاشرافية والالتزام بالنشرات.",
+                        "تمت متابعة تنفيذ التوصيات السابقة وكانت مكتملة."
+                    ],
+                    incompleteOpinions: [
+                        "تم الالتقاء بالفاضلة مديرة المدرسة وبغياب معلمة الرياضة المدرسية.",
+                        "لوحظ وجود بعض الملاحظات في تنظيم الطابور المدرسي.",
+                        "سجلات المتابعة (الزي والمشاركة) غير مكتملة، وتم توجيه المعلمة لاستكمالها.",
+                        "تعذر حضور موقف صفي مع المعلمة.",
+                        "لوحظ ضعف في تطبيق الحصة كتطبيقات تنافسية، وتم إعادة شرح الآلية للمعلمة.",
+                        "لوحظ عدم اطلاع المعلمة على الزيارات السابقة، وتم التأكيد عليها بضرورة المتابعة.",
+                        "بعض التوصيات السابقة لم يتم تنفيذها، وتم مناقشة الأسباب مع المعلمة والإدارة."
+                    ],
+                    recommendations: [
+                        "متابعة التزام الهيئة التدريسية بالحضور.",
+                        "تحسين تنظيم الطابور الصباحي.",
+                        "ضرورة استكمال سجلات المتابعة (الزي والمشاركة) بشكل دوري.",
+                        "التنسيق المسبق لحضور موقف صفي.",
+                        "التأكيد على تنفيذ الحصص كتطبيقات تنافسية لزيادة تفاعل الطلبة.",
+                        "حث المعلمة على المتابعة الدورية للزيارات الإشرافية والنشرات.",
+                        "متابعة تنفيذ التوصيات السابقة وتقديم الدعم اللازم."
+                    ]
+                }
             };
-
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-                alert(`حدث خطأ في التعرف على الصوت: ${event.error}`);
-            };
-
-            recognition.onend = function() {
-                button.classList.remove('recording');
-                button.textContent = '🎤';
-            };
-        }
-
-
-        // MODAL & RESET
-        function showResetModal() {
-            document.getElementById('reset-modal').style.display = 'flex';
-        }
-
-        function hideResetModal() {
-            document.getElementById('reset-modal').style.display = 'none';
-        }
-
-        function performReset() {
-            clearForm();
-            hideResetModal();
-            displayStatusMessage('تم مسح النموذج الحالي بنجاح.', 'green');
-        }
-        
-        function clearForm() {
-            document.getElementById('evaluationForm').reset();
-             const schoolSelect = document.getElementById('school');
-            schoolSelect.selectedIndex = 0;
-            schoolSelect.dispatchEvent(new Event('change'));
-             document.querySelectorAll('.info-grid input, .report-content-area').forEach(input => {
-                 input.value = '';
-            });
-            evaluationItems.forEach(item => {
-                 updateScore(item.id, 3);
-            });
-            document.getElementById('reportSection').style.display = 'none';
-        }
-
-
-        // DATA PERSISTENCE & ARCHIVING
-        function displayStatusMessage(message, color) {
-            const statusElement = document.getElementById('status-message');
-            statusElement.textContent = message;
-            statusElement.style.color = color;
-            statusElement.style.opacity = 1;
-            setTimeout(() => { statusElement.style.opacity = 0; }, 3000);
-        }
-        
-        function savePermanentReport() {
-            const teacherName = getTeacherName();
-            const visitDate = document.getElementById('visitDate').value;
-            if (!teacherName || !visitDate) {
-                alert('الرجاء إدخال اسم المعلم وتاريخ الزيارة قبل الحفظ.');
-                return;
-            }
             
-            const reportId = `visit_v5_${Date.now()}`;
-            const reportData = {
-                id: reportId,
-                teacherName: teacherName,
-                visitDate: visitDate,
-                school: getSchoolName(),
-                formData: {}
-            };
+            // --- STATE VARIABLES ---
+            let visitTypesData = {};
+            let savedReports = [];
+            let currentAttachments = [];
+            let currentVisitTypeKey = '';
+            let previewSource = 'form';
 
-            document.querySelectorAll('input, select, textarea').forEach(el => {
-                if (el.id) reportData.formData[el.id] = el.value;
-            });
-            evaluationItems.forEach(item => {
-                reportData.formData[`score-${item.id}`] = document.getElementById(`score-${item.id}`).textContent;
-                reportData.formData[`notes-${item.id}`] = document.getElementById(`notes-${item.id}`).innerHTML;
-            });
-
-            localStorage.setItem(reportId, JSON.stringify(reportData));
+            // --- MAIN VIEWS ---
+            const dashboardView = document.getElementById('dashboardView');
+            const formView = document.getElementById('formView');
+            const reportPreviewContainer = document.getElementById('reportPreviewContainer');
             
-            const visitDataForDashboard = { date: visitDate, scores: {} };
-            for(let i = 1; i <= evaluationItems.length; i++) {
-                 const scoreEl = document.getElementById(`score-${i}`);
-                 if (scoreEl) {
-                    visitDataForDashboard.scores[`item-${i}`] = parseInt(scoreEl.textContent) || 3;
-                 }
+            // --- FORM ELEMENTS ---
+            const reportForm = document.getElementById('reportForm');
+            const reportIdInput = document.getElementById('reportId');
+            const formTitle = document.getElementById('formTitle');
+            const schoolNameSelect = document.getElementById('schoolName');
+            const visitTypeSelect = document.getElementById('visitTypeSelect');
+            const objectivesContainer = document.getElementById('objectivesContainer');
+            const opinionsContainer = document.getElementById('opinionsContainer');
+            const recommendationsTextarea = document.getElementById('recommendations');
+            const attachmentsInput = document.getElementById('attachmentsInput');
+            const attachmentsList = document.getElementById('attachmentsList');
+
+            // --- BUTTONS ---
+            const addNewReportBtn = document.getElementById('addNewReportBtn');
+            const backToDashboardBtn = document.getElementById('backToDashboardBtn');
+            const prepareReportBtn = document.getElementById('prepareReportBtn');
+            const backToBtn = document.getElementById('backToBtn');
+            const selectAllObjectivesBtn = document.getElementById('selectAllObjectivesBtn');
+            const copyAllBtn = document.getElementById('copyAllBtn');
+
+            // --- DASHBOARD ELEMENTS ---
+            const reportsListContainer = document.getElementById('reportsListContainer');
+            
+            // --- MODAL ELEMENTS ---
+            const manageVisitTypesBtn = document.getElementById('manageVisitTypesBtn');
+            const manageTypesModal = document.getElementById('manageTypesModal');
+            const closeManageModalBtn = document.getElementById('closeManageModalBtn');
+            const visitTypesList = document.getElementById('visitTypesList');
+            const addNewTypeBtn = document.getElementById('addNewTypeBtn');
+            const addEditTypeModal = document.getElementById('addEditTypeModal');
+            const addEditModalTitle = document.getElementById('addEditModalTitle');
+            const addEditTypeForm = document.getElementById('addEditTypeForm');
+            const editTypeKeyInput = document.getElementById('editTypeKey');
+            const typeNameInput = document.getElementById('typeName');
+            const typeObjectivesTextarea = document.getElementById('typeObjectives');
+            const saveTypeBtn = document.getElementById('saveTypeBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const generateRecsBtn = document.getElementById('generate-recommendations-btn');
+
+            // --- DATA MANAGEMENT ---
+            function saveVisitTypes() { localStorage.setItem(TYPES_STORAGE_KEY, JSON.stringify(visitTypesData)); }
+            function saveReports() { localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(savedReports)); }
+
+            function loadData() {
+                const storedTypes = localStorage.getItem(TYPES_STORAGE_KEY);
+                visitTypesData = storedTypes ? JSON.parse(storedTypes) : defaultVisitTypesData;
+                const storedReports = localStorage.getItem(REPORTS_STORAGE_KEY);
+                savedReports = storedReports ? JSON.parse(storedReports) : [];
+                const keys = Object.keys(visitTypesData);
+                currentVisitTypeKey = keys.length > 0 ? keys[0] : '';
             }
-            const teacherArchiveKey = `teacher_archive_v5_${teacherName}`;
-            let archive = JSON.parse(localStorage.getItem(teacherArchiveKey)) || [];
-            const existingVisitIndex = archive.findIndex(v => v.date === visitDate);
 
-            if (existingVisitIndex > -1) {
-                archive[existingVisitIndex] = visitDataForDashboard;
-            } else {
-                archive.push(visitDataForDashboard);
+            // --- GENDER/PLURALITY LOGIC ---
+            function getTeacherContext(schoolName) {
+                const school = schoolTeacherData[schoolName];
+                if (!school || !school.teachers) {
+                    const isFemaleSchool = !schoolName.includes("بنين");
+                    return { gender: isFemaleSchool ? 'female' : 'male', count: 1, teachers: [] };
+                }
+                if (school.gender === 'mixed' || school.teachers.length > 1) {
+                    return { gender: 'plural', count: school.teachers.length, teachers: school.teachers };
+                }
+                return { gender: school.gender, count: 1, teachers: school.teachers };
             }
-            archive.sort((a, b) => new Date(a.date) - new Date(b.date));
-            localStorage.setItem(teacherArchiveKey, JSON.stringify(archive));
 
-            displayStatusMessage(`تم حفظ التقرير للمعلم: ${teacherName} بنجاح!`, '#3f51b5');
-        }
+            function applyGender(text, context) {
+                if (!text) return "";
+                if (context.count > 1) {
+                    return text.replace(/الفاضلة مديرة/g, 'الفاضل مدير')
+                               .replace(/مديرة/g, 'مدير')
+                               .replace(/معلمةالرياضة/g, 'معلمي الرياضة')
+                               .replace(/المعلمة/g, 'المعلمين')
+                               .replace(/معلمة/g, 'معلمي')
+                               .replace(/وهي /g, 'وهم ')
+                               .replace(/لديها/g, 'لديهم');
+                } else if (context.gender === 'male') {
+                     return text.replace(/الفاضلة مديرة/g, 'الفاضل مدير')
+                               .replace(/مديرة/g, 'مدير')
+                               .replace(/معلمةالرياضة/g, 'معلم الرياضة')
+                               .replace(/المعلمة/g, 'المعلم')
+                               .replace(/معلمة/g, 'معلم')
+                               .replace(/وهي /g, 'وهو ')
+                               .replace(/لديها/g, 'لديه');
+                }
+                return text;
+            }
 
-        function loadPermanentReport(reportKey) {
-            const data = JSON.parse(localStorage.getItem(reportKey));
-            if (data && data.formData) {
-                clearForm(); 
-                Object.keys(data.formData).forEach(key => {
-                    const el = document.getElementById(key);
-                    if (el) {
-                        if (el.classList.contains('item-notes')) {
-                             el.innerHTML = data.formData[key];
-                        } else if (el.tagName === 'DIV' && el.classList.contains('score')) {
-                            el.textContent = data.formData[key];
-                        } else {
-                            el.value = data.formData[key];
-                        }
-                        if (el.tagName === 'SELECT') {
-                            el.dispatchEvent(new Event('change'));
-                        }
+            // --- VIEW MANAGEMENT ---
+            function showDashboardView() {
+                renderDashboard();
+                dashboardView.classList.remove('hidden');
+                formView.classList.add('hidden');
+                reportPreviewContainer.classList.add('hidden');
+            }
+
+            function showFormView(reportId = null) {
+                formView.classList.remove('hidden');
+                dashboardView.classList.add('hidden');
+                reportPreviewContainer.classList.add('hidden');
+                if (reportId) {
+                    const report = savedReports.find(r => r.id === reportId);
+                    if (report) {
+                        populateForm(report);
+                        formTitle.textContent = 'تعديل تقرير زيارة';
                     }
-                });
-
-                evaluationItems.forEach(item => {
-                    const score = parseInt(data.formData[`score-${item.id}`] || 3);
-                    updateScore(item.id, score);
-                });
-                
-                toggleView('form-view');
-                displayStatusMessage(`تم تحميل التقرير المحفوظ.`, '#007bff');
-            }
-        }
-
-        function deletePermanentReport(reportKey) {
-            const data = JSON.parse(localStorage.getItem(reportKey));
-             if (!data || !confirm(`هل أنت متأكد من حذف هذا التقرير للمعلم ${data.teacherName} بتاريخ ${data.visitDate}؟ لا يمكن التراجع عن هذا الإجراء.`)) {
-                return;
+                } else {
+                    resetForm();
+                    formTitle.textContent = 'إنشاء تقرير زيارة إشرافية';
+                }
             }
 
-            localStorage.removeItem(reportKey);
-
-            const teacherArchiveKey = `teacher_archive_v5_${data.teacherName}`;
-            let archive = JSON.parse(localStorage.getItem(teacherArchiveKey)) || [];
-            const updatedArchive = archive.filter(visit => visit.date !== data.visitDate);
-            if (updatedArchive.length > 0) {
-                localStorage.setItem(teacherArchiveKey, JSON.stringify(updatedArchive));
-            } else {
-                localStorage.removeItem(teacherArchiveKey); 
+            function showPreviewView(reportData) {
+                renderReportPreview(reportData);
+                reportPreviewContainer.classList.remove('hidden');
+                dashboardView.classList.add('hidden');
+                formView.classList.add('hidden');
             }
 
-            renderSavedReports(); 
-            displayStatusMessage(`تم حذف التقرير بنجاح.`, 'red');
-        }
+            // --- DASHBOARD RENDERING ---
+            function renderDashboard() {
+                reportsListContainer.innerHTML = '';
+                if (savedReports.length === 0) {
+                    reportsListContainer.innerHTML = `<div class="text-center py-10 px-6 bg-gray-50 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-700">لا توجد تقارير محفوظة بعد</h3>
+                        <p class="text-gray-500 mt-2">ابدأ بإضافة تقريرك الأول بالضغط على زر "+ تقرير جديد".</p>
+                    </div>`;
+                    return;
+                }
 
-
-        function saveVisitorData() {
-            const visitorData = {
-                name: document.getElementById('visitorName').value,
-                position: document.getElementById('visitorPosition').value
-            };
-            localStorage.setItem('visitorData_v5', JSON.stringify(visitorData));
-        }
-
-        function loadVisitorData() {
-            const visitorData = JSON.parse(localStorage.getItem('visitorData_v5'));
-            if(visitorData) {
-                document.getElementById('visitorName').value = visitorData.name || 'أسعد بن محفوظ الخصيبي';
-                document.getElementById('visitorPosition').value = visitorData.position || 'مشرف رياضة مدرسية';
-            } else {
-                 document.getElementById('visitorName').value = 'أسعد بن محفوظ الخصيبي';
-                 document.getElementById('visitorPosition').value = 'مشرف رياضة مدرسية';
-            }
-        }
-        
-        function saveTemplate() {
-            const templateName = prompt("الرجاء إدخال اسم للقالب:");
-            if (!templateName) return;
-
-            const data = {};
-            document.querySelectorAll('input, select').forEach(el => {
-                if (el.id) data[el.id] = el.value;
-            });
-             evaluationItems.forEach(item => {
-                data[`score-${item.id}`] = document.getElementById(`score-${item.id}`).textContent;
-                data[`notes-${item.id}`] = document.getElementById(`notes-${item.id}`).innerHTML;
-            });
-
-
-            let templates = JSON.parse(localStorage.getItem('evaluationTemplates_v5')) || {};
-            templates[templateName] = data;
-            localStorage.setItem('evaluationTemplates_v5', JSON.stringify(templates));
-            populateTemplateDropdown();
-            displayStatusMessage(`تم حفظ القالب "${templateName}" بنجاح.`, 'green');
-        }
-
-        function loadTemplate() {
-            const templateName = document.getElementById('template-select').value;
-            if (!templateName) return;
-
-            const templates = JSON.parse(localStorage.getItem('evaluationTemplates_v5')) || {};
-            const data = templates[templateName];
-
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    const el = document.getElementById(key);
-                    if (el) {
-                        if(el.classList.contains('item-notes')) {
-                            el.innerHTML = data[key];
-                        }
-                        else if (el.tagName === 'DIV' && el.classList.contains('score')) {
-                             el.textContent = data[key];
-                        }
-                        else el.value = data[key];
-
-                        if (el.tagName === 'SELECT') {
-                            el.dispatchEvent(new Event('change'));
-                        }
-                    }
-                });
-                evaluationItems.forEach(item => {
-                    const score = parseInt(document.getElementById(`score-${item.id}`).textContent);
-                    updateScore(item.id, score);
-                });
-                displayStatusMessage(`تم تحميل القالب "${templateName}".`, '#007bff');
-            }
-        }
-
-        function populateTemplateDropdown() {
-            const select = document.getElementById('template-select');
-            const templates = JSON.parse(localStorage.getItem('evaluationTemplates_v5')) || {};
-            select.innerHTML = '<option value="">اختر قالبًا...</option>';
-            for (const name in templates) {
-                select.innerHTML += `<option value="${name}">${name}</option>`;
-            }
-        }
-
-        // DASHBOARD & SAVED REPORTS
-        function renderSavedReports() {
-            const listContainer = document.getElementById('saved-reports-list');
-            const noReportsMessage = document.getElementById('no-saved-reports-message');
-            listContainer.innerHTML = '';
-            let reportsFound = false;
-
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('visit_v5_')) {
-                    reportsFound = true;
-                    const data = JSON.parse(localStorage.getItem(key));
-                    const schoolName = data.school === 'other' ? data.formData['school-other'] : data.school;
-                    
-                    const card = document.createElement('div');
-                    card.className = 'saved-report-card';
-                    card.innerHTML = `
-                        <div class="saved-report-info">
-                            <strong>المعلم:</strong> ${data.teacherName}<br>
-                            <strong>المدرسة:</strong> ${schoolName}<br>
-                            <strong>التاريخ:</strong> ${data.visitDate}
+                const list = document.createElement('div');
+                list.className = 'space-y-4';
+                savedReports.sort((a, b) => a.visitDate - b.visitDate).reverse().forEach(report => {
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-4 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow';
+                    const reportDate = new Date(report.visitDate).toLocaleDateString('ar-OM', { year: 'numeric', month: 'long', day: 'numeric' });
+                    const attachmentIcon = (report.attachments && report.attachments.length > 0) ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a3 3 0 006 0V7a1 1 0 112 0v4a5 5 0 01-10 0V7a5 5 0 0110 0v4a1 1 0 11-2 0V7a3 3 0 00-3-3z" clip-rule="evenodd" /></svg>` : '';
+                    item.innerHTML = `
+                        <div class="flex items-center">
+                            ${attachmentIcon}
+                            <div>
+                                <p class="font-bold text-gray-800">${report.schoolName}</p>
+                                <p class="text-sm text-gray-500">${reportDate} - ${report.visitTypeName}</p>
+                            </div>
                         </div>
-                        <div class="saved-report-actions">
-                            <button class="generate-btn" onclick="loadPermanentReport('${key}')">تحميل</button>
-                            <button class="reset-btn" onclick="deletePermanentReport('${key}')">حذف</button>
+                        <div class="flex gap-3">
+                            <button data-id="${report.id}" class="view-btn text-sm text-green-600 hover:underline">عرض</button>
+                            <button data-id="${report.id}" class="edit-btn text-sm text-blue-600 hover:underline">تعديل</button>
+                            <button data-id="${report.id}" class="delete-btn text-sm text-red-600 hover:underline">حذف</button>
                         </div>
                     `;
-                    listContainer.appendChild(card);
-                }
-            }
-            
-            if (noReportsMessage) {
-                noReportsMessage.style.display = reportsFound ? 'none' : 'block';
-            }
-        }
-
-        function loadTeacherDashboard() {
-            const teacherName = document.getElementById('teacher-dashboard-name').value.trim();
-             if (!teacherName) {
-                alert('الرجاء إدخال اسم معلم.');
-                return;
-            }
-
-            const teacherArchiveKey = `teacher_archive_v5_${teacherName}`;
-            const archive = JSON.parse(localStorage.getItem(teacherArchiveKey));
-            
-            const chartContainer = document.getElementById('chart-container');
-            const noDataMessage = document.getElementById('no-data-message');
-            const visitDateGroup = document.getElementById('visitDateGroup');
-
-            if (!archive || archive.length === 0) {
-                chartContainer.style.display = 'none';
-                if(noDataMessage) noDataMessage.style.display = 'block';
-                 if (performanceChartInstance) {
-                    performanceChartInstance.destroy();
-                }
-                visitDateGroup.style.display = 'none';
-                return;
-            }
-
-            chartContainer.style.display = 'block';
-            if(noDataMessage) noDataMessage.style.display = 'none';
-
-            // Populate visit dates for radar chart
-            const visitDateSelect = document.getElementById('visitDateSelect');
-            visitDateSelect.innerHTML = '';
-            archive.forEach(visit => {
-                visitDateSelect.innerHTML += `<option value="${visit.date}">${visit.date}</option>`;
-            });
-
-            updateDashboardView();
-        }
-
-        function updateDashboardView() {
-            const chartType = document.getElementById('chartTypeSelect').value;
-            const visitDateGroup = document.getElementById('visitDateGroup');
-            visitDateGroup.style.display = chartType === 'radar' ? 'block' : 'none';
-
-            if (performanceChartInstance) {
-                performanceChartInstance.destroy();
-            }
-
-            const teacherName = document.getElementById('teacher-dashboard-name').value.trim();
-            if (!teacherName) return;
-
-            const teacherArchiveKey = `teacher_archive_v5_${teacherName}`;
-            const archive = JSON.parse(localStorage.getItem(teacherArchiveKey));
-            if (!archive || archive.length === 0) return;
-
-            const ctx = document.getElementById('performanceChart').getContext('2d');
-            const labels = evaluationItems.map(item => item.title);
-            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8D6E63', '#EC407A', '#7E57C2', '#26A69A', '#D4E157', '#FF7043', '#78909C', '#5C6BC0'];
-
-            let chartConfig;
-
-            if (chartType === 'line') {
-                const datasets = evaluationItems.map((item, index) => ({
-                    label: item.title,
-                    data: archive.map(visit => visit.scores[`item-${item.id}`] || 0),
-                    borderColor: colors[index % colors.length],
-                    backgroundColor: colors[index % colors.length] + '33',
-                    fill: false,
-                    tension: 0.1
-                }));
-                 chartConfig = { type: 'line', data: { labels: archive.map(v => v.date), datasets }, options: { /* ... options for line ... */ } };
-            } else if (chartType === 'radar') {
-                 const selectedDate = document.getElementById('visitDateSelect').value;
-                 const visitData = archive.find(v => v.date === selectedDate);
-                 const data = visitData ? evaluationItems.map(item => visitData.scores[`item-${item.id}`] || 0) : [];
-                 chartConfig = { type: 'radar', data: { labels, datasets: [{ label: `أداء زيارة ${selectedDate}`, data, backgroundColor: 'rgba(54, 162, 235, 0.2)', borderColor: 'rgb(54, 162, 235)', pointBackgroundColor: 'rgb(54, 162, 235)' }] }, options: { /* ... options for radar ... */ } };
-            } else if (chartType === 'bar') {
-                const avgScores = evaluationItems.map(item => {
-                    const scores = archive.map(visit => visit.scores[`item-${item.id}`] || 0);
-                    const sum = scores.reduce((a, b) => a + b, 0);
-                    return sum / scores.length || 0;
+                    list.appendChild(item);
                 });
-                chartConfig = { type: 'bar', data: { labels, datasets: [{ label: 'متوسط الأداء العام', data: avgScores, backgroundColor: colors }] }, options: { /* ... options for bar ... */ } };
+                reportsListContainer.appendChild(list);
             }
 
-            // Common options
-            chartConfig.options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: { display: true, text: `تحليل أداء المعلم: ${teacherName}`, font: { size: 18, family: 'Tajawal' } },
-                    legend: { display: chartType !== 'bar', position: 'top', labels: { font: { family: 'Tajawal' } } }
-                },
-                scales: {
-                    y: { reverse: true, min: 1, max: 5, ticks: { stepSize: 1, callback: (v) => ['متميز', 'جيد', 'ملائم', 'غير ملائم', 'تدخل سريع'][v-1] } },
-                    r: { reverse: true, min: 1, max: 5, ticks: { stepSize: 1, backdropColor: 'transparent', callback: (v) => ['متميز', 'جيد', 'ملائم', 'غير ملائم', ''][v-1] } }
-                }
-            };
-
-
-            performanceChartInstance = new Chart(ctx, chartConfig);
-        }
-        
-        // --- Document Ready / Initial Setup ---
-        document.addEventListener('DOMContentLoaded', function() {
-            generateEvaluationForm();
-
-            const schoolSelect = document.getElementById('school');
-            const schoolOtherInput = document.getElementById('school-other');
-            populateDropdown(schoolSelect, schoolsList, 'اختر المدرسة...');
-            schoolSelect.addEventListener('change', () => handleOtherOption(schoolSelect, schoolOtherInput));
-
-            populateTemplateDropdown();
-            loadVisitorData();
+            // --- FORM MANAGEMENT ---
+            function resetForm() {
+                reportForm.reset();
+                reportIdInput.value = '';
+                document.getElementById('visitDate').valueAsDate = new Date();
+                currentVisitTypeKey = Object.keys(visitTypesData)[0] || '';
+                visitTypeSelect.value = currentVisitTypeKey;
+                currentAttachments = [];
+                renderAttachmentsList();
+                renderObjectivesForCurrentType();
+            }
             
-            document.getElementById('confirm-reset-btn').addEventListener('click', performReset);
-            document.getElementById('cancel-reset-btn').addEventListener('click', hideResetModal);
-            document.getElementById('reset-modal').addEventListener('click', (e) => {
-                if (e.target.id === 'reset-modal') hideResetModal();
+            function populateForm(report) {
+                resetForm();
+                reportIdInput.value = report.id;
+                schoolNameSelect.value = report.schoolName;
+                document.getElementById('visitDate').value = new Date(report.visitDate).toISOString().split('T')[0];
+                recommendationsTextarea.value = report.recommendations;
+                
+                currentVisitTypeKey = report.visitTypeKey;
+                visitTypeSelect.value = currentVisitTypeKey;
+                currentAttachments = report.attachments || [];
+                renderAttachmentsList();
+                renderObjectivesForCurrentType();
+
+                const checkboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    if (report.checkedObjectives.includes(cb.dataset.genderedValue)) {
+                        cb.checked = true;
+                    }
+                });
+
+                updateOpinionsSection();
+
+                setTimeout(() => {
+                     report.opinions.forEach(op => {
+                        const textarea = document.getElementById(`opinion-${op.index}`);
+                        if (textarea) textarea.value = op.text;
+                    });
+                }, 0);
+            }
+
+            function populateVisitTypeDropdown() {
+                visitTypeSelect.innerHTML = '';
+                Object.keys(visitTypesData).forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = visitTypesData[key].name;
+                    visitTypeSelect.appendChild(option);
+                });
+                if (currentVisitTypeKey) {
+                    visitTypeSelect.value = currentVisitTypeKey;
+                }
+            }
+            
+            function renderObjectivesForCurrentType() {
+                if (!currentVisitTypeKey || !visitTypesData[currentVisitTypeKey]) return;
+                const schoolName = schoolNameSelect.value;
+                const context = getTeacherContext(schoolName);
+                const data = visitTypesData[currentVisitTypeKey];
+                objectivesContainer.innerHTML = '';
+                data.objectives_list.forEach((objective, index) => {
+                    const genderedObjective = applyGender(objective, context);
+                    objectivesContainer.innerHTML += `
+                        <div class="flex items-start">
+                            <input id="objective-${index}" type="checkbox" value="${objective}" data-gendered-value="${genderedObjective}" data-index="${index}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1">
+                            <label for="objective-${index}" class="mr-2 text-sm font-medium text-gray-900">${index + 1}- ${genderedObjective}</label>
+                        </div>`;
+                });
+                updateOpinionsSection();
+                updateSelectAllButtonState();
+            }
+
+
+            function updateSelectAllButtonState() {
+                const checkboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]');
+                if (checkboxes.length === 0) {
+                    selectAllObjectivesBtn.textContent = 'اختيار الكل';
+                    return;
+                }
+                const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+                selectAllObjectivesBtn.textContent = allSelected ? 'إلغاء اختيار الكل' : 'اختيار الكل';
+            }
+
+            function updateOpinionsSection() {
+                const previouslySavedOpinions = new Map();
+                opinionsContainer.querySelectorAll('.opinion-block textarea').forEach(textarea => {
+                    previouslySavedOpinions.set(textarea.id, textarea.value);
+                });
+
+                opinionsContainer.innerHTML = '';
+                const checkedCheckboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]:checked');
+                
+                if (checkedCheckboxes.length === 0) {
+                    opinionsContainer.innerHTML = '<p class="text-center text-gray-500">لم يتم تحديد أي هدف بعد.</p>';
+                    return;
+                }
+                
+                checkedCheckboxes.forEach(checkbox => {
+                    const index = checkbox.dataset.index;
+                    const baseObjectiveText = checkbox.value;
+                    const genderedObjectiveText = checkbox.dataset.genderedValue;
+                    const opinionId = `opinion-${index}`;
+                    
+                    const opinionBlock = document.createElement('div');
+                    opinionBlock.className = 'opinion-block space-y-2';
+
+                    let specialInputsHTML = '';
+                    let standardButtonsHTML = `
+                        <div class="flex gap-2">
+                            <button type="button" data-opinion="completed" data-index="${index}" class="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full hover:bg-green-200 transition-colors">✅ مكتمل</button>
+                            <button type="button" data-opinion="incomplete" data-index="${index}" class="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full hover:bg-red-200 transition-colors">❌ غير مكتمل</button>
+                        </div>`;
+
+                    const timetableObjectiveText = "متابعة توزيع الجدول ونصاب الحصص للمعلمة.";
+                    const approvalObjectiveText = "متابعة موافقات التعيين.";
+                    const classSessionObjectiveTexts = ["حضور حصة للمعلمة والمداولة الاشرافية.", "حضور موقف صفي مع المعلمة والمداولة الاشرافية."];
+
+                    if (baseObjectiveText === timetableObjectiveText) {
+                         specialInputsHTML = `
+                            <div class="p-3 bg-gray-100 rounded-md border space-y-3">
+                                <div id="teacher-rows-container-${index}" class="space-y-2">
+                                    <div class="grid grid-cols-4 gap-2 items-center teacher-timetable-row">
+                                        <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-name-input" placeholder="اسم المعلم">
+                                        <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-load-input" placeholder="نصاب الحصص">
+                                        <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-classes-input" placeholder="الصفوف التي يدرسها">
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <button type="button" data-index="${index}" class="add-teacher-btn text-sm text-blue-600 hover:underline">+ إضافة معلم</button>
+                            </div>
+                        `;
+                    } else if (baseObjectiveText === approvalObjectiveText) {
+                        specialInputsHTML = `
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 p-3 bg-gray-100 rounded-md border items-center">
+                                <div>
+                                    <label for="approval-status-${index}" class="text-xs text-gray-600 block mb-1">في حالة عدم الاكتمال، اختر السبب:</label>
+                                    <select id="approval-status-${index}" data-index="${index}" class="approval-status-select bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                        <option value="" selected>اختر السبب...</option>
+                                        <option value="in_progress">في اجراءات التعيين</option>
+                                        <option value="no_approval">ليس لديها موافقة تعيين</option>
+                                        <option value="expired">الموافقة المبدئية منتهية الصلاحية</option>
+                                    </select>
+                                </div>
+                                <div class="self-end">
+                                    <button type="button" data-opinion="completed" data-index="${index}" data-special="approval" class="w-full px-3 py-2.5 text-sm font-medium text-green-800 bg-green-100 rounded-lg hover:bg-green-200 transition-colors">✅ مكتمل</button>
+                                </div>
+                            </div>
+                        `;
+                        standardButtonsHTML = '';
+                    } else if (classSessionObjectiveTexts.includes(baseObjectiveText)) {
+                        specialInputsHTML = `
+                            <div class="p-3 bg-gray-100 rounded-md border space-y-3">
+                                <div id="session-rows-container-${index}" class="space-y-2">
+                                    <div class="grid grid-cols-6 gap-2 items-center session-row">
+                                        <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md lesson-number-input" placeholder="رقم الحصة">
+                                        <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md lesson-name-input" placeholder="الدرس">
+                                        <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md class-name-input" placeholder="الصف/الشعبة">
+                                        <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-name-input" placeholder="اسم المعلم">
+                                        <select class="w-full text-sm p-1.5 border-gray-300 rounded-md performance-level-select bg-white">
+                                            <option value="ممتاز">ممتاز</option>
+                                            <option value="جيد جدا">جيد جدا</option>
+                                            <option value="جيد">جيد</option>
+                                            <option value="مقبول">مقبول</option>
+                                            <option value="ضعيف">ضعيف</option>
+                                        </select>
+                                        <span></span>
+                                    </div>
+                                </div>
+                                <button type="button" data-index="${index}" class="add-session-btn text-sm text-blue-600 hover:underline">+ إضافة حصة</button>
+                            </div>
+                        `;
+                    }
+
+
+                    opinionBlock.innerHTML = `
+                        <label for="${opinionId}" class="block text-sm font-semibold text-gray-800">${parseInt(index) + 1}- ${genderedObjectiveText}</label>
+                        ${specialInputsHTML}
+                        ${standardButtonsHTML}
+                        <textarea id="${opinionId}" name="${opinionId}" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 mt-2" placeholder="..."></textarea>
+                    `;
+
+                    opinionsContainer.appendChild(opinionBlock);
+                });
+                
+                previouslySavedOpinions.forEach((value, id) => {
+                    const textarea = document.getElementById(id);
+                    if (textarea) textarea.value = value;
+                });
+            }
+
+            // --- ATTACHMENTS HANDLING ---
+            function renderAttachmentsList() {
+                attachmentsList.innerHTML = '';
+                if (currentAttachments.length === 0) return;
+                currentAttachments.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-2 bg-gray-100 rounded-md text-sm';
+                    item.innerHTML = `
+                        <span class="text-gray-700 truncate">${file.name}</span>
+                        <button type="button" data-index="${index}" class="remove-attachment-btn text-red-500 hover:text-red-700">&times;</button>
+                    `;
+                    attachmentsList.appendChild(item);
+                });
+            }
+
+            attachmentsInput.addEventListener('change', (e) => {
+                Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        currentAttachments.push({ name: file.name, data: event.target.result });
+                        renderAttachmentsList();
+                    };
+                    reader.readAsDataURL(file);
+                });
+                e.target.value = '';
             });
 
-            document.getElementById('visitorName').addEventListener('input', saveVisitorData);
-            document.getElementById('visitorPosition').addEventListener('input', saveVisitorData);
-            document.getElementById('teacher-dashboard-name').addEventListener('change', loadTeacherDashboard);
-            document.getElementById('chartTypeSelect').addEventListener('change', updateDashboardView);
-             document.getElementById('visitDateSelect').addEventListener('change', updateDashboardView);
+            attachmentsList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-attachment-btn')) {
+                    currentAttachments.splice(e.target.dataset.index, 1);
+                    renderAttachmentsList();
+                }
+            });
 
 
-            // Set initial view
-            toggleView('form-view');
+            // --- REPORT PREVIEW ---
+            function renderReportPreview(data) {
+                const reportContent = document.getElementById('reportContent');
+                const visitDate = new Date(data.visitDate).toLocaleDateString('ar-OM');
+                let reportHTML = `<h2 class="text-2xl font-bold mb-4 text-center">تقرير زيارة إشرافية</h2>`;
+                reportHTML += `<div class="grid grid-cols-2 gap-4 mb-6 border-b pb-4">
+                                <p><strong>اسم المدرسة:</strong> ${data.schoolName}</p>
+                                <p><strong>تاريخ الزيارة:</strong> ${visitDate}</p>
+                                <p class="col-span-2"><strong>نوع الزيارة:</strong> ${data.visitTypeName}</p>
+                               </div>`;
+                
+                reportHTML += `<div id="reportObjectives">
+                                <div class="flex justify-between items-center mt-6 mb-3">
+                                    <h3 class="text-xl font-semibold">أهداف الزيارة:</h3>
+                                    <button data-target="reportObjectives" class="copy-section-btn text-xs text-blue-600 hover:underline no-print">نسخ</button>
+                                </div>
+                                <ol class="list-decimal list-inside space-y-2">`;
+                data.checkedObjectives.forEach(obj => { reportHTML += `<li>${obj}</li>`; });
+                reportHTML += `</ol></div>`;
+                
+                reportHTML += `<div id="reportOpinions">
+                                <div class="flex justify-between items-center mt-6 mb-3">
+                                    <h3 class="text-xl font-semibold">رأي الزائر:</h3>
+                                    <button data-target="reportOpinions" class="copy-section-btn text-xs text-blue-600 hover:underline no-print">نسخ</button>
+                                </div>
+                                <ol class="list-decimal list-inside space-y-2">`;
+                data.opinions.sort((a,b) => a.index - b.index).forEach(op => { reportHTML += `<li class="text-gray-700">${op.text.replace(/\n/g, '<br>')}</li>`; });
+                reportHTML += `</ol></div>`;
+
+                if(data.recommendations) {
+                    reportHTML += `<div id="reportRecommendations">
+                                    <div class="flex justify-between items-center mt-6 mb-3">
+                                        <h3 class="text-xl font-semibold">التوصيات:</h3>
+                                        <button data-target="reportRecommendations" class="copy-section-btn text-xs text-blue-600 hover:underline no-print">نسخ</button>
+                                    </div>
+                                    <p class="text-gray-700">${data.recommendations.replace(/\n/g, '<br>')}</p></div>`;
+                }
+
+                if(data.attachments && data.attachments.length > 0) {
+                     reportHTML += `<div id="reportAttachments"><h3 class="text-xl font-semibold mt-6 mb-3">المرفقات:</h3><ul class="list-disc list-inside space-y-1">`;
+                     data.attachments.forEach(file => {
+                         reportHTML += `<li class="text-gray-700">${file.name}</li>`;
+                     });
+                     reportHTML += `</ul></div>`;
+                }
+                
+                reportContent.innerHTML = reportHTML;
+            }
+
+            // --- EVENT LISTENERS ---
+            addNewReportBtn.addEventListener('click', () => showFormView());
+            backToDashboardBtn.addEventListener('click', showDashboardView);
+            
+            reportForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const reportId = reportIdInput.value;
+                const checkedObjectives = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => cb.dataset.genderedValue);
+                const opinions = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => {
+                    return { index: cb.dataset.index, text: document.getElementById(`opinion-${cb.dataset.index}`).value };
+                });
+
+                const reportData = {
+                    schoolName: document.getElementById('schoolName').value,
+                    visitDate: new Date(document.getElementById('visitDate').value).getTime(), // Save as timestamp
+                    visitTypeKey: currentVisitTypeKey,
+                    visitTypeName: visitTypesData[currentVisitTypeKey].name,
+                    checkedObjectives, opinions,
+                    recommendations: recommendationsTextarea.value,
+                    attachments: currentAttachments,
+                };
+
+                const reportIndex = savedReports.findIndex(r => r.id === reportId);
+
+                if (reportIndex > -1) {
+                    savedReports[reportIndex] = { ...savedReports[reportIndex], ...reportData };
+                } else {
+                    reportData.id = `report_${Date.now()}`;
+                    savedReports.push(reportData);
+                }
+                saveReports();
+                showDashboardView();
+            });
+            
+            prepareReportBtn.addEventListener('click', function() {
+                if (!reportForm.checkValidity()) {
+                    reportForm.reportValidity();
+                    return;
+                }
+                previewSource = 'form';
+                const checkedObjectives = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => cb.dataset.genderedValue);
+                 const opinions = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => {
+                    return { index: cb.dataset.index, text: document.getElementById(`opinion-${cb.dataset.index}`).value };
+                });
+                const reportData = {
+                    schoolName: document.getElementById('schoolName').value,
+                    visitDate: new Date(document.getElementById('visitDate').value),
+                    visitTypeName: visitTypesData[currentVisitTypeKey].name,
+                    checkedObjectives, opinions,
+                    recommendations: recommendationsTextarea.value,
+                    attachments: currentAttachments
+                };
+                showPreviewView(reportData);
+            });
+
+            backToBtn.addEventListener('click', () => {
+                if (previewSource === 'dashboard') {
+                    showDashboardView();
+                } else {
+                    showFormView(reportIdInput.value || null);
+                }
+            });
+            
+            function copyToClipboard(text, buttonElement) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.top = 0;
+                textArea.style.left = 0;
+                textArea.style.opacity = 0;
+
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    document.execCommand('copy');
+                    const originalText = buttonElement.textContent;
+                    buttonElement.textContent = 'تم النسخ!';
+                    setTimeout(() => {
+                        buttonElement.textContent = originalText;
+                    }, 2000);
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                    alert('فشل النسخ!');
+                }
+
+                document.body.removeChild(textArea);
+            }
+
+            copyAllBtn.addEventListener('click', (e) => {
+                const reportObjectives = document.getElementById('reportObjectives');
+                const reportOpinions = document.getElementById('reportOpinions');
+                const reportRecommendations = document.getElementById('reportRecommendations');
+
+                let textToCopy = "";
+
+                if (reportObjectives) {
+                    textToCopy += "أهداف الزيارة:\n";
+                    reportObjectives.querySelectorAll('li').forEach((li, index) => {
+                        textToCopy += `${index + 1}- ${li.textContent.trim()}\n`;
+                    });
+                    textToCopy += "\n";
+                }
+
+                if (reportOpinions) {
+                    textToCopy += "رأي الزائر:\n";
+                    reportOpinions.querySelectorAll('li').forEach((li, index) => {
+                        textToCopy += `${index + 1}- ${li.innerText.trim()}\n`;
+                    });
+                    textToCopy += "\n";
+                }
+
+                if (reportRecommendations && reportRecommendations.querySelector('p')) {
+                    textToCopy += "التوصيات:\n";
+                    textToCopy += reportRecommendations.querySelector('p').innerText.trim();
+                }
+
+                copyToClipboard(textToCopy.trim(), e.target);
+            });
+
+            reportPreviewContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('copy-section-btn')) {
+                    const targetId = e.target.dataset.target;
+                    const targetElement = document.getElementById(targetId);
+                    if (!targetElement) return;
+
+                    let textToCopy = "";
+                    if (targetId === 'reportRecommendations') {
+                        textToCopy = targetElement.querySelector('p').innerText.trim();
+                    } else {
+                        targetElement.querySelectorAll('li').forEach((li, index) => {
+                            textToCopy += `${index + 1}- ${li.textContent.trim()}\n`;
+                        });
+                    }
+
+                    copyToClipboard(textToCopy.trim(), e.target);
+                }
+            });
+
+
+            reportsListContainer.addEventListener('click', async (e) => {
+                const target = e.target;
+                const reportId = target.dataset.id;
+                if (!reportId) return;
+                if (target.classList.contains('view-btn')) {
+                    previewSource = 'dashboard';
+                    const report = savedReports.find(r => r.id === reportId);
+                    showPreviewView(report);
+                }
+                if (target.classList.contains('edit-btn')) {
+                    showFormView(reportId);
+                }
+                if (target.classList.contains('delete-btn')) {
+                    const report = savedReports.find(r => r.id === reportId);
+                    if (confirm(`هل أنت متأكد من حذف تقرير مدرسة "${report.schoolName}"؟`)) {
+                        savedReports = savedReports.filter(r => r.id !== reportId);
+                        saveReports();
+                        renderDashboard();
+                    }
+                }
+            });
+            
+            schoolNameSelect.addEventListener('change', renderObjectivesForCurrentType);
+            visitTypeSelect.addEventListener('change', (e) => {
+                currentVisitTypeKey = e.target.value;
+                renderObjectivesForCurrentType();
+            });
+
+            objectivesContainer.addEventListener('change', (e) => {
+                updateOpinionsSection();
+                updateSelectAllButtonState();
+            });
+
+            selectAllObjectivesBtn.addEventListener('click', () => {
+                const checkboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]');
+                if (checkboxes.length === 0) return;
+                const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+                checkboxes.forEach(cb => { cb.checked = !allSelected; });
+                updateOpinionsSection();
+                updateSelectAllButtonState();
+            });
+
+            opinionsContainer.addEventListener('click', (e) => {
+                 if (e.target.matches('.add-teacher-btn, .remove-teacher-btn, .add-session-btn, .remove-session-btn')) {
+                    const opinionBlock = e.target.closest('.opinion-block');
+                    if(e.target.matches('.add-teacher-btn')) {
+                        const container = opinionBlock.querySelector('[id^="teacher-rows-container"]');
+                        const newRow = document.createElement('div');
+                        newRow.className = 'grid grid-cols-4 gap-2 items-center teacher-timetable-row';
+                        newRow.innerHTML = `
+                            <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-name-input" placeholder="اسم المعلم">
+                            <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-load-input" placeholder="نصاب الحصص">
+                            <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-classes-input" placeholder="الصفوف التي يدرسها">
+                            <button type="button" class="remove-teacher-btn text-red-500 hover:text-red-700 text-lg font-bold">×</button>
+                        `;
+                        container.appendChild(newRow);
+                    } else if (e.target.matches('.remove-teacher-btn')) {
+                         e.target.closest('.teacher-timetable-row').remove();
+                    } else if (e.target.matches('.add-session-btn')) {
+                        const container = opinionBlock.querySelector('[id^="session-rows-container"]');
+                        const newRow = document.createElement('div');
+                        newRow.className = 'grid grid-cols-6 gap-2 items-center session-row mt-2';
+                        newRow.innerHTML = `
+                            <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md lesson-number-input" placeholder="رقم الحصة">
+                            <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md lesson-name-input" placeholder="الدرس">
+                            <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md class-name-input" placeholder="الصف/الشعبة">
+                            <input type="text" class="w-full text-sm p-1.5 border-gray-300 rounded-md teacher-name-input" placeholder="اسم المعلم">
+                            <select class="w-full text-sm p-1.5 border-gray-300 rounded-md performance-level-select bg-white">
+                                <option value="ممتاز">ممتاز</option>
+                                <option value="جيد جدا">جيد جدا</option>
+                                <option value="جيد">جيد</option>
+                                <option value="مقبول">مقبول</option>
+                                <option value="ضعيف">ضعيف</option>
+                            </select>
+                            <button type="button" class="remove-session-btn text-red-500 hover:text-red-700 text-lg font-bold">×</button>
+                        `;
+                        container.appendChild(newRow);
+                    } else if (e.target.matches('.remove-session-btn')) {
+                         e.target.closest('.session-row').remove();
+                    }
+                    return;
+                }
+
+                if(e.target.matches('button[data-opinion]')) {
+                    const opinionType = e.target.dataset.opinion;
+                    const index = e.target.dataset.index;
+                    const opinionBlock = e.target.closest('.opinion-block');
+                    const textarea = opinionBlock.querySelector('textarea');
+                    const existingText = textarea.value.trim();
+                    const schoolName = schoolNameSelect.value;
+                    const context = getTeacherContext(schoolName);
+                    
+                    let generatedText = '';
+
+                    if (opinionType === 'incomplete') {
+                        let baseOpinionText = visitTypesData[currentVisitTypeKey].incompleteOpinions[index];
+                        generatedText = applyGender(baseOpinionText, context);
+                    } else {
+                        const baseObjectiveText = visitTypesData[currentVisitTypeKey].objectives_list[index];
+                        const timetableObjectiveText = "متابعة توزيع الجدول ونصاب الحصص للمعلمة.";
+                        const classSessionObjectiveTexts = ["حضور حصة للمعلمة والمداولة الاشرافية.", "حضور موقف صفي مع المعلمة والمداولة الاشرافية."];
+                        let baseOpinionText = visitTypesData[currentVisitTypeKey].completedOpinions[index];
+                        generatedText = applyGender(baseOpinionText, context);
+
+                        if (e.target.dataset.special === 'approval') {
+                            const dropdown = opinionBlock.querySelector('.approval-status-select');
+                            if (dropdown) dropdown.value = '';
+                        } else if (baseObjectiveText === timetableObjectiveText) {
+                            let summary = "تمت متابعة توزيع الجدول المدرسي، وكانت الأنصبة كالتالي:\n";
+                            const teacherRows = opinionBlock.querySelectorAll('.teacher-timetable-row');
+                            let detailsFound = false;
+                            teacherRows.forEach(row => {
+                                const teacherName = row.querySelector('.teacher-name-input').value;
+                                const load = row.querySelector('.teacher-load-input').value;
+                                const classes = row.querySelector('.teacher-classes-input').value;
+                                if (teacherName || load || classes) {
+                                    detailsFound = true;
+                                    summary += `- ${teacherName || 'معلم غير مسمى'}: نصابه (${load || 'غير محدد'}) حصة، ويدرس الصفوف (${classes || 'غير محددة'}).\n`;
+                                }
+                            });
+                            if(detailsFound) generatedText = summary.trim();
+                        } else if (classSessionObjectiveTexts.includes(baseObjectiveText)) {
+                             let summary = "";
+                            const sessionRows = opinionBlock.querySelectorAll('.session-row');
+                            let detailsFound = false;
+                            sessionRows.forEach(row => {
+                                const lessonNumber = row.querySelector('.lesson-number-input').value;
+                                const lessonName = row.querySelector('.lesson-name-input').value;
+                                const className = row.querySelector('.class-name-input').value;
+                                const teacherName = row.querySelector('.teacher-name-input').value;
+                                const performance = row.querySelector('.performance-level-select').value;
+                                if (lessonNumber || lessonName || className || teacherName) {
+                                    detailsFound = true;
+                                    summary += `تم حضور موقف صفي للمعلمة الحصة (${lessonNumber || 'غير محددة'}) درس (${lessonName || 'غير محدد'}) للصف ${className || 'غير محدد'} مع ا.${teacherName || 'غير محدد'} وكان مستوى الاداء ${performance}.\n`;
+                                }
+                            });
+                            if(detailsFound) generatedText = summary.trim();
+                        }
+                    }
+                    
+                    textarea.value = generatedText + (existingText ? ' ' + existingText : '');
+                }
+            });
+            
+            opinionsContainer.addEventListener('change', (e) => {
+                if (e.target.matches('select.approval-status-select')) {
+                    const index = e.target.dataset.index;
+                    const textarea = document.getElementById(`opinion-${index}`);
+                    const schoolName = schoolNameSelect.value;
+                    const context = getTeacherContext(schoolName);
+                    const selectedValue = e.target.value;
+
+                    if (selectedValue && textarea) {
+                         let text = '';
+                        switch(selectedValue) {
+                            case 'in_progress':
+                                text = "تم متابعة موافقات التعيين وهي في اجراءات التعيين.";
+                                break;
+                            case 'no_approval':
+                                text = "تم متابعة موافقات التعيين وليس لديها موافقة تعيين.";
+                                break;
+                            case 'expired':
+                                text = "تم متابعة موافقات التعيين والموافقة المبدئية منتهية الصلاحية.";
+                                break;
+                        }
+                        textarea.value = applyGender(text, context);
+                    }
+                }
+            });
+
+            generateRecsBtn.addEventListener('click', () => {
+                const checkedCheckboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]:checked');
+                if (checkedCheckboxes.length === 0) {
+                    alert("الرجاء تحديد هدف واحد على الأقل.");
+                    return;
+                }
+                const currentTypeData = visitTypesData[currentVisitTypeKey];
+                const schoolName = schoolNameSelect.value;
+                const context = getTeacherContext(schoolName);
+                let generatedRecommendations = [];
+
+                checkedCheckboxes.forEach(checkbox => {
+                    const index = checkbox.dataset.index;
+                    const opinionTextarea = document.getElementById(`opinion-${index}`);
+                    let baseIncompleteOpinion = currentTypeData.incompleteOpinions[index];
+                    let genderedIncompleteOpinion = applyGender(baseIncompleteOpinion, context);
+
+                    if (opinionTextarea && opinionTextarea.value.trim().length > 0 && opinionTextarea.value.trim() === genderedIncompleteOpinion.trim()) {
+                         let baseRecommendation = currentTypeData.recommendations[index];
+                         let genderedRecommendation = applyGender(baseRecommendation, context);
+                         generatedRecommendations.push(genderedRecommendation);
+                    }
+                });
+
+                if (generatedRecommendations.length > 0) {
+                    recommendationsTextarea.value = "نوصي إدارة المدرسة بالاتي:\n- " + generatedRecommendations.join('\n- ') + "\n\nوالله الموفق.";
+                } else {
+                    recommendationsTextarea.value = "سير العمل ممتاز ولا توجد حاجة لتوصيات حالية.";
+                }
+            });
+
+            // --- MODAL LOGIC ---
+            manageVisitTypesBtn.addEventListener('click', () => {
+                renderManagerModal();
+                manageTypesModal.classList.remove('hidden');
+            });
+            closeManageModalBtn.addEventListener('click', () => manageTypesModal.classList.add('hidden'));
+            addNewTypeBtn.addEventListener('click', () => {
+                editTypeKeyInput.value = '';
+                addEditModalTitle.textContent = 'إضافة نوع زيارة جديد';
+                addEditTypeForm.reset();
+                addEditTypeModal.classList.remove('hidden');
+            });
+            visitTypesList.addEventListener('click', (e) => {
+                const key = e.target.dataset.key;
+                if (!key) return;
+                if (e.target.classList.contains('edit-btn')) {
+                    editTypeKeyInput.value = key;
+                    addEditModalTitle.textContent = 'تعديل نوع الزيارة';
+                    typeNameInput.value = visitTypesData[key].name;
+                    typeObjectivesTextarea.value = visitTypesData[key].objectives_list.join('\n');
+                    addEditTypeModal.classList.remove('hidden');
+                }
+                if (e.target.classList.contains('delete-btn')) {
+                    if (Object.keys(visitTypesData).length <= 1) { return alert("يجب أن يكون هناك نوع زيارة واحد على الأقل."); }
+                    if (confirm(`هل أنت متأكد من حذف "${visitTypesData[key].name}"؟`)) {
+                        delete visitTypesData[key];
+                        saveVisitTypes();
+                        renderManagerModal();
+                        populateVisitTypeDropdown();
+                        renderObjectivesForCurrentType();
+                    }
+                }
+            });
+            cancelEditBtn.addEventListener('click', () => addEditTypeModal.classList.add('hidden'));
+            addEditTypeForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const key = editTypeKeyInput.value;
+                const name = typeNameInput.value.trim();
+                const objectives = typeObjectivesTextarea.value.trim().split('\n').filter(line => line.trim() !== '');
+                if (!name || objectives.length === 0) { return alert("الرجاء إدخال اسم ونوع وهدف واحد على الأقل."); }
+                
+                const newKey = key || `type_${Date.now()}`;
+                
+                visitTypesData[newKey] = { 
+                    name, 
+                    objectives_list: objectives,
+                    completedOpinions: objectives.map(o => `تم ${o.replace(/\.$/, "")} بنجاح.`),
+                    incompleteOpinions: objectives.map(o => `يوجد ملاحظات بخصوص ${o.replace(/\.$/, "")}`),
+                    recommendations: objectives.map(o => `متابعة ${o.replace(/\.$/, "")}.`)
+                };
+                saveVisitTypes();
+                currentVisitTypeKey = newKey;
+                renderManagerModal();
+                populateVisitTypeDropdown();
+                renderObjectivesForCurrentType();
+                addEditTypeModal.classList.add('hidden');
+            });
+
+            function renderManagerModal() {
+                visitTypesList.innerHTML = '';
+                 Object.keys(visitTypesData).forEach(key => {
+                    const type = visitTypesData[key];
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-2 bg-gray-50 rounded-lg';
+                    item.innerHTML = `
+                        <span class="font-medium">${type.name}</span>
+                        <div class="flex gap-2">
+                            <button data-key="${key}" class="edit-btn text-sm text-blue-600 hover:underline">تعديل</button>
+                            <button data-key="${key}" class="delete-btn text-sm text-red-600 hover:underline">حذف</button>
+                        </div>
+                    `;
+                    visitTypesList.appendChild(item);
+                });
+            }
+
+            // --- APP INITIALIZATION ---
+            function initializeApp() {
+                loadData();
+                populateVisitTypeDropdown();
+                renderObjectivesForCurrentType();
+                showDashboardView();
+            }
+
+            initializeApp();
         });
     </script>
+
 </body>
 </html>
 
