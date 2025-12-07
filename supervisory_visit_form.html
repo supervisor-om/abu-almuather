@@ -3,1141 +3,660 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير زيارة مدرسية</title>
-    <!-- Tailwind CSS for styling -->
+    <title>نظام خطة سير المشرفين</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter font from Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Import Map: تعريف مصادر المكتبات -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js",
+        "lucide-react": "https://esm.sh/lucide-react@0.294.0"
+      }
+    }
+    </script>
+
     <style>
-        /* Custom styles to use the Cairo font */
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
+        /* أنماط مخصصة */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background-color: #f3f4f6; }
+        
+        /* أنماط الطباعة */
         @media print {
+            @page { size: A4; margin: 10mm; }
+            body, html, #root { width: 100%; margin: 0; padding: 0; background-color: white !important; }
+            body * { visibility: hidden; }
+            .printable-content, .printable-content * { visibility: visible; }
+            .printable-content { position: absolute; left: 0; top: 0; width: 100%; direction: rtl; }
             .no-print { display: none !important; }
-            body * {
-                visibility: hidden;
-            }
-            #reportPreviewContainer, #reportPreviewContainer * {
-                visibility: visible;
-            }
-            #reportPreviewContainer {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                box-shadow: none;
-                border: none;
-            }
-        }
-        .modal-backdrop {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .modal-content {
-            transition: transform 0.3s ease-in-out;
+            .only-print { display: block !important; visibility: visible !important; }
+            table { width: 100% !important; border-collapse: collapse; font-size: 12px; direction: rtl; }
+            th, td { border: 1px solid #000 !important; padding: 6px; text-align: right; color: black !important; }
+            thead th { background-color: #f0f0f0 !important; font-weight: bold; -webkit-print-color-adjust: exact; }
+            input { border: none !important; background: transparent !important; width: 100%; color: black !important; font-family: inherit; font-size: 12px; }
+            .shadow-sm, .shadow-md, .shadow-lg { box-shadow: none !important; }
+            .border-gray-200 { border-color: #000 !important; }
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
+    <div id="root"></div>
 
-    <!-- Auth View -->
-    <div id="authView" class="container mx-auto max-w-md p-6 md:p-8 my-10 bg-white rounded-2xl shadow-lg">
-        <div id="authContainer">
-            <h1 id="authTitle" class="text-3xl font-bold text-gray-800 text-center mb-6">تسجيل الدخول</h1>
-            <p id="authMessage" class="text-center mb-4"></p> <!-- For success/error messages -->
+    <!-- كود التطبيق -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useMemo, Component } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { initializeApp } from 'firebase/app';
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            onAuthStateChanged, 
+            signInWithCustomToken
+        } from 'firebase/auth';
+        import { 
+            getFirestore,
+            initializeFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            onSnapshot, 
+            query, 
+            serverTimestamp,
+            updateDoc,
+            deleteField,
+            getDoc
+        } from 'firebase/firestore';
+        import { 
+            Calendar, FileSpreadsheet, User, Lock, Unlock, Save, LogOut, CheckCircle, 
+            Users, ChevronRight, ChevronLeft, Search, AlertCircle, AlertTriangle, 
+            CalendarDays, Trash2, Plus, Edit, X, RefreshCw, Copyright, FileDown, 
+            History, Download, KeyRound, Settings 
+        } from 'lucide-react';
 
-            <!-- Login Form -->
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label for="loginEmail" class="block mb-2 text-sm font-medium text-gray-900">البريد الإلكتروني</label>
-                    <input type="email" id="loginEmail" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                </div>
-                <div>
-                    <label for="loginPassword" class="block mb-2 text-sm font-medium text-gray-900">كلمة المرور</label>
-                    <input type="password" id="loginPassword" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                </div>
-                 <div class="text-left text-sm">
-                    <button type="button" id="showReset" class="font-medium text-blue-600 hover:underline">نسيت كلمة المرور؟</button>
-                </div>
-                <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">دخول</button>
-                <p class="text-sm text-center text-gray-500">
-                    ليس لديك حساب؟ <button type="button" id="showRegister" class="font-medium text-blue-600 hover:underline">أنشئ حساباً جديداً</button>
-                </p>
-            </form>
-
-            <!-- Register Form -->
-            <form id="registerForm" class="space-y-6 hidden">
-                <div>
-                    <label for="registerEmail" class="block mb-2 text-sm font-medium text-gray-900">البريد الإلكتروني</label>
-                    <input type="email" id="registerEmail" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                </div>
-                <div>
-                    <label for="registerPassword" class="block mb-2 text-sm font-medium text-gray-900">كلمة المرور</label>
-                    <input type="password" id="registerPassword" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                </div>
-                <button type="submit" class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">إنشاء حساب</button>
-                <p class="text-sm text-center text-gray-500">
-                    لديك حساب بالفعل؟ <button type="button" id="showLoginFromRegister" class="font-medium text-blue-600 hover:underline">سجل دخولك</button>
-                </p>
-            </form>
-
-            <!-- Reset Password Form -->
-            <form id="resetPasswordForm" class="space-y-6 hidden">
-                <p class="text-sm text-gray-600">أدخل بريدك الإلكتروني المسجل وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.</p>
-                <div>
-                    <label for="resetEmail" class="block mb-2 text-sm font-medium text-gray-900">البريد الإلكتروني</label>
-                    <input type="email" id="resetEmail" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                </div>
-                <button type="submit" class="w-full text-white bg-orange-600 hover:bg-orange-700 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">إرسال رابط إعادة التعيين</button>
-                <p class="text-sm text-center text-gray-500">
-                    <button type="button" id="backToLogin" class="font-medium text-blue-600 hover:underline">العودة لتسجيل الدخول</button>
-                </p>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- Dashboard View -->
-    <div id="dashboardView" class="container mx-auto max-w-4xl p-6 md:p-8 my-10 bg-white rounded-2xl shadow-lg hidden">
-        <header class="flex flex-col sm:flex-row justify-between items-center mb-4 border-b pb-4 gap-4">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">سجل التقارير</h1>
-                <p id="userEmailDisplay" class="text-gray-500 mt-2"></p>
-            </div>
-             <div class="flex items-center gap-4 w-full sm:w-auto">
-                <button id="logoutBtn" class="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 font-medium rounded-lg text-sm px-6 py-3 whitespace-nowrap transition-colors">
-                    تسجيل الخروج
-                </button>
-                <button id="addNewReportBtn" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-3 whitespace-nowrap transition-colors">
-                    + تقرير جديد
-                </button>
-            </div>
-        </header>
-        <div id="reportsListContainer">
-            <!-- Reports list will be dynamically populated here -->
-        </div>
-    </div>
-
-
-    <!-- Form View -->
-    <div id="formView" class="container mx-auto max-w-4xl p-6 md:p-8 my-10 bg-white rounded-2xl shadow-lg hidden no-print">
-        <header class="text-center mb-8">
-            <h1 id="formTitle" class="text-3xl font-bold text-gray-800">إنشاء تقرير زيارة إشرافية</h1>
-            <p class="text-gray-500 mt-2">نموذج لتوثيق الزيارات الإشرافية للمعلمين</p>
-        </header>
-
-        <form id="reportForm" class="space-y-8">
-             <input type="hidden" id="reportId" value="">
-
-            <!-- Basic Info Section -->
-            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
-                <legend class="text-lg font-semibold text-gray-700 px-2">معلومات أساسية</legend>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                    <div>
-                        <label for="schoolName" class="block mb-2 text-sm font-medium text-gray-900">اسم المدرسة</label>
-                        <select id="schoolName" name="schoolName" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                            <option value="" selected disabled>اختر المدرسة</option>
-                            <option value="أبو القاسم الزهراوي">أبو القاسم الزهراوي</option>
-                            <option value="أبو أيوب الحضرمي">أبو أيوب الحضرمي</option>
-                            <option value="أبو تمام">أبو تمام</option>
-                            <option value="أحمد بن النعمان">أحمد بن النعمان</option>
-                            <option value="الشيخ سالم السيابي">الشيخ سالم السيابي</option>
-                            <option value="الشيخ سعيد الكندي مسائي">الشيخ سعيد الكندي مسائي</option>
-                            <option value="الشيخ ناصر الخروصي">الشيخ ناصر الخروصي</option>
-                            <option value="جنادة الازدى (موسى سابقا)">جنادة الازدى (موسى سابقا)</option>
-                            <option value="حفص بن راشد">حفص بن راشد</option>
-                            <option value="خريس الحبوس">خريس الحبوس</option>
-                            <option value="سهيل بن عمرو العامري">سهيل بن عمرو العامري</option>
-                            <option value="كعب بن زيد">كعب بن زيد</option>
-                            <option value="يزيد الطائي">يزيد الطائي</option>
-                            <option value="اجيال الثقافة">اجيال الثقافة</option>
-                            <option value="اجيال الفردوس - الحيل">اجيال الفردوس - الحيل</option>
-                            <option value="البيان">البيان</option>
-                            <option value="الجيل المبدع">الجيل المبدع</option>
-                            <option value="الريادة">الريادة</option>
-                            <option value="السراج">السراج</option>
-                            <option value="الصفوة المعبيلة">الصفوة المعبيلة</option>
-                            <option value="المجد">المجد</option>
-                            <option value="انس بن مالك (المنار سابقا)">انس بن مالك (المنار سابقا)</option>
-                            <option value="جيفر بن الجلندي">جيفر بن الجلندي</option>
-                            <option value="ضياء المستقبل">ضياء المستقبل</option>
-                            <option value="مشاعل مسقط سور الحديد">مشاعل مسقط سور الحديد</option>
-                            <option value="منابع التفوق">منابع التفوق</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="visitDate" class="block mb-2 text-sm font-medium text-gray-900">تاريخ الزيارة</label>
-                        <input type="date" id="visitDate" name="visitDate" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                    </div>
-                </div>
-            </fieldset>
-            
-            <!-- Visit Type Section -->
-            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
-                <legend class="text-lg font-semibold text-gray-700 px-2">نوع الزيارة</legend>
-                <div class="flex items-center gap-4 mt-2">
-                    <select id="visitTypeSelect" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                        <!-- Options will be dynamically generated by JS -->
-                    </select>
-                    <button type="button" id="manageVisitTypesBtn" class="p-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg border hover:bg-gray-200 transition-colors whitespace-nowrap">
-                        ⚙️ إدارة الأنواع
-                    </button>
-                </div>
-            </fieldset>
-
-            <!-- Visit Objectives Section -->
-            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
-                <div class="flex justify-between items-center mb-4">
-                     <legend class="text-lg font-semibold text-gray-700 px-2">أهداف الزيارة</legend>
-                     <button type="button" id="selectAllObjectivesBtn" class="text-sm font-medium text-blue-600 hover:underline">اختيار الكل</button>
-                </div>
-                <div id="objectivesContainer" class="space-y-4">
-                    <!-- Checkboxes will be dynamically generated by JS -->
-                </div>
-            </fieldset>
-
-            <!-- Visitor's Opinion Section -->
-            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
-                <legend class="text-lg font-semibold text-gray-700 px-2">رأي الزائر</legend>
-                 <p class="text-sm text-gray-500 mb-4">اكتب ملاحظاتك لكل هدف من الأهداف المحددة أعلاه.</p>
-                <div id="opinionsContainer" class="space-y-6">
-                    <!-- Opinion textareas will be generated here -->
-                </div>
-            </fieldset>
-
-            <!-- Recommendations Section -->
-            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
-                <legend class="text-lg font-semibold text-gray-700 px-2">التوصيات</legend>
-                <div class="mt-4">
-                    <div class="flex items-center justify-between mb-2 gap-4 flex-wrap">
-                        <label for="recommendations" class="block text-sm font-medium text-gray-900 sr-only">التوصيات</label>
-                        <div class="flex gap-4">
-                             <button type="button" id="generate-recommendations-btn" class="flex items-center text-sm text-blue-600 font-semibold hover:text-blue-800 transition-colors">
-                                📋 توليد التوصيات
-                            </button>
-                        </div>
-                    </div>
-                    <textarea id="recommendations" name="recommendations" rows="5" class="block p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="اكتب التوصيات والملاحظات النهائية هنا أو استخدم زر التوليد التلقائي..."></textarea>
-                </div>
-            </fieldset>
-
-            <!-- Attachments Section -->
-            <fieldset class="border p-6 rounded-lg bg-gray-50/50">
-                <legend class="text-lg font-semibold text-gray-700 px-2">المرفقات</legend>
-                <div class="mt-4">
-                    <label for="attachmentsInput" class="block mb-2 text-sm font-medium text-gray-900">اختر ملفات (صور، مستندات...)</label>
-                    <input type="file" id="attachmentsInput" multiple class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
-                    <div id="attachmentsList" class="mt-4 space-y-2">
-                        <!-- Attached files will be listed here -->
-                    </div>
-                </div>
-            </fieldset>
-            
-            <!-- Action Buttons -->
-            <div class="flex justify-end pt-4 gap-4">
-                 <button type="button" id="backToDashboardBtn" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm w-full sm:w-auto px-8 py-3 text-center transition-colors">إلغاء</button>
-                <button type="button" id="prepareReportBtn" class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm w-full sm:w-auto px-8 py-3 text-center transition-colors">معاينة التقرير</button>
-                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-8 py-3 text-center transition-colors">حفظ التقرير</button>
-            </div>
-
-        </form>
-    </div>
-
-    <!-- Report Preview Section -->
-    <div id="reportPreviewContainer" class="container mx-auto max-w-4xl p-6 md:p-8 my-10 bg-white rounded-2xl shadow-lg hidden">
-         <div id="reportContent" class="prose max-w-none">
-            <!-- Generated report will be injected here -->
-         </div>
-         <div class="flex justify-end pt-6 mt-6 border-t no-print gap-4 flex-wrap">
-            <button id="backToBtn" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-sm px-8 py-3 text-center transition-colors">رجوع</button>
-            <button id="copyAllBtn" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-8 py-3 text-center transition-colors">نسخ الكل</button>
-            <button onclick="window.print()" class="text-white bg-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-8 py-3 text-center transition-colors">طباعة</button>
-         </div>
-    </div>
-    
-    <!-- Modals (Unchanged) -->
-    <div id="manageTypesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 modal-backdrop">
-        <div class="relative top-1/2 -translate-y-1/2 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white modal-content">
-            <div class="flex justify-between items-center border-b pb-3">
-                 <h3 class="text-lg leading-6 font-medium text-gray-900">إدارة أنواع الزيارات</h3>
-                 <button id="closeManageModalBtn" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                 </button>
-            </div>
-            <div class="mt-4">
-                <div id="visitTypesList" class="space-y-2 max-h-60 overflow-y-auto pr-2"></div>
-                <div class="mt-6 pt-4 border-t">
-                    <button id="addNewTypeBtn" class="w-full text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center">إضافة نوع زيارة جديد</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="addEditTypeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 modal-backdrop">
-        <div class="relative top-1/2 -translate-y-1/2 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white modal-content">
-            <h3 id="addEditModalTitle" class="text-lg leading-6 font-medium text-gray-900 mb-4"></h3>
-            <form id="addEditTypeForm">
-                <input type="hidden" id="editTypeKey" value="">
-                <div>
-                    <label for="typeName" class="block mb-2 text-sm font-medium text-gray-900">اسم نوع الزيارة</label>
-                    <input type="text" id="typeName" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                </div>
-                <div class="mt-4">
-                    <label for="typeObjectives" class="block mb-2 text-sm font-medium text-gray-900">الأهداف (كل هدف في سطر)</label>
-                    <textarea id="typeObjectives" rows="8" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" required></textarea>
-                </div>
-                <div class="items-center px-4 py-3 gap-3 flex justify-end mt-4 border-t pt-4">
-                    <button id="saveTypeBtn" type="submit" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-green-700">حفظ</button>
-                    <button id="cancelEditBtn" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-auto shadow-sm hover:bg-gray-300">إلغاء</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script type="module">
-        // Firebase Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- PASTE FIREBASE CONFIG HERE ---
+        // -----------------------------------------------------------
+        // ⚠️ منطقة إعدادات فايربيس (تم التحديث)
+        // -----------------------------------------------------------
         const firebaseConfig = {
-          apiKey: "AIzaSyAEQsh6E351S1isxL4CFFGIpGSU2pVP5sc",
-          authDomain: "my-report-9b33f.firebaseapp.com",
-          projectId: "my-report-9b33f",
-          storageBucket: "my-report-9b33f.appspot.com",
-          messagingSenderId: "176527739587",
-          appId: "1:176527739587:web:7a524a73a2355b5a503076",
-          measurementId: "G-C24VPXRD1R"
+            apiKey: "AIzaSyAUknGaMIWzeYLWlp-EUZtFzshNaewjwDc",
+            authDomain: "supervisor-plan.firebaseapp.com",
+            projectId: "supervisor-plan",
+            storageBucket: "supervisor-plan.firebasestorage.app",
+            messagingSenderId: "584751936902",
+            appId: "1:584751936902:web:ab89e36c7f173e9a1c2807",
+            measurementId: "G-9YSYCNSNCD"
         };
+        // -----------------------------------------------------------
 
-        // --- GLOBAL FIREBASE VARIABLES ---
-        let app, db, auth;
-        let userId;
-        let unsubscribeReports = null;
-        let unsubscribeVisitTypes = null;
+        let app, auth, db;
+        let firebaseError = null;
+
+        try {
+            // 1. الأولوية للإعدادات التلقائية (في بيئة المعاينة)
+            if (typeof __firebase_config !== 'undefined') {
+                const config = JSON.parse(__firebase_config);
+                app = initializeApp(config);
+                auth = getAuth(app);
+                db = initializeFirestore(app, { experimentalForceLongPolling: true });
+            } 
+            // 2. استخدام الإعدادات اليدوية (عند التشغيل محلياً)
+            else if (firebaseConfig.apiKey) {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = initializeFirestore(app, { experimentalForceLongPolling: true });
+            } 
+            // 3. خطأ: لا توجد إعدادات
+            else {
+                firebaseError = "إعدادات Firebase مفقودة. يرجى فتح ملف HTML وإضافة بيانات مشروعك.";
+            }
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+            firebaseError = "خطأ في تهيئة قاعدة البيانات: " + e.message;
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'supervisor-plan-v1'; // معرف ثابت للتطبيق
+
+        // --- الثوابت ---
+        const COLLECTIONS = { PLANS: 'supervisor_plans', CONFIG: 'app_config' };
         
-        // --- MAIN APP LOGIC ---
-        document.addEventListener('DOMContentLoaded', function () {
+        // القائمة الافتراضية للتهيئة
+        const INITIAL_SUPERVISORS = [
+            { id: '1', name: 'صباح المقبالي', password: '1234' },
+            { id: '2', name: 'ماجد الأخزمي', password: '1234' },
+            { id: '3', name: 'ناصر الرزيقي', password: '1234' },
+            { id: '4', name: 'هشام العدواني', password: '1234' },
+            { id: '5', name: 'ناصر الناعبي', password: '1234' },
+            { id: '6', name: 'أسعد الخصيبي', password: '1234' },
+            { id: '7', name: 'هند الهنائية', password: '1234' },
+            { id: '8', name: 'يسرى الذخرية', password: '1234' },
+            { id: '9', name: 'رؤى المحاربية', password: '1234' },
+            { id: '10', name: 'أمل النعمانية', password: '1234' },
+            { id: '11', name: 'رياء الشريقية', password: '1234' },
+            { id: '12', name: 'عائشة البلوشية', password: '1234' },
+            { id: '13', name: 'مهرة اليعقوبية', password: '1234' },
+            { id: '14', name: 'رقية العميرية', password: '1234' },
+            { id: '15', name: 'آسية الكندية', password: '1234' }
+        ];
 
-            // --- DATABASE ---
-            const schoolTeacherData = {
-                "أبو القاسم الزهراوي": { teachers: ["أيوب سلطان ناصر الوردي", "يحيى عبدالله اليوسفي"], gender: "male" },
-                "أبو أيوب الحضرمي": { teachers: ["عبدالله بن سعيد بن عامر الفائدي"], gender: "male" },
-                "أبو تمام": { teachers: ["هاشم راشد سيف الهاشمي", "المعتصم بن عبدالله بن علي الفظيطي", "سعيد محمد المخيني"], gender: "male" },
-                "أحمد بن النعمان": { teachers: ["طارق يوسف يسند", "سليمان بن سالم بن مبارك الرزيقي", "عمر بن سعيد بن عبيد الشنجي"], gender: "male" },
-                "الشيخ سالم السيابي": { teachers: ["إبراهيم بن ناصر بن خميس البوسعيدي", "فهد محمد سعيد الخربوشي"], gender: "male" },
-                "الشيخ سعيد الكندي مسائي": { teachers: ["محمد سعيد محاد العمري", "راشد بن سالم بن خلفان المشيفري"], gender: "male" },
-                "الشيخ ناصر الخروصي": { teachers: ["عدنان حسين محاد تبوك"], gender: "male" },
-                "جنادة الازدى (موسى سابقا)": { teachers: ["إبراهيم بن محمد بن حمود الراسبي", "محمد ثاني خلفان الصلطي", "منصور بن محمد بن جمعه", "اسامة بن سليمان الدهماني", "محمود حمد خلفان المحروقي"], gender: "male" },
-                "حفص بن راشد": { teachers: ["سعود بن سيف بن ناصر الراسبي", "سليمان بن سيف بن سالم الوهيبي", "حميد بن حمد بن هديب السابعي", "عبدالحميد بن محمد بن عبدالرسول الزدجالي", "محمد بن احمد بن خالد الخضوري"], gender: "male" },
-                "خريس الحبوس": { teachers: ["عبدالله فرج الحجري"], gender: "male" },
-                "سهيل بن عمرو العامري": { teachers: ["راشد بن سالم بن خالد الرشيدي", "عمار بن علي بن صالح الحمادي", "محمد قاسم حمدان الناصري"], gender: "male" },
-                "كعب بن زيد": { teachers: ["أحمد بن سليمان بن سالم الحسني", "يوسف بن عبدالله بن سيف اليوسفي"], gender: "male" },
-                "يزيد الطائي": { teachers: [], gender: "male" },
-                "البيان": { teachers: ["جيهان علي محمد احمد يوسف"], gender: "female" },
-                "الجيل المبدع": { teachers: ["علياء عاطف سيد محمد"], gender: "female" },
-                "الريادة": { teachers: ["اسماء سعد سعد ابراهيم سعد", "Hossam mohammed Zayid"], gender: "mixed" },
-                "السراج": { teachers: ["عزاء بنت محمد بن حمود المالكي"], gender: "female" },
-                "الصفوة المعبيلة": { teachers: ["رحمة محمد محمد شلقامي"], gender: "female" },
-                "المجد": { teachers: ["آيه رضا عبد الفتاح العليمي حلاوه"], gender: "female" },
-                "انس بن مالك (المنار سابقا)": { teachers: ["اسراء محمد حسين"], gender: "female" },
-                "ضياء المستقبل": { teachers: ["علاء احمد وزيري"], gender: "female" },
-                "مشاعل مسقط سور الحديد": { teachers: ["دينا اشرف حبيب"], gender: "female" },
-                "منابع التفوق": { teachers: ["مها محمود السيد"], gender: "female" },
-                "اجيال الثقافة": { teachers: [], gender: "female" },
-                "اجيال الفردوس - الحيل": { teachers: [], gender: "female" },
-                "جيفر بن الجلندي": { teachers: [], gender: "male" }
-            };
+        // --- مكون حدود الخطأ ---
+        class ErrorBoundary extends Component {
+            constructor(props) { super(props); this.state = { hasError: false }; }
+            static getDerivedStateFromError() { return { hasError: true }; }
+            render() {
+                if (this.state.hasError) return <div className="flex h-screen items-center justify-center text-red-600 font-bold">حدث خطأ غير متوقع. يرجى تحديث الصفحة.</div>;
+                return this.props.children;
+            }
+        }
 
-            const defaultVisitTypesData = {
-                 'custom_exploratory': {
-                    name: 'زيارة استطلاعية',
-                    objectives_list: [
-                        "مقابلة مديرة المدرسة معلمةالرياضة المدرسية.",
-                        "حضور الطابور المدرسي.",
-                        "تحديث قاعدة بيانات المعلمة.",
-                        "متابعة موافقات التعيين.",
-                        "متابعة توفر الأدلة وكتاب الطالب وتحديثها.",
-                        "متابعة توزيع الجدول ونصاب الحصص للمعلمة.",
-                        "متابعة الملاعب وتخطيطها والأدوات الرياضية.",
-                        "متابعة النشرات ووثائق التقويم ومناقشة مستجداتها.",
-                        "متابعة المنهاج وسجلات المعلمة.",
-                        "حضور حصة للمعلمة والمداولة الاشرافية."
-                    ],
-                    completedOpinions: [
-                        "تم مقابلة الفاضلة مديرة المدرسة ومعلمة الرياضة المدرسية.",
-                        "تم حضور الطابور المدرسي وكان الهتاف بصوت عالي والانصراف منظم ومراسم رفع العلم صحيحة.",
-                        "تم تحديث قاعدة بيانات المعلمة عبر الرابط.",
-                        "تم متابعة موافقات التعيين والمعلمة على اقامة المدرسة.",
-                        "تم متابعة توفر الأدلة وتحديثها وكانت محدثة.",
-                        "تم متابعة توزيع الجدول المدرسي وكان متوافقًا مع الأنظمة.",
-                        "تم متابعة الملاعب وتخطيطها والأدوات الرياضية وكانت متوفرة.",
-                        "تم متابعة النشرات ووثائق التقويم ومناقشة مستجداتها.",
-                        "تم متابعة المنهاج وسجلات المعلمة وكانت مكتملة وتم اعتماد خطط المعلمة الفصلية.",
-                        "تم حضور موقف صفي للمعلمة وكان الأداء جيد جدا."
-                    ],
-                    incompleteOpinions: [
-                        "تم مقابلة الفاضلة مديرة المدرسة وبغياب معلمة الرياضة المدرسية.",
-                        "تم حضور الطابور المدرسي وكان الهتاف بصوت منخفض والانصراف غير منظم وتلاحظ اخطاء في مراسم رفع العلم وتم توجيه المعلم المسؤول عن الكشافة بتدريب الكشافة على المراسم الصحيحة.",
-                        "قاعدة بيانات المعلمة بحاجة إلى تحديث، وتم التنبيه على ضرورة استكمالها عبر الرابط.",
-                        "", // Placeholder for dropdown
-                        "تم متابعة توفر الأدلة وتحديثها وكانت محدثة بصيغة (PDF).",
-                        "تم متابعة توزيع الجدول المدرسي وتلاحظ وجود حصص موزعة في الجدول السابعة والثامنة وكذلك تفريغ المعلمة يوم الثلاثاء بدون عذر مقبول وتم توجيه ادارة المدرسة بتعديل ذلك والابتعاد عن الحصص الأخيرة.",
-                        "تم متابعة الملاعب وتخطيطها والأدوات الرياضية وتلاحظ عدم وجود أدوات رياضية في المدرسة وتم توجيه إدارة المدرسة بتوفير الأدوات وتجديد تخطيط الملعب.",
-                        "تم متابعة النشرات ووثائق التقويم ومناقشة مستجداتها ولوحظ عدم وصول النشرات الى المعلمين وتم ارسال النشرات والوثائق مرة اخرى الى المعلمين عبر الوتساب.",
-                        "تم متابعة المنهاج وسجلات المعلمة وكانت غير مكتملة، وتم توجيه المعلمة لاستكمالها.",
-                        "تعذر حضور حصة مع المعلمة."
-                    ],
-                    recommendations: [
-                        "متابعة التزام الهيئة التدريسية بالحضور.",
-                        "متابعة تدريب الكشافة على مراسم رفع العلم الصحيحة وتحسين تنظيم انصراف الطلبة.",
-                        "التأكيد على تحديث قاعدة بيانات المعلمة بشكل دوري.",
-                        "ضرورة الإسراع في استكمال موافقات التعيين الرسمية.",
-                        "التواصل مع الجهات المعنية لتوفير الكتب المدرسية الناقصة.",
-                        "تغيير جدول المعلمة ليكون لديها حصة رياضة كل يوم، وتوزيع الحصص بحيث يتم الابتعاد عن الحصة السابعة والثامنة.",
-                        "توفير الأدوات الرياضية حسب الكشف المرفق ونخص بالذكر (جهاز الوثب العالي مع المرتبة الخاصة به، الصندوق المقسم، المقعد السويدي، مرمى لكرة اليد عدد (2)، قوائم للسلة عدد (2)، شبك لكرة الطائرة) بالإضافة لباقي الأدوات في الكشف، وتجديد تخطيط الملعب.",
-                        "التأكيد على وصول جميع النشرات والوثائق للمعلمين وتوثيق استلامهم لها.",
-                        "متابعة استكمال سجلات المعلمة (التحضير+الزي والملاحظة+الخطة).",
-                        "التنسيق المسبق مع المعلمة لحضور حصة دراسية."
-                    ]
-                },
-                'supervisory_october': {
-                    name: 'زيارة اشرافية (أكتوبر)',
-                    objectives_list: [
-                        "الالتقاء بالفاضلة مديرة المدرسة ومعلمةالرياضة المدرسية.",
-                        "حضور الطابور المدرسي.",
-                        "متابعة تنفيذ خطة المنهاج والاطلاع على سجلات المتابعة (الزي والمشاركة).",
-                        "حضور موقف صفي مع المعلمة والمداولة الاشرافية.",
-                        "شرح اليه تنفيذ الحصة كتطبيقات تنافسية.",
-                        "حث المعلمة على الاطلاع على زياراته الاشرافية والحرص على الالتزام بتنفيذ النشرات الخاصة بالمادة.",
-                        "متابعة تنفيذ التوصيات السابقة."
-                    ],
-                    completedOpinions: [
-                        "تم الالتقاء بالفاضلة مديرة المدرسة ومعلمة الرياضة المدرسية.",
-                        "تم حضور الطابور المدرسي وكان منظماً.",
-                        "تم متابعة تنفيذ خطة المنهاج وسجلات المتابعة وكانت مكتملة.",
-                        "تم حضور موقف صفي مع المعلمة وكانت المداولة مثمرة.",
-                        "تم شرح اليه تنفيذ الحصة كتطبيقات تنافسية.",
-                        "تم حث المعلمة على الاطلاع على الزيارات الاشرافية والالتزام بالنشرات.",
-                        "تمت متابعة تنفيذ التوصيات السابقة وكانت مكتملة."
-                    ],
-                    incompleteOpinions: [
-                        "تم الالتقاء بالفاضلة مديرة المدرسة وبغياب معلمة الرياضة المدرسية.",
-                        "لوحظ وجود بعض الملاحظات في تنظيم الطابور المدرسي.",
-                        "سجلات المتابعة (الزي والمشاركة) غير مكتملة، وتم توجيه المعلمة لاستكمالها.",
-                        "تعذر حضور موقف صفي مع المعلمة.",
-                        "لوحظ ضعف في تطبيق الحصة كتطبيقات تنافسية، وتم إعادة شرح الآلية للمعلمة.",
-                        "لوحظ عدم اطلاع المعلمة على الزيارات السابقة، وتم التأكيد عليها بضرورة المتابعة.",
-                        "بعض التوصيات السابقة لم يتم تنفيذها، وتم مناقشة الأسباب مع المعلمة والإدارة."
-                    ],
-                    recommendations: [
-                        "متابعة التزام الهيئة التدريسية بالحضور.",
-                        "تحسين تنظيم الطابور الصباحي.",
-                        "ضرورة استكمال سجلات المتابعة (الزي والمشاركة) بشكل دوري.",
-                        "التنسيق المسبق لحضور موقف صفي.",
-                        "التأكيد على تنفيذ الحصص كتطبيقات تنافسية لزيادة تفاعل الطلبة.",
-                        "حث المعلمة على المتابعة الدورية للزيارات الإشرافية والنشرات.",
-                        "متابعة تنفيذ التوصيات السابقة وتقديم الدعم اللازم."
-                    ]
+        // --- دوال مساعدة ---
+        const getDaysInMonth = (year, month) => {
+            const date = new Date(year, month, 1);
+            const days = [];
+            while (date.getMonth() === month) { days.push(new Date(date)); date.setDate(date.getDate() + 1); }
+            return days;
+        };
+        const getWorkingDaysInMonth = (year, month) => getDaysInMonth(year, month).filter(d => d.getDay() !== 5 && d.getDay() !== 6);
+        const getMandatoryKey = (y, m, d) => `${y}_${m}_${d}`;
+
+        // --- المكونات (نسخة طبق الأصل من App.jsx) ---
+
+        function PrintHeader({ supervisorData, month, year }) {
+            return (
+                <div className="hidden only-print mb-8 font-serif text-black w-full">
+                <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
+                    <div className="text-center w-1/3"><p>سلطنة عمان</p><p>وزارة التربية والتعليم</p></div>
+                    <div className="text-center w-1/3"><h1 className="text-xl font-bold border-2 border-black px-4 py-2 rounded">خطة سير المشرف</h1></div>
+                    <div className="text-center w-1/3"><div className="border border-black p-2 text-sm">{year}/{year+1}</div></div>
+                </div>
+                <div className="flex justify-between border border-black p-2 mb-4">
+                    <div>الاسم: {supervisorData.name}</div><div>الشهر: {month+1}</div>
+                </div>
+                </div>
+            );
+        }
+
+        function PrintSignatureSection() {
+            return <div className="hidden only-print mt-10 pt-10 border-t border-black flex justify-between"><div>المشرف</div><div>المسؤول</div><div>المدير</div></div>;
+        }
+
+        function AppFooter({ lightMode = false }) {
+            return (
+                <div className={`text-center py-6 mt-4 text-xs no-print ${lightMode ? 'text-emerald-100 opacity-90' : 'text-gray-400'}`}>
+                <div className="flex items-center justify-center gap-1 mb-1 font-bold">
+                    <span>إعداد وتصميم: أ. أسعد الخصيبي</span>
+                </div>
+                <p>مشرف الرياضة المدرسية</p>
+                </div>
+            );
+        }
+
+        function ChangePasswordModal({ isOpen, onClose, onSave, title }) {
+            const [currentPass, setCurrentPass] = useState('');
+            const [newPass, setNewPass] = useState('');
+            const [confirmPass, setConfirmPass] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            if (!isOpen) return null;
+
+            const handleSubmit = async () => {
+                setError('');
+                if (!currentPass || !newPass || !confirmPass) return setError('جميع الحقول مطلوبة');
+                if (newPass !== confirmPass) return setError('كلمة المرور الجديدة غير متطابقة');
+                if (newPass.length < 4) return setError('كلمة المرور يجب أن تكون 4 أحرف على الأقل');
+
+                setLoading(true);
+                try {
+                await onSave(currentPass, newPass);
+                onClose();
+                alert('تم تغيير كلمة المرور بنجاح');
+                } catch (e) {
+                setError(e.message || 'حدث خطأ أثناء التغيير');
+                } finally {
+                setLoading(false);
                 }
             };
-            
-            // --- STATE VARIABLES ---
-            let visitTypesData = {};
-            let savedReports = [];
-            let currentAttachments = [];
-            let currentVisitTypeKey = '';
-            let previewSource = 'form';
 
-            // --- MAIN VIEWS ---
-            const authView = document.getElementById('authView');
-            const dashboardView = document.getElementById('dashboardView');
-            const formView = document.getElementById('formView');
-            const reportPreviewContainer = document.getElementById('reportPreviewContainer');
-            
-            // --- AUTH ELEMENTS ---
-            const authTitle = document.getElementById('authTitle');
-            const authMessage = document.getElementById('authMessage');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const resetPasswordForm = document.getElementById('resetPasswordForm');
-            const showRegisterBtn = document.getElementById('showRegister');
-            const showLoginFromRegisterBtn = document.getElementById('showLoginFromRegister');
-            const showResetBtn = document.getElementById('showReset');
-            const backToLoginBtn = document.getElementById('backToLogin');
-            const userEmailDisplay = document.getElementById('userEmailDisplay');
-            const logoutBtn = document.getElementById('logoutBtn');
+            return (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+                <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                    <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
+                    <h3 className="font-bold flex items-center gap-2"><KeyRound size={20}/> {title || 'تغيير كلمة المرور'}</h3>
+                    <button onClick={onClose}><X size={20}/></button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                    {error && <div className="bg-red-50 text-red-600 p-3 rounded text-sm text-center">{error}</div>}
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">كلمة المرور الحالية</label>
+                        <input type="password" value={currentPass} onChange={e=>setCurrentPass(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">كلمة المرور الجديدة</label>
+                        <input type="password" value={newPass} onChange={e=>setNewPass(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">تأكيد كلمة المرور الجديدة</label>
+                        <input type="password" value={confirmPass} onChange={e=>setConfirmPass(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
 
-            // --- FORM ELEMENTS ---
-            const reportForm = document.getElementById('reportForm');
-            const reportIdInput = document.getElementById('reportId');
-            const formTitle = document.getElementById('formTitle');
-            const schoolNameSelect = document.getElementById('schoolName');
-            const visitTypeSelect = document.getElementById('visitTypeSelect');
-            const objectivesContainer = document.getElementById('objectivesContainer');
-            const opinionsContainer = document.getElementById('opinionsContainer');
-            const recommendationsTextarea = document.getElementById('recommendations');
-            const attachmentsInput = document.getElementById('attachmentsInput');
-            const attachmentsList = document.getElementById('attachmentsList');
+                    <div className="flex justify-end gap-3 mt-6">
+                        <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">إلغاء</button>
+                        <button onClick={handleSubmit} disabled={loading} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                        {loading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                        </button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            );
+        }
 
-            // --- BUTTONS ---
-            const addNewReportBtn = document.getElementById('addNewReportBtn');
-            const backToDashboardBtn = document.getElementById('backToDashboardBtn');
-            const prepareReportBtn = document.getElementById('prepareReportBtn');
-            const backToBtn = document.getElementById('backToBtn');
-            const selectAllObjectivesBtn = document.getElementById('selectAllObjectivesBtn');
-            const copyAllBtn = document.getElementById('copyAllBtn');
+        function LoginScreen({ onLogin, user }) { // Receive user prop
+            const [name, setName] = useState('');
+            const [jobId, setJobId] = useState('');
+            const [password, setPassword] = useState('');
+            const [adminCode, setAdminCode] = useState('');
+            const [mode, setMode] = useState('supervisor'); 
+            const [msg, setMsg] = useState('');
+            const [supervisorsList, setSupervisorsList] = useState([]);
+            const [isLoadingData, setIsLoadingData] = useState(true);
 
-            // --- DASHBOARD ELEMENTS ---
-            const reportsListContainer = document.getElementById('reportsListContainer');
-            
-            // --- MODAL ELEMENTS (VISIT TYPES) ---
-            const manageVisitTypesBtn = document.getElementById('manageVisitTypesBtn');
-            const manageTypesModal = document.getElementById('manageTypesModal');
-            const closeManageModalBtn = document.getElementById('closeManageModalBtn');
-            const visitTypesList = document.getElementById('visitTypesList');
-            const addNewTypeBtn = document.getElementById('addNewTypeBtn');
-            const addEditTypeModal = document.getElementById('addEditTypeModal');
-            const addEditModalTitle = document.getElementById('addEditModalTitle');
-            const addEditTypeForm = document.getElementById('addEditTypeForm');
-            const editTypeKeyInput = document.getElementById('editTypeKey');
-            const typeNameInput = document.getElementById('typeName');
-            const typeObjectivesTextarea = document.getElementById('typeObjectives');
-            const cancelEditBtn = document.getElementById('cancelEditBtn');
-            const generateRecsBtn = document.getElementById('generate-recommendations-btn');
+            useEffect(() => {
+                if (!db || !user) return; // Guard against missing auth
+                const checkAndInitData = async () => {
+                    try {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'supervisors');
+                        const docSnap = await getDoc(docRef);
+                        if (!docSnap.exists()) await setDoc(docRef, { list: INITIAL_SUPERVISORS });
+                    } catch (e) { console.error(e); }
+                };
+                checkAndInitData();
+                const unsub = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'supervisors'), (doc) => {
+                    if (doc.exists() && doc.data().list) setSupervisorsList(doc.data().list);
+                    else setSupervisorsList(INITIAL_SUPERVISORS);
+                    setIsLoadingData(false);
+                });
+                return () => unsub();
+            }, [user]); // Add user to dependencies
 
-            // --- APP INITIALIZATION ---
-            function initializeApp() {
-                loadData();
-                populateVisitTypeDropdown();
-                renderObjectivesForCurrentType();
-                showDashboardView();
-            }
+            const handleSupervisorChange = (e) => {
+                const selectedName = e.target.value;
+                setName(selectedName);
+                const supervisor = supervisorsList.find(s => s.name === selectedName);
+                if (supervisor) setJobId(supervisor.id); else setJobId('');
+            };
 
-            // All the rest of your functions (saveVisitTypes, saveReports, loadData, getTeacherContext, applyGender, views management, rendering, event listeners, etc.) go here...
-            
-            // For example:
-            function saveVisitTypes() { localStorage.setItem(TYPES_STORAGE_KEY, JSON.stringify(visitTypesData)); }
-            function saveReports() { localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(savedReports)); }
+            const handleSupervisorLogin = () => {
+                if (!name || !jobId) return setMsg('⚠️ يرجى اختيار اسم المشرف');
+                if (!password) return setMsg('⚠️ يرجى إدخال كلمة المرور');
+                const supervisor = supervisorsList.find(s => s.id === jobId);
+                if (supervisor && supervisor.password === password) onLogin('supervisor', { name, jobId });
+                else setMsg('❌ كلمة المرور غير صحيحة');
+            };
 
-            function loadData() {
-                const storedTypes = localStorage.getItem(TYPES_STORAGE_KEY);
-                visitTypesData = storedTypes ? JSON.parse(storedTypes) : defaultVisitTypesData;
-                const storedReports = localStorage.getItem(REPORTS_STORAGE_KEY);
-                savedReports = storedReports ? JSON.parse(storedReports) : [];
-                const keys = Object.keys(visitTypesData);
-                currentVisitTypeKey = keys.length > 0 ? keys[0] : '';
-            }
-
-            // --- GENDER/PLURALITY LOGIC ---
-            function getTeacherContext(schoolName) {
-                const school = schoolTeacherData[schoolName];
-                if (!school) {
-                    return { gender: 'female', count: 1, teachers: [] };
+            const handleAdminLogin = async () => {
+                if (!adminCode) return setMsg('⚠️ أدخل الرمز');
+                try {
+                    const settingsSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings'));
+                    const realAdminPass = settingsSnap.exists() && settingsSnap.data().adminPassword ? settingsSnap.data().adminPassword : '1234';
+                    if (adminCode === realAdminPass) onLogin('admin');
+                    else setMsg('⚠️ رمز المسؤول غير صحيح');
+                } catch (e) {
+                    if (adminCode === '1234') onLogin('admin'); else setMsg('حدث خطأ في الاتصال');
                 }
-                if (school.gender === 'mixed' || (school.teachers && school.teachers.length > 1)) {
-                    return { gender: 'plural', count: school.teachers.length, teachers: school.teachers };
-                }
-                return { gender: school.gender, count: 1, teachers: school.teachers || [] };
-            }
+            };
 
-            function applyGender(text, context) {
-                if (!text) return "";
-                if (context.count > 1) {
-                    return text.replace(/الفاضلة مديرة/g, 'الفاضل مدير').replace(/مديرة/g, 'مدير').replace(/معلمةالرياضة/g, 'معلمي الرياضة').replace(/المعلمة/g, 'المعلمين').replace(/معلمة/g, 'معلمي').replace(/وهي /g, 'وهم ').replace(/لديها/g, 'لديهم');
-                } else if (context.gender === 'male') {
-                     return text.replace(/الفاضلة مديرة/g, 'الفاضل مدير').replace(/مديرة/g, 'مدير').replace(/معلمةالرياضة/g, 'معلم الرياضة').replace(/المعلمة/g, 'المعلم').replace(/معلمة/g, 'معلم').replace(/وهي /g, 'وهو ').replace(/لديها/g, 'لديه');
-                }
-                return text;
-            }
+            if (isLoadingData) return <div className="h-screen flex justify-center items-center text-emerald-600 font-bold">جاري تحميل البيانات...</div>;
 
-            // --- VIEW MANAGEMENT ---
-            function showDashboardView() {
-                renderDashboard();
-                dashboardView.classList.remove('hidden');
-                authView.classList.add('hidden');
-                formView.classList.add('hidden');
-                reportPreviewContainer.classList.add('hidden');
-            }
-            
-            function showAuthView() {
-                authView.classList.remove('hidden');
-                dashboardView.classList.add('hidden');
-                formView.classList.add('hidden');
-                reportPreviewContainer.classList.add('hidden');
-            }
-
-            function showFormView(reportId = null) {
-                formView.classList.remove('hidden');
-                authView.classList.add('hidden');
-                dashboardView.classList.add('hidden');
-                reportPreviewContainer.classList.add('hidden');
-                if (reportId) {
-                    const report = savedReports.find(r => r.id === reportId);
-                    if (report) {
-                        populateForm(report);
-                        formTitle.textContent = 'تعديل تقرير زيارة';
-                    }
-                } else {
-                    resetForm();
-                    formTitle.textContent = 'إنشاء تقرير زيارة إشرافية';
-                }
-            }
-
-            function showPreviewView(reportData) {
-                renderReportPreview(reportData);
-                reportPreviewContainer.classList.remove('hidden');
-                dashboardView.classList.add('hidden');
-                authView.classList.add('hidden');
-                formView.classList.add('hidden');
-            }
-
-            // --- DASHBOARD RENDERING ---
-            function renderDashboard() {
-                reportsListContainer.innerHTML = '';
-                const searchTerm = ''; // simplified for now
-                const filteredReports = savedReports;
-
-                if (savedReports.length === 0) {
-                    reportsListContainer.innerHTML = `<div class="text-center py-10 px-6 bg-gray-50 rounded-lg">
-                        <h3 class="text-lg font-semibold text-gray-700">لا توجد تقارير محفوظة بعد</h3>
-                        <p class="text-gray-500 mt-2">ابدأ بإضافة تقريرك الأول بالضغط على زر "+ تقرير جديد".</p>
-                    </div>`;
-                    return;
-                }
-
-                const list = document.createElement('div');
-                list.className = 'space-y-4';
-                filteredReports.sort((a, b) => a.visitDate - b.visitDate).reverse().forEach(report => {
-                    const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center p-4 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow';
-                    const reportDate = new Date(report.visitDate).toLocaleDateString('ar-OM', { year: 'numeric', month: 'long', day: 'numeric' });
-                    const attachmentIcon = (report.attachments && report.attachments.length > 0) ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a3 3 0 006 0V7a1 1 0 112 0v4a5 5 0 01-10 0V7a5 5 0 0110 0v4a1 1 0 11-2 0V7a3 3 0 00-3-3z" clip-rule="evenodd" /></svg>` : '';
-                    item.innerHTML = `
-                        <div class="flex items-center">
-                            ${attachmentIcon}
-                            <div>
-                                <p class="font-bold text-gray-800">${report.schoolName}</p>
-                                <p class="text-sm text-gray-500">${reportDate} - ${report.visitTypeName}</p>
+            return (
+                <div className="min-h-screen bg-emerald-600 flex flex-col items-center justify-center p-4" dir="rtl">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+                    <div className="text-center mb-6">
+                    <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"><Calendar className="w-8 h-8 text-emerald-600" /></div>
+                    <h1 className="text-2xl font-bold text-gray-800">خطة سير المشرفين</h1>
+                    </div>
+                    <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
+                    <button className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${mode==='supervisor'?'bg-white shadow text-emerald-600':'text-gray-500'}`} onClick={() => {setMode('supervisor'); setMsg('')}}>دخول مشرف</button>
+                    <button className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${mode==='admin'?'bg-white shadow text-emerald-600':'text-gray-500'}`} onClick={() => {setMode('admin'); setMsg('')}}>دخول مسؤول</button>
+                    </div>
+                    {msg && <div className="mb-4 text-center text-sm text-red-500 bg-red-50 p-2 rounded animate-pulse">{msg}</div>}
+                    
+                    {mode === 'supervisor' ? (
+                    <div className="space-y-4">
+                        <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">اسم المشرف *</label>
+                        <select value={name} onChange={handleSupervisorChange} className="w-full px-4 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="">-- اختر الاسم --</option>
+                            {supervisorsList.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                        </select>
+                        </div>
+                        <div className="flex gap-2">
+                            <div className="w-1/3">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">الرقم</label>
+                                <input type="text" value={jobId} readOnly className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500 text-center" />
+                            </div>
+                            <div className="w-2/3">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">كلمة المرور *</label>
+                                <div className="relative">
+                                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="****" />
+                                    <KeyRound className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                                </div>
                             </div>
                         </div>
-                        <div class="flex gap-3">
-                            <button data-id="${report.id}" class="view-btn text-sm text-green-600 hover:underline">عرض</button>
-                            <button data-id="${report.id}" class="edit-btn text-sm text-blue-600 hover:underline">تعديل</button>
-                            <button data-id="${report.id}" class="delete-btn text-sm text-red-600 hover:underline">حذف</button>
+                        <button onClick={handleSupervisorLogin} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition shadow-lg">دخول</button>
+                    </div>
+                    ) : (
+                    <div className="space-y-4">
+                        <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">رمز المسؤول</label>
+                        <input type="password" value={adminCode} onChange={e=>setAdminCode(e.target.value)} className="w-full px-4 py-2 border rounded-lg" placeholder="أدخل الرمز" />
                         </div>
-                    `;
-                    list.appendChild(item);
-                });
-                reportsListContainer.appendChild(list);
-            }
+                        <button onClick={handleAdminLogin} className="w-full bg-gray-800 text-white font-bold py-3 rounded-lg shadow-lg">دخول</button>
+                    </div>
+                    )}
+                </div>
+                <AppFooter lightMode={true} />
+                </div>
+            );
+        }
 
-            // --- FORM MANAGEMENT ---
-            function resetForm() {
-                reportForm.reset();
-                reportIdInput.value = '';
-                document.getElementById('visitDate').valueAsDate = new Date();
-                currentVisitTypeKey = Object.keys(visitTypesData)[0] || '';
-                visitTypeSelect.value = currentVisitTypeKey;
-                currentAttachments = [];
-                renderAttachmentsList();
-                renderObjectivesForCurrentType();
-            }
-            
-            function populateForm(report) {
-                resetForm();
-                reportIdInput.value = report.id;
-                schoolNameSelect.value = report.schoolName;
-                document.getElementById('visitDate').value = new Date(report.visitDate).toISOString().split('T')[0];
-                recommendationsTextarea.value = report.recommendations;
-                
-                currentVisitTypeKey = report.visitTypeKey;
-                visitTypeSelect.value = currentVisitTypeKey;
-                currentAttachments = report.attachments || [];
-                renderAttachmentsList();
-                renderObjectivesForCurrentType();
+        function SupervisorDashboard({ user, supervisorData, onLogout }) {
+            const [settings, setSettings] = useState({ isOpen: false });
+            const [mandatoryEvents, setMandatoryEvents] = useState({});
+            const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+            const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+            const [planData, setPlanData] = useState({});
+            const [historyVisits, setHistoryVisits] = useState({}); 
+            const [isSaving, setIsSaving] = useState(false);
+            const [statusMsg, setStatusMsg] = useState('');
+            const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-                const checkboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(cb => {
-                    if (report.checkedObjectives.includes(cb.dataset.genderedValue)) {
-                        cb.checked = true;
-                    }
-                });
-
-                updateOpinionsSection();
-
-                setTimeout(() => {
-                     report.opinions.forEach(op => {
-                        const textarea = document.getElementById(`opinion-${op.index}`);
-                        if (textarea) textarea.value = op.text;
+            useEffect(() => {
+                if (!db || !user) return; // Guard
+                const unsub1 = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings'), s=>s.exists()&&setSettings(s.data()));
+                const unsub2 = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'mandatory_events'), s=>s.exists()&&setMandatoryEvents(s.data()));
+                const q = query(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PLANS));
+                const unsub3 = onSnapshot(q, (snapshot) => {
+                    const history = {};
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (data.supervisorId === supervisorData.jobId && (data.month !== currentMonth || data.year !== currentYear)) {
+                            if (data.visits) {
+                                Object.entries(data.visits).forEach(([key, task]) => {
+                                    if (!history[key]) history[key] = [];
+                                    history[key].push({ task, month: data.month, year: data.year });
+                                });
+                            }
+                        }
                     });
-                }, 0);
-            }
-
-            function populateVisitTypeDropdown() {
-                visitTypeSelect.innerHTML = '';
-                Object.keys(visitTypesData).forEach(key => {
-                    const option = document.createElement('option');
-                    option.value = key;
-                    option.textContent = visitTypesData[key].name;
-                    visitTypeSelect.appendChild(option);
+                    setHistoryVisits(history);
                 });
-                if (currentVisitTypeKey) {
-                    visitTypeSelect.value = currentVisitTypeKey;
-                }
-            }
-            
-            function renderObjectivesForCurrentType() {
-                if (!currentVisitTypeKey || !visitTypesData[currentVisitTypeKey]) return;
-                const schoolName = schoolNameSelect.value;
-                const context = getTeacherContext(schoolName);
-                const data = visitTypesData[currentVisitTypeKey];
-                objectivesContainer.innerHTML = '';
-                data.objectives_list.forEach((objective, index) => {
-                    const genderedObjective = applyGender(objective, context);
-                    objectivesContainer.innerHTML += `
-                        <div class="flex items-start">
-                            <input id="objective-${index}" type="checkbox" value="${objective}" data-gendered-value="${genderedObjective}" data-index="${index}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1">
-                            <label for="objective-${index}" class="mr-2 text-sm font-medium text-gray-900">${index + 1}- ${genderedObjective}</label>
-                        </div>`;
+                return () => { unsub1(); unsub2(); unsub3(); };
+            }, [supervisorData.jobId, currentMonth, currentYear, user]); 
+
+            useEffect(() => {
+                if (!user || !db) return; // Guard
+                const planId = `${supervisorData.jobId}_${currentYear}_${currentMonth}`;
+                return onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PLANS, `plan_${planId}`), s => {
+                    setPlanData(s.exists() ? s.data().visits || {} : {});
                 });
-                updateOpinionsSection();
-                updateSelectAllButtonState();
-            }
+            }, [supervisorData.jobId, currentMonth, currentYear, user]);
 
-            // --- OPINIONS & RECOMMENDATIONS SECTION LOGIC (UNCHANGED from original) ---
-            function updateSelectAllButtonState() {
-                const checkboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]');
-                if (checkboxes.length === 0) {
-                    selectAllObjectivesBtn.textContent = 'اختيار الكل';
-                    return;
-                }
-                const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-                selectAllObjectivesBtn.textContent = allSelected ? 'إلغاء اختيار الكل' : 'اختيار الكل';
-            }
-            function updateOpinionsSection() {
-                const previouslySavedOpinions = new Map();
-                opinionsContainer.querySelectorAll('.opinion-block textarea').forEach(textarea => {
-                    previouslySavedOpinions.set(textarea.id, textarea.value);
-                });
+            const workingDays = useMemo(() => getWorkingDaysInMonth(currentYear, currentMonth), [currentYear, currentMonth]);
 
-                opinionsContainer.innerHTML = '';
-                const checkedCheckboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]:checked');
-                
-                if (checkedCheckboxes.length === 0) {
-                    opinionsContainer.innerHTML = '<p class="text-center text-gray-500">لم يتم تحديد أي هدف بعد.</p>';
-                    return;
-                }
-                
-                checkedCheckboxes.forEach(checkbox => {
-                    const index = checkbox.dataset.index;
-                    const baseObjectiveText = checkbox.value;
-                    const genderedObjectiveText = checkbox.dataset.genderedValue;
-                    const opinionId = `opinion-${index}`;
-                    
-                    const opinionBlock = document.createElement('div');
-                    opinionBlock.className = 'opinion-block space-y-2';
+            const handleInputChange = (key, value) => {
+                if (!settings.isOpen) return;
+                setPlanData(prev => ({ ...prev, [key]: value }));
+            };
 
-                    let specialInputsHTML = '';
-                    let standardButtonsHTML = `<div class="flex gap-2"><button type="button" data-opinion="completed" data-index="${index}" class="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full hover:bg-green-200 transition-colors">✅ مكتمل</button><button type="button" data-opinion="incomplete" data-index="${index}" class="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full hover:bg-red-200 transition-colors">❌ غير مكتمل</button></div>`;
-                    const approvalObjectiveText = "متابعة موافقات التعيين.";
-                    if (baseObjectiveText === approvalObjectiveText) {
-                        specialInputsHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-2 p-3 bg-gray-100 rounded-md border items-center"><div><label for="approval-status-${index}" class="text-xs text-gray-600 block mb-1">في حالة عدم الاكتمال، اختر السبب:</label><select id="approval-status-${index}" data-index="${index}" class="approval-status-select bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"><option value="" selected>اختر السبب...</option><option value="in_progress">في اجراءات التعيين</option><option value="no_approval">ليس لديها موافقة تعيين</option><option value="expired">الموافقة المبدئية منتهية الصلاحية</option></select></div><div class="self-end"><button type="button" data-opinion="completed" data-index="${index}" data-special="approval" class="w-full px-3 py-2.5 text-sm font-medium text-green-800 bg-green-100 rounded-lg hover:bg-green-200 transition-colors">✅ مكتمل</button></div></div>`;
-                        standardButtonsHTML = '';
-                    }
+            const handlePrint = () => {
+                const originalTitle = document.title;
+                document.title = `خطة_${supervisorData.name}_${currentMonth+1}`;
+                window.focus(); setTimeout(() => { window.print(); setTimeout(() => document.title = originalTitle, 1000); }, 100);
+            };
 
-                    opinionBlock.innerHTML = `<label for="${opinionId}" class="block text-sm font-semibold text-gray-800">${parseInt(index) + 1}- ${genderedObjectiveText}</label>${specialInputsHTML}${standardButtonsHTML}<textarea id="${opinionId}" name="${opinionId}" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 mt-2" placeholder="..."></textarea>`;
-                    opinionsContainer.appendChild(opinionBlock);
-                });
-                
-                previouslySavedOpinions.forEach((value, id) => {
-                    const textarea = document.getElementById(id);
-                    if (textarea) textarea.value = value;
-                });
-            }
-
-            // --- ATTACHMENTS HANDLING ---
-            function renderAttachmentsList() {
-                attachmentsList.innerHTML = '';
-                if (currentAttachments.length === 0) return;
-                currentAttachments.forEach((file, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center p-2 bg-gray-100 rounded-md text-sm';
-                    item.innerHTML = `<span class="text-gray-700 truncate">${file.name}</span><button type="button" data-index="${index}" class="remove-attachment-btn text-red-500 hover:text-red-700">&times;</button>`;
-                    attachmentsList.appendChild(item);
-                });
-            }
-
-            attachmentsInput.addEventListener('change', (e) => {
-                Array.from(e.target.files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        currentAttachments.push({ name: file.name, data: event.target.result });
-                        renderAttachmentsList();
-                    };
-                    reader.readAsDataURL(file);
-                });
-                e.target.value = '';
-            });
-
-            attachmentsList.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-attachment-btn')) {
-                    currentAttachments.splice(e.target.dataset.index, 1);
-                    renderAttachmentsList();
-                }
-            });
-
-
-            // --- REPORT PREVIEW ---
-            function renderReportPreview(data) {
-                const reportContent = document.getElementById('reportContent');
-                const visitDate = new Date(data.visitDate).toLocaleDateString('ar-OM');
-                let reportHTML = `<h2 class="text-2xl font-bold mb-4 text-center">تقرير زيارة إشرافية</h2>`;
-                reportHTML += `<div class="grid grid-cols-2 gap-4 mb-6 border-b pb-4">
-                                <p><strong>اسم المدرسة:</strong> ${data.schoolName}</p>
-                                <p><strong>تاريخ الزيارة:</strong> ${visitDate}</p>
-                                <p><strong>نوع الزيارة:</strong> ${data.visitTypeName}</p>
-                               </div>`;
-                
-                reportHTML += `<div id="reportObjectives"><div class="flex justify-between items-center mt-6 mb-3"><h3 class="text-xl font-semibold">أهداف الزيارة:</h3><button data-target="reportObjectives" class="copy-section-btn text-xs text-blue-600 hover:underline no-print">نسخ</button></div><ol class="list-decimal list-inside space-y-2">`;
-                data.checkedObjectives.forEach(obj => { reportHTML += `<li>${obj}</li>`; });
-                reportHTML += `</ol></div>`;
-                
-                reportHTML += `<div id="reportOpinions"><div class="flex justify-between items-center mt-6 mb-3"><h3 class="text-xl font-semibold">رأي الزائر:</h3><button data-target="reportOpinions" class="copy-section-btn text-xs text-blue-600 hover:underline no-print">نسخ</button></div><ol class="list-decimal list-inside space-y-2">`;
-                data.opinions.sort((a,b) => a.index - b.index).forEach(op => { reportHTML += `<li class="text-gray-700">${op.text.replace(/\n/g, '<br>')}</li>`; });
-                reportHTML += `</ol></div>`;
-
-                if(data.recommendations) {
-                    reportHTML += `<div id="reportRecommendations"><div class="flex justify-between items-center mt-6 mb-3"><h3 class="text-xl font-semibold">التوصيات:</h3><button data-target="reportRecommendations" class="copy-section-btn text-xs text-blue-600 hover:underline no-print">نسخ</button></div><p class="text-gray-700">${data.recommendations.replace(/\n/g, '<br>')}</p></div>`;
-                }
-
-                if(data.attachments && data.attachments.length > 0) {
-                     reportHTML += `<div id="reportAttachments" class="no-print"><h3 class="text-xl font-semibold mt-6 mb-3">المرفقات:</h3><ul class="list-disc list-inside space-y-1">`;
-                     data.attachments.forEach(file => {
-                         reportHTML += `<li class="text-gray-700">${file.name}</li>`;
-                     });
-                     reportHTML += `</ul></div>`;
-                }
-                
-                reportContent.innerHTML = reportHTML;
-            }
-
-            // --- EVENT LISTENERS (MAIN APP) ---
-            addNewReportBtn.addEventListener('click', () => showFormView());
-            backToDashboardBtn.addEventListener('click', showDashboardView);
-            
-            reportForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const reportId = reportIdInput.value;
-                const checkedObjectives = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => cb.dataset.genderedValue);
-                const opinions = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => {
-                    return { index: cb.dataset.index, text: document.getElementById(`opinion-${cb.dataset.index}`).value };
-                });
-
-                const reportData = {
-                    schoolName: document.getElementById('schoolName').value,
-                    visitDate: new Date(document.getElementById('visitDate').value).getTime(), // Save as timestamp
-                    visitTypeKey: currentVisitTypeKey,
-                    visitTypeName: visitTypesData[currentVisitTypeKey].name,
-                    checkedObjectives, opinions,
-                    recommendations: recommendationsTextarea.value,
-                    attachments: currentAttachments,
-                };
-
-                const reportIndex = savedReports.findIndex(r => r.id === reportId);
-
-                if (reportIndex > -1) {
-                    savedReports[reportIndex] = { ...savedReports[reportIndex], ...reportData };
-                } else {
-                    reportData.id = `report_${Date.now()}`;
-                    savedReports.push(reportData);
-                }
-                saveReports();
-                showDashboardView();
-            });
-            
-            prepareReportBtn.addEventListener('click', function() {
-                if (!reportForm.checkValidity()) {
-                    reportForm.reportValidity();
-                    return;
-                }
-                previewSource = 'form';
-                const checkedObjectives = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => cb.dataset.genderedValue);
-                 const opinions = Array.from(objectivesContainer.querySelectorAll('input:checked')).map(cb => {
-                    return { index: cb.dataset.index, text: document.getElementById(`opinion-${cb.dataset.index}`).value };
-                });
-                const reportData = {
-                    schoolName: document.getElementById('schoolName').value,
-                    visitDate: new Date(document.getElementById('visitDate').value),
-                    visitTypeName: visitTypesData[currentVisitTypeKey].name,
-                    checkedObjectives, opinions,
-                    recommendations: recommendationsTextarea.value,
-                    attachments: currentAttachments
-                };
-                showPreviewView(reportData);
-            });
-
-            backToBtn.addEventListener('click', () => {
-                if (previewSource === 'dashboard') {
-                    showDashboardView();
-                } else {
-                    showFormView(reportIdInput.value || null);
-                }
-            });
-            
-            function copyToClipboard(text, buttonElement) {
-                const textArea = document.createElement("textarea");
-                textArea.value = text;
-                textArea.style.position = "fixed";
-                textArea.style.opacity = 0;
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
+            const savePlan = async () => {
+                if (!settings.isOpen || !db) return;
+                setIsSaving(true);
                 try {
-                    document.execCommand('copy');
-                    const originalText = buttonElement.textContent;
-                    buttonElement.textContent = 'تم النسخ!';
-                    setTimeout(() => { buttonElement.textContent = originalText; }, 2000);
-                } catch (err) {
-                    console.error('Fallback: Oops, unable to copy', err);
-                }
-                document.body.removeChild(textArea);
-            }
+                    const planId = `${supervisorData.jobId}_${currentYear}_${currentMonth}`;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PLANS, `plan_${planId}`), {
+                        supervisorName: supervisorData.name, 
+                        supervisorId: supervisorData.jobId,
+                        userId: user.uid,
+                        month: currentMonth, 
+                        year: currentYear, 
+                        visits: planData, 
+                        updatedAt: serverTimestamp()
+                    });
+                    setStatusMsg('✅ تم الحفظ'); setTimeout(() => setStatusMsg(''), 3000);
+                } catch { setStatusMsg('❌ خطأ'); } finally { setIsSaving(false); }
+            };
 
-            copyAllBtn.addEventListener('click', (e) => {
-                const sections = ['reportObjectives', 'reportOpinions', 'reportRecommendations'];
-                const titles = ['أهداف الزيارة:', 'رأي الزائر:', 'التوصيات:'];
-                let textToCopy = "";
+            const handleChangePassword = async (currentPass, newPass) => {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'supervisors');
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) throw new Error('بيانات النظام غير متوفرة');
+                const currentList = docSnap.data().list;
+                const supervisorIndex = currentList.findIndex(s => s.id === supervisorData.jobId);
+                if (supervisorIndex === -1) throw new Error('المستخدم غير موجود');
+                if (currentList[supervisorIndex].password !== currentPass) throw new Error('كلمة المرور الحالية غير صحيحة');
+                const newList = [...currentList];
+                newList[supervisorIndex].password = newPass;
+                await updateDoc(docRef, { list: newList });
+            };
 
-                sections.forEach((id, i) => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        textToCopy += titles[i] + "\n";
-                        if (id === 'reportRecommendations') {
-                            textToCopy += element.querySelector('p').innerText.trim() + "\n\n";
-                        } else {
-                            element.querySelectorAll('li').forEach((li, index) => {
-                                textToCopy += `${index + 1}- ${li.textContent.trim()}\n`;
-                            });
-                            textToCopy += "\n";
-                        }
-                    }
+            return (
+                <div className="bg-gray-50 min-h-screen flex flex-col" dir="rtl">
+                <ChangePasswordModal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} onSave={handleChangePassword} />
+                <header className="bg-emerald-600 text-white p-4 shadow-md sticky top-0 z-10 no-print flex justify-between items-center">
+                    <div><h2 className="font-bold">خطة سير المشرف</h2><p className="text-xs">{supervisorData.name} ({supervisorData.jobId})</p></div>
+                    <div className="flex gap-2">
+                    <button onClick={() => setShowPasswordModal(true)} className="bg-emerald-800/50 hover:bg-emerald-800 p-2 rounded-full transition" title="تغيير كلمة المرور"><KeyRound size={18} /></button>
+                    <button onClick={handlePrint} className="bg-white/20 p-2 rounded-full hover:bg-white/30"><FileDown size={18} /></button>
+                    <button onClick={onLogout} className="bg-emerald-700 p-2 rounded-full hover:bg-emerald-800"><LogOut size={18} /></button>
+                    </div>
+                </header>
+                <div className={`p-2 text-center text-xs font-bold no-print ${settings.isOpen ? 'bg-green-100 text-green-800':'bg-red-100 text-red-800'}`}>{settings.isOpen ? '🟢 التسجيل متاح' : '🔴 التسجيل مغلق'}</div>
+                <div className="max-w-4xl mx-auto p-4 space-y-4 flex-grow w-full printable-content">
+                    <PrintHeader supervisorData={supervisorData} month={currentMonth} year={currentYear} /> 
+                    <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm no-print">
+                    <button onClick={()=>{if(currentMonth===0){setCurrentMonth(11);setCurrentYear(currentYear-1)}else setCurrentMonth(currentMonth-1)}} className="p-2 bg-gray-100 rounded-full"><ChevronRight/></button>
+                    <span className="font-bold">{new Date(currentYear, currentMonth).toLocaleDateString('ar-EG',{month:'long',year:'numeric'})}</span>
+                    <button onClick={()=>{if(currentMonth===11){setCurrentMonth(0);setCurrentYear(currentYear+1)}else setCurrentMonth(currentMonth+1)}} className="p-2 bg-gray-100 rounded-full"><ChevronLeft/></button>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <table className="w-full text-right">
+                        <thead className="bg-gray-50 border-b"><tr><th className="p-4 w-32">اليوم</th><th className="p-4">المهمة</th></tr></thead>
+                        <tbody className="divide-y">
+                        {workingDays.map(date => {
+                            const dayName = date.toLocaleDateString('ar-EG', { weekday: 'long' });
+                            const dayNum = date.getDate();
+                            const key = `d_${dayNum}`;
+                            const mandKey = getMandatoryKey(currentYear, currentMonth, dayNum);
+                            const mandEvt = mandatoryEvents[mandKey];
+                            const currentVal = planData[key] || '';
+                            let conflict = null;
+                            if (currentVal.trim().length > 2 && historyVisits[key]) conflict = historyVisits[key].find(h => h.task.trim() === currentVal.trim());
+                            return (
+                            <tr key={key} className={mandEvt ? 'bg-orange-50' : 'bg-white'}>
+                                <td className="p-4 border-l"><div className="font-bold">{dayName}</div><div className="text-xs text-gray-400">{dayNum}</div></td>
+                                <td className="p-2 relative">
+                                {mandEvt ? (<div className="flex items-center gap-2 text-orange-700 font-bold px-2"><Lock size={16} className="no-print"/>{mandEvt}</div>) : (
+                                    <div className="relative">
+                                        <input type="text" disabled={!settings.isOpen} value={currentVal} onChange={e=>handleInputChange(key, e.target.value)} placeholder={settings.isOpen?"...":""} className={`w-full p-2 border rounded outline-none focus:ring-2 focus:ring-emerald-500 bg-transparent ${conflict ? 'border-red-300 bg-red-50' : ''}`} />
+                                        {conflict && (<div className="absolute top-full right-0 mt-1 z-10 bg-red-100 text-red-700 text-[10px] px-2 py-1 rounded shadow-sm border border-red-200 flex items-center gap-1 no-print animate-fade-in"><AlertCircle size={10} /><span>تكرار: شهر {conflict.month + 1}/{conflict.year}</span></div>)}
+                                    </div>
+                                )}
+                                </td>
+                            </tr>
+                            );
+                        })}
+                        </tbody>
+                    </table>
+                    </div>
+                    <PrintSignatureSection /> 
+                </div>
+                {settings.isOpen && (
+                    <div className="fixed bottom-6 left-6 right-6 max-w-4xl mx-auto flex flex-col items-end gap-2 pointer-events-none no-print">
+                    {statusMsg && <div className="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm mb-2">{statusMsg}</div>}
+                    <button onClick={savePlan} disabled={isSaving} className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-lg pointer-events-auto">{isSaving ? '...' : <><Save size={20} /><span>حفظ</span></>}</button>
+                    </div>
+                )}
+                <AppFooter />
+                </div>
+            );
+        }
+
+        function AdminDashboard({ user, onLogout }) {
+            const [settings, setSettings] = useState({ isOpen: false });
+            const [plans, setPlans] = useState([]);
+            const [mandatoryEvents, setMandatoryEvents] = useState({});
+            const [filterMonth, setFilterMonth] = useState(new Date().getMonth());
+            const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+            const [editingPlan, setEditingPlan] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [newEventDay, setNewEventDay] = useState(1);
+            const [newEventText, setNewEventText] = useState('');
+            const [editingEventKey, setEditingEventKey] = useState(null);
+            const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+            const daysInSelectedMonth = useMemo(() => {
+                const days = getDaysInMonth(currentYear, filterMonth);
+                return days.map(d => ({ num: d.getDate(), name: d.toLocaleDateString('ar-EG', { weekday: 'long' }), isWeekend: d.getDay() === 5 || d.getDay() === 6 }));
+            }, [currentYear, filterMonth]);
+            const yearsList = useMemo(() => { const current = new Date().getFullYear(); return Array.from({length: 11}, (_, i) => current - 1 + i); }, []);
+
+            useEffect(() => {
+                if (!db || !user) return; // Guard
+                const unsub1 = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings'), s=>s.exists()&&setSettings(s.data()));
+                const unsub2 = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'mandatory_events'), s=>s.exists()&&setMandatoryEvents(s.data()));
+                const unsub3 = onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PLANS)), snap => {
+                    const p = []; snap.forEach(d => { if(d.data().month === filterMonth) p.push(d.data()) }); setPlans(p);
                 });
-                copyToClipboard(textToCopy.trim(), e.target);
-            });
+                return () => { unsub1(); unsub2(); unsub3(); };
+            }, [filterMonth, user]); // Add user dependency
 
-            reportPreviewContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('copy-section-btn')) {
-                    const targetId = e.target.dataset.target;
-                    const targetElement = document.getElementById(targetId);
-                    if (!targetElement) return;
-
-                    let textToCopy = "";
-                    if (targetId === 'reportRecommendations') {
-                        textToCopy = targetElement.querySelector('p').innerText.trim();
-                    } else {
-                        targetElement.querySelectorAll('li').forEach((li, index) => {
-                            textToCopy += `${index + 1}- ${li.textContent.trim()}\n`;
-                        });
-                    }
-                    copyToClipboard(textToCopy.trim(), e.target);
-                }
-            });
-
-
-            reportsListContainer.addEventListener('click', async (e) => {
-                const target = e.target;
-                const reportId = target.dataset.id;
-                if (!reportId) return;
-                if (target.classList.contains('view-btn')) {
-                    previewSource = 'dashboard';
-                    const report = savedReports.find(r => r.id === reportId);
-                    showPreviewView(report);
-                }
-                if (target.classList.contains('edit-btn')) {
-                    showFormView(reportId);
-                }
-                if (target.classList.contains('delete-btn')) {
-                    const report = savedReports.find(r => r.id === reportId);
-                    if (confirm(`هل أنت متأكد من حذف تقرير مدرسة "${report.schoolName}"؟`)) {
-                        savedReports = savedReports.filter(r => r.id !== reportId);
-                        saveReports();
-                        renderDashboard();
-                    }
-                }
-            });
-            
-            schoolNameSelect.addEventListener('change', (e) => {
-                renderObjectivesForCurrentType();
-            });
-
-            visitTypeSelect.addEventListener('change', (e) => {
-                currentVisitTypeKey = e.target.value;
-                renderObjectivesForCurrentType();
-            });
-
-            objectivesContainer.addEventListener('change', () => {
-                updateOpinionsSection();
-                updateSelectAllButtonState();
-            });
-
-            selectAllObjectivesBtn.addEventListener('click', () => {
-                const checkboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]');
-                if (checkboxes.length === 0) return;
-                const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-                checkboxes.forEach(cb => { cb.checked = !allSelected; });
-                updateOpinionsSection();
-                updateSelectAllButtonState();
-            });
-
-            opinionsContainer.addEventListener('click', (e) => {
-                 if (e.target.matches('button[data-opinion]')) {
-                    const opinionType = e.target.dataset.opinion;
-                    const index = e.target.dataset.index;
-                    const textarea = document.getElementById(`opinion-${index}`);
-                    const context = getTeacherContext(schoolNameSelect.value);
-                    let baseOpinionText = (opinionType === 'completed') 
-                        ? visitTypesData[currentVisitTypeKey].completedOpinions[index] 
-                        : visitTypesData[currentVisitTypeKey].incompleteOpinions[index];
-                    let generatedText = applyGender(baseOpinionText, context);
-                    textarea.value = generatedText;
-                }
-            });
-            
-            opinionsContainer.addEventListener('change', (e) => {
-                if (e.target.matches('select.approval-status-select')) {
-                    const index = e.target.dataset.index;
-                    const textarea = document.getElementById(`opinion-${index}`);
-                    const context = getTeacherContext(schoolNameSelect.value);
-                    const selectedValue = e.target.value;
-                    if (selectedValue && textarea) {
-                         let text = '';
-                        switch(selectedValue) {
-                            case 'in_progress': text = "تم متابعة موافقات التعيين وهي في اجراءات التعيين."; break;
-                            case 'no_approval': text = "تم متابعة موافقات التعيين وليس لديها موافقة تعيين."; break;
-                            case 'expired': text = "تم متابعة موافقات التعيين والموافقة المبدئية منتهية الصلاحية."; break;
-                        }
-                        textarea.value = applyGender(text, context);
-                    }
-                }
-            });
-
-            generateRecsBtn.addEventListener('click', () => {
-                const checkedCheckboxes = objectivesContainer.querySelectorAll('input[type="checkbox"]:checked');
-                if (checkedCheckboxes.length === 0) {
-                    alert("الرجاء تحديد هدف واحد على الأقل.");
-                    return;
-                }
-                const currentTypeData = visitTypesData[currentVisitTypeKey];
-                const context = getTeacherContext(schoolNameSelect.value);
-                let generatedRecommendations = [];
-
-                checkedCheckboxes.forEach(checkbox => {
-                    const index = checkbox.dataset.index;
-                    const opinionTextarea = document.getElementById(`opinion-${index}`);
-                    let genderedIncompleteOpinion = applyGender(currentTypeData.incompleteOpinions[index], context);
-                    if (opinionTextarea && opinionTextarea.value.trim() === genderedIncompleteOpinion.trim()) {
-                         let genderedRecommendation = applyGender(currentTypeData.recommendations[index], context);
-                         generatedRecommendations.push(genderedRecommendation);
-                    }
-                });
-
-                if (generatedRecommendations.length > 0) {
-                    recommendationsTextarea.value = "نوصي إدارة المدرسة بالاتي:\n- " + generatedRecommendations.join('\n- ') + "\n\nوالله الموفق.";
-                } else {
-                    recommendationsTextarea.value = "سير العمل ممتاز ولا توجد حاجة لتوصيات حالية.";
-                }
-            });
-
-            // --- MODAL LOGIC ---
-            manageVisitTypesBtn.addEventListener('click', () => {
-                renderManagerModal();
-                manageTypesModal.classList.remove('hidden');
-            });
-            closeManageModalBtn.addEventListener('click', () => manageTypesModal.classList.add('hidden'));
-            addNewTypeBtn.addEventListener('click', () => {
-                editTypeKeyInput.value = '';
-                addEditModalTitle.textContent = 'إضافة نوع زيارة جديد';
-                addEditTypeForm.reset();
-                addEditTypeModal.classList.remove('hidden');
-            });
-            visitTypesList.addEventListener('click', (e) => {
-                const key = e.target.dataset.key;
-                if (!key) return;
-                if (e.target.classList.contains('edit-btn')) {
-                    editTypeKeyInput.value = key;
-                    addEditModalTitle.textContent = 'تعديل نوع الزيارة';
-                    typeNameInput.value = visitTypesData[key].name;
-                    typeObjectivesTextarea.value = visitTypesData[key].objectives_list.join('\n');
-                    addEditTypeModal.classList.remove('hidden');
-                }
-                if (e.target.classList.contains('delete-btn')) {
-                    if (Object.keys(visitTypesData).length <= 1) {
-                        alert("يجب أن يكون هناك نوع زيارة واحد على الأقل.");
-                        return;
-                    }
-                    if (confirm(`هل أنت متأكد من حذف "${visitTypesData[key].name}"؟`)) {
-                        delete visitTypesData[key];
-                        saveVisitTypes();
-                        renderManagerModal();
-                        populateVisitTypeDropdown();
-                        renderObjectivesForCurrentType();
-                    }
-                }
-            });
-            cancelEditBtn.addEventListener('click', () => addEditTypeModal.classList.add('hidden'));
-            addEditTypeForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const key = editTypeKeyInput.value;
-                const name = typeNameInput.value.trim();
-                const objectives = typeObjectivesTextarea.value.trim().split('\n').filter(line => line.trim() !== '');
-                if (!name || objectives.length === 0) {
-                    alert("الرجاء إدخال اسم ونوع وهدف واحد على الأقل.");
-                    return;
-                }
+            const toggleSubmission = async () => setDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings'), { isOpen: !settings.isOpen }, { merge: true });
+            const handleEventSubmit = async () => {
+                if (!newEventText.trim()) return;
+                const newKey = getMandatoryKey(currentYear, filterMonth, newEventDay);
+                if(editingEventKey && editingEventKey !== newKey) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'mandatory_events'), { [editingEventKey]: deleteField() });
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'mandatory_events'), { [newKey]: newEventText }, { merge: true });
+                setNewEventText(''); setNewEventDay(1); setEditingEventKey(null);
+            };
+            const deleteMandatoryEvent = async (k) => { if(confirm('حذف؟')) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'mandatory_events'), { [k]: deleteField() }); };
+            const saveAdminEdit = async (editedVisits) => {
+                if (!editingPlan) return;
+                const planId = `${editingPlan.supervisorId}_${editingPlan.year}_${editingPlan.month}`;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.PLANS, `plan_${planId}`), { visits: editedVisits });
+                setEditingPlan(null);
+            };
+            const handleChangeAdminPassword = async (currentPass, newPass) => {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings');
+                const docSnap = await getDoc(docRef);
+                const storedPass = docSnap.exists() && docSnap.data().adminPassword ? docSnap.data().adminPassword : '1234';
+                if (currentPass !== storedPass) throw new Error('كلمة المرور الحالية غير صحيحة');
+                await setDoc(docRef, { adminPassword: newPass }, { merge: true });
+            };
+            const downloadSinglePlan = (plan) => {
+                const workingDaysInM = getWorkingDaysInMonth(currentYear, filterMonth);
+                const dateStr = new Date(currentYear, filterMonth).toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+                let table = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40" dir="rtl"><head><meta charset="UTF-8"><style>table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; direction: rtl; } td, th { border: 1px solid #000000; text-align: center; vertical-align: middle; padding: 5px; font-size: 11pt; } .header-top { background-color: #92D050; font-weight: bold; font-size: 14pt; height: 40px; } .header-sub { background-color: #FFFF00; font-weight: bold; font-size: 12pt; } .data-row { background-color: #FFFFFF; } .gray-row { background-color: #F2F2F2; }</style></head><body><table><tr><td colspan="3" class="header-top">خطة سير المشرف: ${plan.supervisorName} - الفترة: ${dateStr}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold; background-color:#f0f0f0;">الرقم الوظيفي: ${plan.supervisorId}</td></tr><tr class="header-sub"><td style="width: 100px;">اليوم</td><td style="width: 150px;">التاريخ</td><td style="width: 400px;">المهمة / المدرسة</td></tr>${workingDaysInM.map((d, index) => {
+                    const dayNum = d.getDate(); const dayName = d.toLocaleDateString('ar-EG', { weekday: 'long' }); const key = 'd_' + dayNum; const mandKey = getMandatoryKey(currentYear, filterMonth, dayNum); const task = mandatoryEvents[mandKey] || plan.visits[key] || ''; const rowClass = index % 2 === 0 ? 'data-row' : 'gray-row'; return `<tr class="${rowClass}"><td>${dayName}</td><td>${dayNum}/${filterMonth + 1}</td><td>${task}</td></tr>`; }).join('')}</table></body></html>`;
                 
-                const newKey = key || `type_${Date.now()}`;
-                
-                visitTypesData[newKey] = { 
-                    name, 
-                    objectives_list: objectives,
-                    completedOpinions: objectives.map(o => `تم ${o.replace(/\.$/, "")} بنجاح.`),
-                    incompleteOpinions: objectives.map(o => `يوجد ملاحظات بخصوص ${o.replace(/\.$/, "")}`),
-                    recommendations: objectives.map(o => `متابعة ${o.replace(/\.$/, "")}.`)
+                const blob = new Blob([table], { type: 'application/vnd.ms-excel;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `خطة_${plan.supervisorName}.xls`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            };
+            const exportToExcel = () => {
+                if (plans.length === 0) return alert('لا توجد بيانات');
+                const workingDaysInM = getWorkingDaysInMonth(currentYear, filterMonth);
+                const dateStr = new Date(currentYear, filterMonth).toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+                let table = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40" dir="rtl"><head><meta charset="UTF-8"><style>table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; direction: rtl; } td, th { border: 1px solid #000000; text-align: center; vertical-align: middle; padding: 5px; font-size: 11pt; } .header-top { background-color: #92D050; font-weight: bold; font-size: 14pt; height: 40px; } .header-sub { background-color: #FFFF00; font-weight: bold; font-size: 12pt; } .data-row { background-color: #FFFFFF; } .gray-row { background-color: #F2F2F2; }</style></head><body><table><tr><td colspan="${workingDaysInM.length + 2}" class="header-top">خطة سير المشرفين - الفترة: ${dateStr}</td></tr><tr class="header-sub"><td rowspan="2" style="width: 50px;">م</td><td rowspan="2" style="width: 200px;">اسم المشرف</td>${workingDaysInM.map(d => `<td>${d.toLocaleDateString('ar-EG', { weekday: 'long' })}</td>`).join('')}</tr><tr class="header-sub">${workingDaysInM.map(d => `<td>${d.getDate()}/${filterMonth + 1}</td>`).join('')}</tr>${plans.map((plan, index) => { const rowClass = index % 2 === 0 ? 'data-row' : 'gray-row'; return `<tr class="${rowClass}"><td>${index + 1}</td><td style="font-weight: bold;">${plan.supervisorName}</td>${workingDaysInM.map(d => { const dayNum = d.getDate(); const key = 'd_' + dayNum; const mandKey = getMandatoryKey(currentYear, filterMonth, dayNum); const task = mandatoryEvents[mandKey] || plan.visits[key] || ''; return `<td>${task}</td>`; }).join('')}</tr>`; }).join('')}</table></body></html>`;
+                const blob = new Blob([table], { type: 'application/vnd.ms-excel;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `تقرير_${filterMonth+1}_${currentYear}.xls`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            };
+            const filteredPlans = plans.filter(p => { const s = searchTerm.toLowerCase(); return (p.supervisorName || '').toLowerCase().includes(s) || (p.supervisorId || '').toLowerCase().includes(s); });
+            const currentMonthEvents = useMemo(() => Object.entries(mandatoryEvents).map(([k,t]) => { const [y, m, d] = k.split('_').map(Number); const eventDate = new Date(y, m, d); const dayName = eventDate.toLocaleDateString('ar-EG', { weekday: 'long' }); return {y,m,d,t,dayName,key:k}; }).filter(e => e.y === currentYear && e.m === filterMonth).sort((a,b)=>a.d-b.d), [mandatoryEvents, currentYear, filterMonth]);
+
+            return (
+                <div className="min-h-screen bg-gray-100 font-sans" dir="rtl">
+                {editingPlan && <AdminPlanEditor plan={editingPlan} mandatoryEvents={mandatoryEvents} onClose={() => setEditingPlan(null)} onSave={saveAdminEdit} />}
+                <ChangePasswordModal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} onSave={handleChangeAdminPassword} title="تغيير كلمة مرور المسؤول" />
+                <div className="bg-gray-900 text-white p-4 flex justify-between"><h1 className="font-bold flex gap-2 items-center"><Users/> لوحة الإدارة</h1><div className="flex gap-2"><button onClick={() => setShowPasswordModal(true)} className="flex items-center gap-1 text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded transition"><KeyRound size={16} /> تغيير الرمز</button><button onClick={onLogout} className="flex items-center gap-2 text-gray-300 hover:text-white px-3 py-1 rounded transition"><span>خروج</span><LogOut size={18} /></button></div></div>
+                <div className="max-w-7xl mx-auto p-6 space-y-6">
+                    <div className="grid md:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 rounded shadow"><h3 className="font-bold text-sm mb-2">التاريخ</h3><div className="flex gap-2"><select value={filterMonth} onChange={e=>setFilterMonth(parseInt(e.target.value))} className="w-1/2 border p-2 rounded">{Array.from({length:12},(_,i)=><option key={i} value={i}>شهر {i+1}</option>)}</select><select value={currentYear} onChange={e=>setCurrentYear(parseInt(e.target.value))} className="w-1/2 border p-2 rounded">{yearsList.map(y => <option key={y} value={y}>{y}</option>)}</select></div></div>
+                    <button onClick={toggleSubmission} className={`p-4 rounded font-bold shadow ${settings.isOpen?'bg-red-50 text-red-600':'bg-emerald-50 text-emerald-600'}`}>{settings.isOpen?'إغلاق التسجيل':'فتح التسجيل'}</button>
+                    <div className="md:col-span-2 bg-orange-50 p-4 rounded shadow border border-orange-200">
+                        <div className="flex gap-2"><select value={newEventDay} onChange={e=>setNewEventDay(parseInt(e.target.value))} className="p-2 rounded border w-32 text-xs">{daysInSelectedMonth.map(day => (<option key={day.num} value={day.num} className={day.isWeekend ? 'text-red-500' : ''}>{day.num} - {day.name} {day.isWeekend ? '(عطلة)' : ''}</option>))}</select><input value={newEventText} onChange={e=>setNewEventText(e.target.value)} placeholder="حدث إلزامي..." className="flex-1 p-2 rounded border" /><button onClick={handleEventSubmit} className="bg-orange-600 text-white px-4 rounded hover:bg-orange-700">{editingEventKey?'تعديل':'إضافة'}</button>{editingEventKey && <button onClick={()=>{setEditingEventKey(null);setNewEventText('');}} className="bg-gray-300 px-3 rounded">إلغاء</button>}</div>
+                        <div className="flex flex-wrap gap-2 mt-2">{currentMonthEvents.map(evt => (<div key={evt.key} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full flex gap-1 items-center border border-orange-200"><b>{evt.d} ({evt.dayName}):</b> {evt.t}<button onClick={()=>{setNewEventDay(evt.d);setNewEventText(evt.t);setEditingEventKey(evt.key)}}><Edit size={12}/></button><button onClick={()=>deleteMandatoryEvent(evt.key)}><Trash2 size={12}/></button></div>))}</div>
+                    </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200"><h3 className="text-gray-500 text-sm font-bold mb-3">التقارير المجمعة</h3><button onClick={exportToExcel} className="w-full py-2 rounded-lg font-bold flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"><FileSpreadsheet size={18} /> تصدير تقرير شامل (تنسيق Excel مطابق للصورة)</button></div>
+                    <div className="bg-white rounded shadow overflow-hidden">
+                    <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-wrap gap-4 justify-between items-center"><div className="flex items-center gap-2"><CheckCircle className="text-emerald-500" size={20} /><h2 className="font-bold text-gray-700">الخطط المستلمة ({filteredPlans.length})</h2></div><div className="relative w-full md:w-64"><Search className="absolute right-3 top-3 text-gray-400 w-4 h-4" /><input type="text" placeholder="بحث بالاسم..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm" /></div></div>
+                    <table className="w-full text-right"><thead className="bg-gray-100 text-sm"><tr><th className="p-4">الاسم</th><th className="p-4">الرقم</th><th className="p-4">إجراءات</th></tr></thead><tbody className="divide-y">{filteredPlans.map((plan, idx) => (<tr key={idx} className="hover:bg-gray-50"><td className="p-4 font-bold">{plan.supervisorName}</td><td className="p-4 text-gray-500">{plan.supervisorId}</td><td className="p-4 flex gap-2"><button onClick={()=>setEditingPlan(plan)} className="bg-blue-50 text-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-100"><Edit size={16}/> تعديل</button><button onClick={() => downloadSinglePlan(plan)} className="bg-green-50 text-green-600 px-3 py-1 rounded text-sm hover:bg-green-100 flex items-center gap-1" title="تنزيل الخطة"><Download size={16}/> تنزيل (Excel ملون)</button></td></tr>))} {plans.length===0 && <tr><td colSpan="3" className="p-8 text-center text-gray-400">لا توجد خطط</td></tr>}</tbody></table>
+                    </div>
+                </div>
+                <AppFooter />
+                </div>
+            );
+        }
+
+        // --- المكون الرئيسي الذي يدير العرض ---
+        function App() {
+            const [user, setUser] = useState(null);
+            const [role, setRole] = useState(null);
+            const [supervisorData, setSupervisorData] = useState({ name: '', jobId: '' });
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(firebaseError);
+
+            useEffect(() => {
+                if (error) { setLoading(false); return; }
+                if (!auth) return;
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                        else await signInAnonymously(auth);
+                    } catch (err) { setError("فشل الاتصال."); setLoading(false); }
                 };
-                saveVisitTypes();
-                currentVisitTypeKey = newKey;
-                renderManagerModal();
-                populateVisitTypeDropdown();
-                renderObjectivesForCurrentType();
-                addEditTypeModal.classList.add('hidden');
-            });
+                initAuth();
+                return onAuthStateChanged(auth, (u) => { if(u) { setUser(u); setLoading(false); } });
+            }, [error]);
 
-            function renderManagerModal() {
-                visitTypesList.innerHTML = '';
-                 Object.keys(visitTypesData).forEach(key => {
-                    const type = visitTypesData[key];
-                    const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center p-2 bg-gray-50 rounded-lg';
-                    item.innerHTML = `<span class="font-medium">${type.name}</span><div class="flex gap-2"><button data-key="${key}" class="edit-btn text-sm text-blue-600 hover:underline">تعديل</button><button data-key="${key}" class="delete-btn text-sm text-red-600 hover:underline">حذف</button></div>`;
-                    visitTypesList.appendChild(item);
-                });
-            }
+            const handleLogout = () => { setRole(null); setSupervisorData({name:'', jobId:''}); };
 
-            // --- APP START ---
-            function initializeApp() {
-                loadData();
-                populateVisitTypeDropdown();
-                renderObjectivesForCurrentType();
-                showDashboardView();
-            }
+            if (error) return <div className="flex h-screen items-center justify-center text-red-600">{error}</div>;
+            if (loading) return <div className="h-screen flex items-center justify-center text-emerald-600 font-bold">جاري التحميل...</div>;
 
-            initializeApp();
-        });
+            if (!role) return <LoginScreen onLogin={(r, d) => { setRole(r); if(d) setSupervisorData(d); }} user={user} />;
+            if (role === 'admin') return <AdminDashboard user={user} onLogout={handleLogout} />;
+            return <SupervisorDashboard user={user} supervisorData={supervisorData} onLogout={handleLogout} />;
+        }
+
+        // --- مكون تعديل الخطة (Admin) ---
+        function AdminPlanEditor({ plan, mandatoryEvents, onClose, onSave }) {
+            const [localVisits, setLocalVisits] = useState(plan.visits || {});
+            const [isSaving, setIsSaving] = useState(false);
+            const workingDays = useMemo(() => getWorkingDaysInMonth(plan.year, plan.month), [plan.year, plan.month]);
+            const handleSave = async () => { setIsSaving(true); await onSave(localVisits); setIsSaving(false); };
+            return (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"><div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"><div className="p-4 border-b flex justify-between bg-gray-50 rounded-t-2xl"><h3 className="font-bold">تعديل: {plan.supervisorName}</h3><button onClick={onClose}><X size={20}/></button></div><div className="overflow-y-auto p-4 flex-1 bg-gray-50"><div className="space-y-2">{workingDays.map((date) => { const dayNum = date.getDate(); const dayName = date.toLocaleDateString('ar-EG', { weekday: 'long' }); const key = `d_${dayNum}`; const mandKey = getMandatoryKey(plan.year, plan.month, dayNum); return (<div key={key} className={`flex gap-2 p-2 rounded border items-center ${mandatoryEvents[mandKey] ? 'bg-orange-100' : 'bg-white'}`}><div className="w-24 text-center border-l pl-2 ml-2 border-gray-200"><div className="font-bold text-gray-800 text-sm">{dayName}</div><div className="text-xs text-gray-500">{dayNum} / {plan.month + 1}</div></div>{mandatoryEvents[mandKey] ? (<div className="flex-1 text-orange-800 flex items-center gap-2"><Lock size={14}/> {mandatoryEvents[mandKey]}</div>) : (<input className="flex-1 p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none" value={localVisits[key]||''} onChange={e=>setLocalVisits({...localVisits, [key]: e.target.value})} placeholder="أدخل المهمة..." />)}</div>); })}</div></div><div className="p-4 border-t flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded transition-colors">إلغاء</button><button onClick={handleSave} disabled={isSaving} className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition-colors flex items-center gap-2">{isSaving ? 'جاري الحفظ...' : <><Save size={18} /> حفظ التعديلات</>}</button></div></div></div>
+            );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
-
 </body>
 </html>
-
