@@ -20,6 +20,7 @@
         "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
         "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
         "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js",
+        "firebase/analytics": "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js",
         "lucide-react": "https://esm.sh/lucide-react@0.294.0"
       }
     }
@@ -56,6 +57,7 @@
         import React, { useState, useEffect, useMemo, Component } from 'react';
         import { createRoot } from 'react-dom/client';
         import { initializeApp } from 'firebase/app';
+        import { getAnalytics } from 'firebase/analytics';
         import { 
             getAuth, 
             signInAnonymously, 
@@ -83,7 +85,7 @@
         } from 'lucide-react';
 
         // -----------------------------------------------------------
-        // ⚠️ منطقة إعدادات فايربيس (تم التحديث)
+        // ⚠️ إعدادات فايربيس (تمت الإضافة)
         // -----------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyAUknGaMIWzeYLWlp-EUZtFzshNaewjwDc",
@@ -96,7 +98,7 @@
         };
         // -----------------------------------------------------------
 
-        let app, auth, db;
+        let app, auth, db, analytics;
         let firebaseError = null;
 
         try {
@@ -107,15 +109,16 @@
                 auth = getAuth(app);
                 db = initializeFirestore(app, { experimentalForceLongPolling: true });
             } 
-            // 2. استخدام الإعدادات اليدوية (عند التشغيل محلياً)
+            // 2. استخدام الإعدادات اليدوية (عند التشغيل محلياً أو بعد النشر)
             else if (firebaseConfig.apiKey) {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = initializeFirestore(app, { experimentalForceLongPolling: true });
+                analytics = getAnalytics(app); // تفعيل التحليلات
             } 
             // 3. خطأ: لا توجد إعدادات
             else {
-                firebaseError = "إعدادات Firebase مفقودة. يرجى فتح ملف HTML وإضافة بيانات مشروعك.";
+                firebaseError = "إعدادات Firebase مفقودة. يرجى التأكد من نسخ الكود بشكل صحيح.";
             }
         } catch (e) {
             console.error("Firebase Init Error:", e);
@@ -517,6 +520,7 @@
             );
         }
 
+        // --- Admin Dashboard ---
         function AdminDashboard({ user, onLogout }) {
             const [settings, setSettings] = useState({ isOpen: false });
             const [plans, setPlans] = useState([]);
@@ -544,7 +548,7 @@
                     const p = []; snap.forEach(d => { if(d.data().month === filterMonth) p.push(d.data()) }); setPlans(p);
                 });
                 return () => { unsub1(); unsub2(); unsub3(); };
-            }, [filterMonth, user]); // Add user dependency
+            }, [filterMonth, user]);
 
             const toggleSubmission = async () => setDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings'), { isOpen: !settings.isOpen }, { merge: true });
             const handleEventSubmit = async () => {
