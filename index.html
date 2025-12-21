@@ -549,19 +549,7 @@
                 });
                 return () => { unsub1(); unsub2(); unsub3(); };
             }, [filterMonth, user]);
-            
- // دالة لتغيير الشهر النشط (وحفظه في الإعدادات) - التغيير هنا
-            const handleMonthYearChange = async (month, year) => {
-                setFilterMonth(month);
-                setCurrentYear(year);
-                
-                // حفظ الاختيار في الإعدادات ليكون افتراضياً للمشرفين
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings'), { 
-                    targetMonth: month, 
-                    targetYear: year 
-                }, { merge: true });
-            };
-
+                    
             const toggleSubmission = async () => setDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTIONS.CONFIG, 'settings'), { isOpen: !settings.isOpen }, { merge: true });
             const handleEventSubmit = async () => {
                 if (!newEventText.trim()) return;
