@@ -416,10 +416,26 @@
                 });
             }, [supervisorData.jobId, currentMonth, currentYear, user]);
 
+            // ✨ حساب هل الشهر الحالي قابل للتعديل أم لا
+            const isEditable = useMemo(() => {
+                // 1. إذا كان النظام مغلق بالكامل
+                if (!settings.isOpen) return false;
+
+                // 2. إذا حدد المسؤول شهراً معيناً (activeMonth/activeYear)
+                if (settings.activeMonth !== undefined && settings.activeMonth !== null && 
+                    settings.activeYear !== undefined && settings.activeYear !== null) {
+                    // نسمح بالتعديل فقط إذا كنا في نفس الشهر والسنة المحددين
+                    return currentMonth === settings.activeMonth && currentYear === settings.activeYear;
+                }
+
+                // 3. إذا لم يحدد المسؤول شهراً معيناً وكان النظام مفتوحاً، نسمح بالتعديل
+                return true;
+            }, [settings, currentMonth, currentYear]);
+
             const workingDays = useMemo(() => getWorkingDaysInMonth(currentYear, currentMonth), [currentYear, currentMonth]);
 
             const handleInputChange = (key, value) => {
-                if (!settings.isOpen) return;
+                if (!isEditable) return; // حماية إضافية
                 setPlanData(prev => ({ ...prev, [key]: value }));
             };
 
@@ -430,7 +446,7 @@
             };
 
             const savePlan = async () => {
-                if (!settings.isOpen || !db) return;
+                if (!isEditable || !db) return;
                 setIsSaving(true);
                 try {
                     const planId = `${supervisorData.jobId}_${currentYear}_${currentMonth}`;
@@ -460,6 +476,26 @@
                 await updateDoc(docRef, { list: newList });
             };
 
+            // تحديد رسالة الحالة
+            let statusText = '';
+            let statusClass = '';
+            if (settings.isOpen) {
+                if (isEditable) {
+                    statusText = '🟢 التسجيل متاح';
+                    statusClass = 'bg-green-100 text-green-800';
+                } else {
+                    // مفتوح من الإدارة لكن مغلق لأننا في شهر مختلف
+                    const targetMonthName = settings.activeMonth !== undefined 
+                        ? `${settings.activeMonth + 1}/${settings.activeYear}` 
+                        : 'الحالي';
+                    statusText = `🟡 التسجيل متاح فقط لشهر (${targetMonthName}) - هذا الشهر للعرض فقط`;
+                    statusClass = 'bg-yellow-100 text-yellow-800';
+                }
+            } else {
+                statusText = '🔴 التسجيل مغلق من الإدارة';
+                statusClass = 'bg-red-100 text-red-800';
+            }
+
             return (
                 <div className="bg-gray-50 min-h-screen flex flex-col" dir="rtl">
                 <ChangePasswordModal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} onSave={handleChangePassword} />
@@ -471,7 +507,12 @@
                     <button onClick={onLogout} className="bg-emerald-700 p-2 rounded-full hover:bg-emerald-800"><LogOut size={18} /></button>
                     </div>
                 </header>
-                <div className={`p-2 text-center text-xs font-bold no-print ${settings.isOpen ? 'bg-green-100 text-green-800':'bg-red-100 text-red-800'}`}>{settings.isOpen ? '🟢 التسجيل متاح' : '🔴 التسجيل مغلق'}</div>
+                
+                {/* شريط الحالة */}
+                <div className={`p-2 text-center text-xs font-bold no-print ${statusClass}`}>
+                    {statusText}
+                </div>
+
                 <div className="max-w-4xl mx-auto p-4 space-y-4 flex-grow w-full printable-content">
                     <PrintHeader supervisorData={supervisorData} month={currentMonth} year={currentYear} /> 
                     <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm no-print">
@@ -498,7 +539,14 @@
                                 <td className="p-2 relative">
                                 {mandEvt ? (<div className="flex items-center gap-2 text-orange-700 font-bold px-2"><Lock size={16} className="no-print"/>{mandEvt}</div>) : (
                                     <div className="relative">
-                                        <input type="text" disabled={!settings.isOpen} value={currentVal} onChange={e=>handleInputChange(key, e.target.value)} placeholder={settings.isOpen?"...":""} className={`w-full p-2 border rounded outline-none focus:ring-2 focus:ring-emerald-500 bg-transparent ${conflict ? 'border-red-300 bg-red-50' : ''}`} />
+                                        <input 
+                                            type="text" 
+                                            disabled={!isEditable} 
+                                            value={currentVal} 
+                                            onChange={e=>handleInputChange(key, e.target.value)} 
+                                            placeholder={isEditable ? "..." : ""} 
+                                            className={`w-full p-2 border rounded outline-none focus:ring-2 focus:ring-emerald-500 bg-transparent ${conflict ? 'border-red-300 bg-red-50' : ''} ${!isEditable ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`} 
+                                        />
                                         {conflict && (<div className="absolute top-full right-0 mt-1 z-10 bg-red-100 text-red-700 text-[10px] px-2 py-1 rounded shadow-sm border border-red-200 flex items-center gap-1 no-print animate-fade-in"><AlertCircle size={10} /><span>تكرار: شهر {conflict.month + 1}/{conflict.year}</span></div>)}
                                     </div>
                                 )}
@@ -511,10 +559,11 @@
                     </div>
                     <PrintSignatureSection /> 
                 </div>
-                {settings.isOpen && (
+                {/* زر الحفظ يظهر فقط عند القابلية للتعديل */}
+                {isEditable && (
                     <div className="fixed bottom-6 left-6 right-6 max-w-4xl mx-auto flex flex-col items-end gap-2 pointer-events-none no-print">
                     {statusMsg && <div className="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm mb-2">{statusMsg}</div>}
-                    <button onClick={savePlan} disabled={isSaving} className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-lg pointer-events-auto">{isSaving ? '...' : <><Save size={20} /><span>حفظ</span></>}</button>
+                    <button onClick={savePlan} disabled={isSaving} className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-lg pointer-events-auto hover:bg-emerald-700 transition-colors">{isSaving ? '...' : <><Save size={20} /><span>حفظ</span></>}</button>
                     </div>
                 )}
                 <AppFooter />
